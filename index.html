@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#111111">
+<title>Tonnenmeldung</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --or:#E85C00;--orl:#FF7A20;
+  --bg:#111111;--sf:#1E1E1E;--sf2:#2A2A2A;
+  --bd:#333333;--tx:#F0F0F0;--txm:#888888;
+  --ok:#3DBD7D;--err:#E84040;--warn:#FFB020;
+  --r:12px;
+}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+
+.hdr{background:var(--sf);border-bottom:1px solid var(--bd);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr-ico{width:38px;height:38px;background:var(--or);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hdr-title{font-size:18px;font-weight:700;letter-spacing:.4px}
+.hdr-sub{font-size:12px;color:var(--txm);margin-top:1px}
+
+.content{flex:1;overflow-y:auto;padding:14px 14px 6px;-webkit-overflow-scrolling:touch}
+
+.tabs{display:flex;background:var(--sf);border-top:1px solid var(--bd);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0)}
+.tab{flex:1;padding:11px 8px 9px;text-align:center;cursor:pointer;border:none;background:none;color:var(--txm);font-size:10px;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s;-webkit-tap-highlight-color:transparent}
+.tab.active{color:var(--or)}
+.tab-ico{font-size:21px;line-height:1}
+
+.card{background:var(--sf);border-radius:var(--r);border:1px solid var(--bd);margin-bottom:12px;overflow:hidden}
+.card-hd{padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--txm);border-bottom:1px solid var(--bd);background:var(--sf2)}
+.card-bd{padding:14px}
+
+.field{margin-bottom:11px}
+.field:last-child{margin-bottom:0}
+label{display:block;font-size:12px;color:var(--txm);margin-bottom:5px;font-weight:600}
+input[type=text],input[type=email],textarea{width:100%;background:var(--sf2);border:1.5px solid var(--bd);border-radius:8px;color:var(--tx);font-family:inherit;font-size:16px;padding:11px 13px;-webkit-appearance:none;appearance:none;transition:border-color .15s}
+input:focus,textarea:focus{outline:none;border-color:var(--or)}
+textarea{resize:none;min-height:78px}
+
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cat{background:var(--sf2);border:2px solid var(--bd);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s;font-family:inherit;color:var(--tx);font-size:13px;font-weight:500;line-height:1.3;-webkit-tap-highlight-color:transparent}
+.cat.sel{border-color:var(--or);background:rgba(232,92,0,.13);color:var(--orl)}
+.cat-ico{font-size:22px;display:block;margin-bottom:3px}
+
+.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.photo-slot{display:flex;flex-direction:column;gap:5px}
+.photo-slot-lbl{font-size:11px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.8px}
+.photo-zone{border:2px dashed var(--bd);border-radius:10px;padding:14px 6px;text-align:center;cursor:pointer;position:relative;min-height:98px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:border-color .15s}
+.photo-zone.has{border-style:solid;border-color:var(--ok);padding:0;min-height:90px}
+.photo-zone img{width:100%;height:90px;object-fit:cover;border-radius:8px;display:block}
+.photo-zone input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:0}
+.pico{font-size:26px}
+.ptxt{font-size:11px;color:var(--txm);margin-top:3px;line-height:1.3}
+.rbtn{background:none;border:none;color:var(--txm);font-size:11px;cursor:pointer;padding:2px 0;font-family:inherit;-webkit-tap-highlight-color:transparent;text-align:left}
+.rbtn:active{color:var(--tx)}
+
+.gps-row{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:var(--sf2);border-radius:8px}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.dot.wait{background:var(--txm)}.dot.spin{background:var(--warn);animation:blink 1s infinite}
+.dot.ok{background:var(--ok)}.dot.err{background:var(--err)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.gps-txt{font-size:13px}
+.gps-addr{font-size:13px;color:var(--tx);margin-top:2px;font-weight:500}
+.gps-co{font-size:11px;color:var(--txm);font-family:monospace;margin-top:2px;word-break:break-all}
+
+.btn{display:block;width:100%;padding:15px;border-radius:10px;border:none;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;text-align:center;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.btn-p{background:var(--or);color:#fff}
+.btn-p:active{background:#C04E00;transform:scale(.97)}
+.btn-s{background:var(--sf2);color:var(--tx);border:1px solid var(--bd);margin-top:8px}
+.btn-s:active{transform:scale(.97)}
+
+.dup-warn{display:none;background:rgba(232,64,64,.1);border:1.5px solid var(--err);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;white-space:nowrap;max-width:92vw;text-align:center}
+.toast.show{opacity:1}
+
+.hi{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:12px 13px;margin-bottom:10px}
+.hi-row{display:flex;align-items:flex-start;gap:8px}
+.hi-inf{flex:1;min-width:0}
+.hi-cat{font-size:13px;font-weight:700;color:var(--orl);margin-bottom:2px}
+.hi-time{font-size:11px;color:var(--txm);margin-bottom:4px}
+.hi-det{font-size:12px;color:var(--txm);line-height:1.5}
+.hi-imgs{display:flex;gap:4px;flex-shrink:0}
+.hi-img{width:46px;height:46px;object-fit:cover;border-radius:6px;border:1px solid var(--bd)}
+
+.empty{text-align:center;padding:48px 20px;color:var(--txm)}
+.empty-ico{font-size:52px;margin-bottom:12px}
+.req{color:var(--or)}
+.badge-ok{display:inline-block;background:rgba(61,189,125,.15);color:var(--ok);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700}
+.badge-warn{display:inline-block;background:rgba(255,176,32,.12);color:var(--warn);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-ico">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+  </div>
+  <div>
+    <div class="hdr-title">Tonnenmeldung</div>
+    <div class="hdr-sub" id="hdrSub">Bitte Einstellungen ausfüllen</div>
+  </div>
+</div>
+
+<!-- ═══ MELDUNG ═══ -->
+<div class="content" id="pMeldung">
+
+  <div class="card">
+    <div class="card-hd">Kategorie <span class="req">*</span></div>
+    <div class="card-bd">
+      <div class="cats">
+        <button class="cat" data-v="Chip defekt / nicht lesbar"><span class="cat-ico">📡</span>Chip defekt / nicht lesbar</button>
+        <button class="cat" data-v="Überfüllt"><span class="cat-ico">🗑️</span>Überfüllt</button>
+        <button class="cat" data-v="nicht (korrekt) bereitgestellt"><span class="cat-ico">🚫</span>nicht (korrekt) bereitgestellt</button>
+        <button class="cat" data-v="in Schüttung gefallen"><span class="cat-ico">⬇️</span>in Schüttung gefallen</button>
+        <button class="cat" data-v="Beschädigt"><span class="cat-ico">💥</span>Beschädigt</button>
+        <button class="cat" data-v="Sonstiges"><span class="cat-ico">📝</span>Sonstiges</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">
+      Fotos <span class="req">*</span>
+      <span id="photoSendHint" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;margin-left:4px"></span>
+    </div>
+    <div class="card-bd">
+      <div class="photo-grid">
+        <div class="photo-slot">
+          <div class="photo-slot-lbl">Tonne <span class="req">*</span></div>
+          <div class="photo-zone" id="zone1">
+            <input type="file" accept="image/*" capture="environment" id="input1">
+            <div id="plh1"><div class="pico">📷</div><div class="ptxt">Tonne fotografieren</div></div>
+            <img id="img1" style="display:none">
+          </div>
+          <button class="rbtn" id="rbtn1" style="display:none" onclick="retake(1)">🔁 wiederholen</button>
+        </div>
+        <div class="photo-slot">
+          <div class="photo-slot-lbl" style="color:var(--txm);font-weight:400">Strichcode <span style="font-size:10px">(optional)</span></div>
+          <div class="photo-zone" id="zone2">
+            <input type="file" accept="image/*" capture="environment" id="input2">
+            <div id="plh2"><div class="pico">🔍</div><div class="ptxt">Strichcode foto&shy;grafieren</div></div>
+            <img id="img2" style="display:none">
+          </div>
+          <button class="rbtn" id="rbtn2" style="display:none" onclick="retake(2)">🔁 wiederholen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dup-warn" id="dupWarn">
+    <div style="font-size:13px;font-weight:700;color:var(--err);margin-bottom:4px">⚠️ Tonne bereits gemeldet!</div>
+    <div id="dupWarnText" style="font-size:12px;color:var(--tx);line-height:1.6"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">GPS-Standort <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--ok)">— automatisch beim ersten Foto</span></div>
+    <div class="card-bd">
+      <div class="gps-row">
+        <div class="dot wait" id="gpsDot"></div>
+        <div style="flex:1">
+          <div class="gps-txt" id="gpsTxt">Wird beim Fotografieren ermittelt</div>
+          <div class="gps-addr" id="gpsAddr"></div>
+          <div class="gps-co" id="gpsCo"></div>
+        </div>
+      </div>
+      <button class="btn btn-s" style="margin-top:10px;padding:12px;font-size:14px" onclick="getGPS()">📍 Standort erneut ermitteln</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">Zusatzinformationen</div>
+    <div class="card-bd">
+      <div class="field">
+        <label>Strichcode-Nummer (falls lesbar)</label>
+        <input type="text" id="barcode" placeholder="z.B. DE-123456" inputmode="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Bemerkungen</label>
+        <textarea id="notes" placeholder="Weitere Hinweise zur Situation, Straße, Hausnummer …"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-p" id="sendBtn" onclick="sendReport()">📤 Meldung mit Fotos senden</button>
+  <div style="height:10px"></div>
+</div>
+
+<!-- ═══ EINSTELLUNGEN ═══ -->
+<div class="content" id="pEinst" style="display:none">
+
+  <div class="card">
+    <div class="card-hd">Fahrerdaten</div>
+    <div class="card-bd">
+      <div class="field">
+        <label>Fahrername <span class="req">*</span></label>
+        <input type="text" id="sName" placeholder="Vor- und Nachname" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Fahrzeug-Kennzeichen <span class="req">*</span></label>
+        <input type="text" id="sPlate" placeholder="z.B. FRI-MW 123" style="text-transform:uppercase" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Landkreis / Gemeinde <span class="req">*</span></label>
+        <input type="text" id="sDistrict" placeholder="z.B. Landkreis Friesland" autocomplete="off">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">E-Mail-Empfänger</div>
+    <div class="card-bd">
+      <div class="field">
+        <label>Dispo-E-Mail <span class="req">*</span></label>
+        <input type="email" id="sEmail" placeholder="dispo@betrieb.de" autocomplete="email" inputmode="email">
+      </div>
+      <div class="field">
+        <label>CC (optional)</label>
+        <input type="email" id="sCC" placeholder="leitung@betrieb.de" autocomplete="off" inputmode="email">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">Fotoversand</div>
+    <div class="card-bd" id="shareInfo" style="font-size:13px;line-height:1.7;color:var(--txm)">Wird geprüft …</div>
+  </div>
+
+  <button class="btn btn-p" onclick="saveSettings()">✓ Einstellungen speichern</button>
+  <div style="height:10px"></div>
+</div>
+
+<!-- ═══ VERLAUF ═══ -->
+<div class="content" id="pVerlauf" style="display:none">
+  <div id="histList"></div>
+  <div id="clearWrap" style="display:none;padding-bottom:10px">
+    <button class="btn btn-s" style="font-size:13px;color:var(--err);border-color:var(--err);padding:11px" onclick="clearHistory()">🗑️ Verlauf löschen</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="t-m" onclick="goTab('m')"><span class="tab-ico">🚨</span><span>Meldung</span></button>
+  <button class="tab" id="t-e" onclick="goTab('e')"><span class="tab-ico">⚙️</span><span>Einstellungen</span></button>
+  <button class="tab" id="t-v" onclick="goTab('v')"><span class="tab-ico">📋</span><span>Verlauf</span></button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var cat='', gps=null, photo1=null, photo2=null, canShare=false;
+
+function ls(k,v){
+  if(v===undefined){try{return JSON.parse(localStorage.getItem('tm3_'+k))}catch(e){return null}}
+  localStorage.setItem('tm3_'+k,JSON.stringify(v));
+}
+
+function init(){
+  var s=ls('s')||{};
+  ['sName','sPlate','sDistrict','sEmail','sCC'].forEach(function(id){
+    var key={'sName':'name','sPlate':'plate','sDistrict':'district','sEmail':'email','sCC':'cc'}[id];
+    if(s[key])document.getElementById(id).value=s[key];
+  });
+  updateHeader(s);
+
+  document.querySelectorAll('.cat').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.cat').forEach(function(x){x.classList.remove('sel')});
+      b.classList.add('sel'); cat=b.dataset.v;
+    });
+  });
+  document.getElementById('input1').addEventListener('change',function(e){handlePhoto(e,1)});
+  document.getElementById('input2').addEventListener('change',function(e){handlePhoto(e,2)});
+  document.getElementById('sPlate').addEventListener('input',function(){this.value=this.value.toUpperCase()});
+  document.getElementById('barcode').addEventListener('input',checkDup);
+
+  detectShareSupport();
+}
+
+function goTab(t){
+  var map={m:'pMeldung',e:'pEinst',v:'pVerlauf'};
+  Object.keys(map).forEach(function(k){
+    document.getElementById(map[k]).style.display=k===t?'block':'none';
+    document.getElementById('t-'+k).classList.toggle('active',k===t);
+  });
+  if(t==='v')renderHistory();
+}
+
+/* ── Share support ── */
+function detectShareSupport(){
+  var infoEl=document.getElementById('shareInfo');
+  var hintEl=document.getElementById('photoSendHint');
+  try{
+    var probe=new File(['x'],'t.jpg',{type:'image/jpeg'});
+    canShare=!!(navigator.canShare&&navigator.canShare({files:[probe]}));
+  }catch(e){canShare=false;}
+
+  if(canShare){
+    hintEl.style.color='var(--ok)';
+    hintEl.textContent='— werden als Anhang mitgesendet';
+    infoEl.innerHTML='<span class="badge-ok">✓ Direktversand aktiv</span><br>'
+      +'Fotos werden beim Senden automatisch als Anhang angehängt. '
+      +'Im Teilen-Dialog Ihre E-Mail-App auswählen – Empfänger und Text sind vorausgefüllt.';
+  }else{
+    hintEl.style.color='var(--warn)';
+    hintEl.textContent='— manuell anfügen (kein Direktversand)';
+    infoEl.innerHTML='<span class="badge-warn">⚠ Kein Direktversand</span><br>'
+      +'Dieses Gerät unterstützt keinen automatischen Fotoanhang via Browser. '
+      +'Die Textmeldung wird per E-Mail gesendet; Fotos bitte danach manuell anfügen. '
+      +'Die Fotos werden im Verlauf gespeichert.';
+  }
+}
+
+/* ── Photos ── */
+function handlePhoto(e,n){
+  var f=e.target.files[0]; if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    if(n===1){photo1=ev.target.result; if(!gps)getGPS();}
+    else{photo2=ev.target.result;}
+    document.getElementById('img'+n).src=ev.target.result;
+    document.getElementById('img'+n).style.display='block';
+    document.getElementById('plh'+n).style.display='none';
+    document.getElementById('zone'+n).classList.add('has');
+    document.getElementById('rbtn'+n).style.display='block';
+    checkDup();
+  };
+  r.readAsDataURL(f);
+}
+
+function retake(n){
+  if(n===1)photo1=null; else photo2=null;
+  document.getElementById('img'+n).style.display='none';
+  document.getElementById('plh'+n).style.display='flex';
+  document.getElementById('zone'+n).classList.remove('has');
+  document.getElementById('rbtn'+n).style.display='none';
+  document.getElementById('input'+n).value='';
+}
+
+/* ── GPS ── */
+function getGPS(){
+  var dot=document.getElementById('gpsDot'),
+      txt=document.getElementById('gpsTxt'),
+      co=document.getElementById('gpsCo'),
+      addr=document.getElementById('gpsAddr');
+  dot.className='dot spin'; txt.textContent='Ermittle Standort …'; co.textContent=''; addr.textContent='';
+  if(!navigator.geolocation){dot.className='dot err';txt.textContent='GPS nicht verfügbar';return;}
+  navigator.geolocation.getCurrentPosition(
+    function(p){
+      gps={lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.round(p.coords.accuracy),address:''};
+      dot.className='dot ok';
+      txt.textContent='Genauigkeit: ±'+gps.acc+' m';
+      co.textContent=gps.lat.toFixed(6)+', '+gps.lng.toFixed(6);
+      addr.textContent='Adresse wird ermittelt …';
+      fetch('https://nominatim.openstreetmap.org/reverse?lat='+gps.lat+'&lon='+gps.lng+'&format=json&addressdetails=1',
+        {headers:{'Accept-Language':'de'}})
+        .then(function(r){return r.json()})
+        .then(function(d){
+          var a=d.address||{};
+          var street=a.road||a.pedestrian||a.path||'';
+          var num=a.house_number||'';
+          var ort=a.city||a.town||a.village||a.hamlet||a.municipality||'';
+          var formatted='';
+          if(street&&num&&ort)
+            formatted=street+' in Höhe der Hausnr. '+num+' in '+ort;
+          else if(street&&ort)
+            formatted=street+' in '+ort;
+          else if(street&&num)
+            formatted=street+' in Höhe der Hausnr. '+num;
+          else
+            formatted=d.display_name||'';
+          gps.address=formatted;
+          gps.rawAddr=(street+(num?' '+num:'')+(ort?', '+ort:'')).trim()||d.display_name||'';
+          addr.textContent=formatted||'Adresse nicht gefunden';
+          checkDup();
+        })
+        .catch(function(){addr.textContent='Adresse nicht abrufbar';});
+    },
+    function(err){
+      dot.className='dot err';
+      txt.textContent=err.code===1?'GPS-Zugriff verweigert':'Standort nicht ermittelt';
+    },
+    {enableHighAccuracy:true, timeout:20000, maximumAge:0}
+  );
+}
+
+/* ── Duplicate detection ── */
+function haversine(a,b,c,d){
+  var R=6371000,f=Math.PI/180;
+  var x=(c-a)*f,y=(d-b)*f;
+  var q=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*f)*Math.cos(c*f)*Math.sin(y/2)*Math.sin(y/2);
+  return R*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q));
+}
+
+function findPrev(bc,g){
+  var hist=ls('h')||[],matches=[];
+  hist.forEach(function(r){
+    var byCode=bc&&r.bc&&bc.toLowerCase()===r.bc.toLowerCase();
+    var byGps=false;
+    if(!byCode&&g&&r.gps&&r.gps!=='Nicht ermittelt'){
+      var m=r.gps.match(/([-\d.]+),\s*([-\d.]+)/);
+      if(m&&haversine(g.lat,g.lng,parseFloat(m[1]),parseFloat(m[2]))<=30)byGps=true;
+    }
+    if(byCode||byGps)matches.push({r:r,how:byCode?'Strichcode':'GPS (≤30 m)'});
+  });
+  return matches;
+}
+
+function checkDup(){
+  var bc=document.getElementById('barcode').value.trim();
+  var m=findPrev(bc,gps);
+  var w=document.getElementById('dupWarn');
+  if(!m.length){w.style.display='none';return;}
+  w.style.display='block';
+  document.getElementById('dupWarnText').innerHTML=m.map(function(x){
+    return '→ <b>'+x.r.cat+'</b> am '+x.r.dt+' ('+x.how+')';
+  }).join('<br>');
+}
+
+function dupBlock(bc,g){
+  var m=findPrev(bc,g); if(!m.length)return'';
+  return'\n⚠️  ACHTUNG: TONNE BEREITS GEMELDET ('+m.length+'×)\n'
+    +m.map(function(x,i){return'  '+(i+1)+'. '+x.r.cat+' — '+x.r.dt+' ('+x.how+')'}).join('\n');
+}
+
+/* ── dataURL → File ── */
+function toFile(dataUrl,name){
+  var p=dataUrl.split(','),mime=p[0].match(/:(.*?);/)[1],b=atob(p[1]),n=b.length,u=new Uint8Array(n);
+  while(n--)u[n]=b.charCodeAt(n);
+  return new File([u],name,{type:mime});
+}
+
+/* ── Settings ── */
+function saveSettings(){
+  var s={
+    name:document.getElementById('sName').value.trim(),
+    plate:document.getElementById('sPlate').value.trim().toUpperCase(),
+    district:document.getElementById('sDistrict').value.trim(),
+    email:document.getElementById('sEmail').value.trim(),
+    cc:document.getElementById('sCC').value.trim()
+  };
+  if(!s.name||!s.plate||!s.district||!s.email){toast('⚠️ Pflichtfelder ausfüllen!','#E84040');return;}
+  ls('s',s); updateHeader(s); toast('✓ Einstellungen gespeichert');
+  setTimeout(function(){goTab('m');},600);
+}
+
+function updateHeader(s){
+  document.getElementById('hdrSub').textContent=
+    s&&s.name?s.name+' · '+(s.plate||''):'Bitte Einstellungen ausfüllen';
+}
+
+/* ── Send ── */
+function sendReport(){
+  var s=ls('s')||{};
+  if(!s.name||!s.email){toast('⚠️ Erst Einstellungen ausfüllen!','#E84040');goTab('e');return;}
+  if(!cat){toast('⚠️ Bitte Kategorie wählen!','#E84040');return;}
+  if(!photo1){toast('⚠️ Bitte Foto 1 aufnehmen!','#E84040');return;}
+
+  var now=new Date();
+  var dtDE=now.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  var bc=document.getElementById('barcode').value.trim();
+  var nt=document.getElementById('notes').value.trim();
+  var gpsStr=gps?gps.lat.toFixed(6)+', '+gps.lng.toFixed(6)+' (±'+gps.acc+' m)':'Nicht ermittelt';
+  var addrStr=gps&&gps.address?gps.address:'—';
+  var mapsUrl=gps?'https://maps.google.com/?q='+gps.lat+','+gps.lng:'';
+
+  var subj='Tonnenmeldung: '+cat+' — '+s.district+' — '+now.toLocaleDateString('de-DE');
+  var body=[
+    'TONNENMELDUNG — '+dtDE,
+    '══════════════════════════════════',
+    '',
+    'FAHRERDATEN',
+    'Fahrer:          '+s.name,
+    'Kennzeichen:     '+s.plate,
+    'Landkreis:       '+s.district,
+    '',
+    'MELDUNGSDETAILS',
+    'Kategorie:       '+cat,
+    'Strichcode:      '+(bc||'—'),
+    '',
+    'STANDORT',
+    'Adresse:         '+addrStr,
+    'GPS-Koordinaten: '+gpsStr,
+    mapsUrl?'Google Maps:     '+mapsUrl:'',
+    '',
+    'BEMERKUNGEN',
+    nt||'(keine)',
+    dupBlock(bc,gps),
+    '',
+    '══════════════════════════════════',
+    'Erstellt mit Tonnenmeldung v1.0'
+  ].join('\n');
+
+  /* Verlauf speichern – Fotos separat um localStorage-Quota zu schonen */
+  var hist=ls('h')||[];
+  var entryId=now.getTime();
+  hist.unshift({id:entryId,dt:dtDE,cat:cat,gps:gpsStr,addr:addrStr,
+    bc:bc,nt:nt,driver:s.name,plate:s.plate});
+  if(hist.length>30)hist.splice(30);
+  try{ls('h',hist);}catch(e){}
+  /* Fotos separat – wenn kein Platz: nur in-memory */
+  try{ls('p_'+entryId,{p1:photo1,p2:photo2||null});}catch(e){}
+
+  if(canShare){
+    var files=[toFile(photo1,'foto_tonne_'+entryId+'.jpg')];
+    if(photo2)files.push(toFile(photo2,'foto_strichcode_'+entryId+'.jpg'));
+    navigator.share({files:files,title:subj,text:body})
+      .then(function(){toast('✓ Meldung & Fotos erfolgreich geteilt');resetForm();})
+      .catch(function(err){if(err.name!=='AbortError'){fallbackMail(s,subj,body);resetForm();}});
+  }else{
+    fallbackMail(s,subj,body);
+    toast('✓ Meldung gesendet — Fotos bitte manuell anhängen');
+    resetForm();
+  }
+}
+
+function fallbackMail(s,subj,body){
+  var cc=s.cc?'&cc='+encodeURIComponent(s.cc):'';
+  var url='mailto:'+encodeURIComponent(s.email)+cc
+    +'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);
+  var a=document.createElement('a');
+  a.href=url; a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){document.body.removeChild(a);},300);
+}
+
+/* ── Reset ── */
+function resetForm(){
+  cat=''; gps=null; photo1=null; photo2=null;
+  document.querySelectorAll('.cat').forEach(function(b){b.classList.remove('sel')});
+  [1,2].forEach(function(n){
+    document.getElementById('img'+n).style.display='none';
+    document.getElementById('plh'+n).style.display='flex';
+    document.getElementById('zone'+n).classList.remove('has');
+    document.getElementById('rbtn'+n).style.display='none';
+    document.getElementById('input'+n).value='';
+  });
+  document.getElementById('barcode').value='';
+  document.getElementById('notes').value='';
+  document.getElementById('gpsDot').className='dot wait';
+  document.getElementById('gpsTxt').textContent='Wird beim Fotografieren ermittelt';
+  document.getElementById('gpsCo').textContent='';
+  document.getElementById('gpsAddr').textContent='';
+  document.getElementById('dupWarn').style.display='none';
+}
+
+/* ── History ── */
+function renderHistory(){
+  var hist=ls('h')||[];
+  var el=document.getElementById('histList');
+  var cw=document.getElementById('clearWrap');
+  if(!hist.length){
+    el.innerHTML='<div class="empty"><div class="empty-ico">📋</div><div style="font-size:14px">Noch keine Meldungen vorhanden</div></div>';
+    cw.style.display='none'; return;
+  }
+  cw.style.display='block';
+  el.innerHTML=hist.map(function(r){
+    var pdata=ls('p_'+r.id)||{};
+    var imgs=(pdata.p1?'<img src="'+pdata.p1+'" class="hi-img">':('' ))
+             +(pdata.p2?'<img src="'+pdata.p2+'" class="hi-img">':'');
+    return '<div class="hi"><div class="hi-row">'
+      +'<div class="hi-inf">'
+      +'<div class="hi-cat">'+r.cat+'</div>'
+      +'<div class="hi-time">'+r.dt+' &middot; '+r.driver+' &middot; '+r.plate+'</div>'
+      +'<div class="hi-det">'
+      +(r.bc?'📊 '+r.bc+'<br>':'')
+      +(r.addr&&r.addr!=='—'?'🏠 '+r.addr+'<br>':'')
+      +'📍 '+r.gps
+      +(r.nt?'<br>💬 '+r.nt:'')
+      +'</div></div>'
+      +(imgs?'<div class="hi-imgs">'+imgs+'</div>':'')
+      +'</div></div>';
+  }).join('');
+}
+
+function clearHistory(){
+  if(!confirm('Verlauf wirklich löschen?'))return;
+  var hist=ls('h')||[];
+  hist.forEach(function(r){localStorage.removeItem('tm3_p_'+r.id);});
+  ls('h',[]); renderHistory(); toast('Verlauf gelöscht');
+}
+
+/* ── Toast ── */
+function toast(msg,bg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=bg||'#3DBD7D';
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},3000);
+}
+
+init();
+</script>
+</body>
+</html>
