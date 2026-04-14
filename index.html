@@ -127,9 +127,9 @@ textarea{resize:none;min-height:78px}
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="photoCard">
     <div class="card-hd">
-      Fotos <span class="req">*</span>
+      Fotos <span class="req" id="photoReqMark">*</span>
       <span id="photoSendHint" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;margin-left:4px"></span>
     </div>
     <div class="card-bd">
@@ -162,7 +162,7 @@ textarea{resize:none;min-height:78px}
   </div>
 
   <div class="card">
-    <div class="card-hd">GPS-Standort <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--ok)">— automatisch beim ersten Foto</span></div>
+    <div class="card-hd">GPS-Standort <span id="gpsHint" style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;color:var(--ok)">— automatisch beim ersten Foto</span></div>
     <div class="card-bd">
       <div class="gps-row">
         <div class="dot wait" id="gpsDot"></div>
@@ -176,8 +176,7 @@ textarea{resize:none;min-height:78px}
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-hd">Zusatzinformationen</div>
+  <div class="card" id="zusatzCard">
     <div class="card-bd">
       <div class="field">
         <label>Strichcode-Nummer (falls lesbar)</label>
@@ -274,6 +273,7 @@ function init(){
     b.addEventListener('click',function(){
       document.querySelectorAll('.cat').forEach(function(x){x.classList.remove('sel')});
       b.classList.add('sel'); cat=b.dataset.v;
+      updateCatMode();
     });
   });
   document.getElementById('input1').addEventListener('change',function(e){handlePhoto(e,1)});
@@ -291,6 +291,16 @@ function goTab(t){
     document.getElementById('t-'+k).classList.toggle('active',k===t);
   });
   if(t==='v')renderHistory();
+}
+
+function updateCatMode(){
+  var schuett=(cat==='in Schüttung gefallen');
+  document.getElementById('photoCard').style.display=schuett?'none':'block';
+  document.getElementById('zusatzCard').style.display=schuett?'none':'block';
+  document.getElementById('sendBtn').textContent=schuett?'📤 Standort-Meldung senden':'📤 Meldung mit Fotos senden';
+  document.getElementById('gpsHint').textContent=schuett?'— bitte jetzt ermitteln':'— automatisch beim ersten Foto';
+  document.getElementById('gpsHint').style.color=schuett?'var(--warn)':'var(--ok)';
+  if(schuett&&!gps)getGPS();
 }
 
 /* ── Share support ── */
@@ -461,7 +471,9 @@ function sendReport(){
   var s=ls('s')||{};
   if(!s.name||!s.email){toast('⚠️ Erst Einstellungen ausfüllen!','#E84040');goTab('e');return;}
   if(!cat){toast('⚠️ Bitte Kategorie wählen!','#E84040');return;}
-  if(!photo1){toast('⚠️ Bitte Foto 1 aufnehmen!','#E84040');return;}
+  var schuett=(cat==='in Schüttung gefallen');
+  if(!schuett&&!photo1){toast('⚠️ Bitte Foto 1 aufnehmen!','#E84040');return;}
+  if(schuett&&!gps){toast('⚠️ Bitte zuerst Standort ermitteln!','#E84040');return;}
 
   var now=new Date();
   var dtDE=now.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
@@ -508,7 +520,7 @@ function sendReport(){
   /* Fotos separat – wenn kein Platz: nur in-memory */
   try{ls('p_'+entryId,{p1:photo1,p2:photo2||null});}catch(e){}
 
-  if(canShare){
+  if(canShare&&photo1){
     var files=[toFile(photo1,'foto_tonne_'+entryId+'.jpg')];
     if(photo2)files.push(toFile(photo2,'foto_strichcode_'+entryId+'.jpg'));
     navigator.share({files:files,title:subj,text:body})
@@ -516,7 +528,7 @@ function sendReport(){
       .catch(function(err){if(err.name!=='AbortError'){fallbackMail(s,subj,body);resetForm();}});
   }else{
     fallbackMail(s,subj,body);
-    toast('✓ Meldung gesendet — Fotos bitte manuell anhängen');
+    toast(photo1?'✓ Meldung gesendet — Fotos bitte manuell anhängen':'✓ Standort-Meldung gesendet');
     resetForm();
   }
 }
@@ -550,6 +562,7 @@ function resetForm(){
   document.getElementById('gpsCo').textContent='';
   document.getElementById('gpsAddr').textContent='';
   document.getElementById('dupWarn').style.display='none';
+  updateCatMode();
 }
 
 /* ── History ── */
