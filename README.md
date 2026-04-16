@@ -1,91 +1,64 @@
-Bedienungsanleitung: Tonnenmeldung (App v2.0)
+🚛 Benutzerhandbuch: Tonnenmeldung v2.0
+Effiziente Erfassung und Meldung von Tonnen-Problemen für das Dispositionsteam.
 
-Willkommen bei der App Tonnenmeldung v2.0. Diese Anwendung wurde speziell für den Außendienst entwickelt, um Störungen, Beschädigungen oder Fehlbefüllungen von Mülltonnen direkt auf der Tour schnell und digital an die Disposition zu melden.
-1. Erste Schritte: Grundeinstellungen
+1. Einleitung
+Die App Tonnenmeldung dient der schnellen Dokumentation von Problemen bei der Tonnenabholung. Sie ermöglicht es dem Fahrer, Fehler (z. B. defekte Chips, Fehlbefüllungen oder Standortprobleme) inklusive Foto-Beweis und präzisem GPS-Standort direkt an die Disposition zu senden.
 
-Bevor Sie Ihre erste Meldung versenden können, müssen Sie einmalig Ihre Nutzerdaten hinterlegen.
+2. Ersteinrichtung (Einmalig)
+Bevor die erste Meldung gesendet werden kann, müssen die Fahrerdaten hinterlegt werden.
 
-    Tippen Sie in der unteren Navigationsleiste auf den Reiter ⚙️ Einstellungen.
+Wechseln Sie zum Reiter Einstellungen ($\text{⚙️}$).
+Füllen Sie die Pflichtfelder ($\text{*}$) aus:
+Fahrername: Vor- und Nachname.
+Fahrzeug-Kennzeichen: Ihr aktuelles Fahrzeug (wird automatisch in Großbuchstaben umgewandelt).
+Landkreis / Gemeinde: Der aktuelle Einsatzbereich.
+Dispo-E-Mail: Die Adresse, an die die Meldungen gesendet werden sollen.
+Klicken Sie auf "Einstellungen speichern".
+3. Eine Meldung erstellen (Schritt-für-Schritt)
+Der gesamte Prozess findet im Reiter Meldung ($\text{🚨}$) statt.
 
-    Fahrerdaten ausfüllen: Tragen Sie Ihren Vor- und Nachnamen, das Fahrzeug-Kennzeichen sowie Ihren Landkreis/Ihre Gemeinde ein.
-
-    E-Mail-Empfänger festlegen: Tragen Sie die E-Mail-Adresse der Disposition ein. Optional können Sie eine CC-Adresse (z. B. für die Betriebsleitung) hinzufügen.
-
-    Tippen Sie auf „✓ Einstellungen speichern“.
-    Hinweis: Diese Daten bleiben lokal auf Ihrem Gerät gespeichert und werden bei jeder zukünftigen Meldung automatisch verwendet.
-
-2. Eine neue Meldung erfassen
-
-Der Reiter 🚨 Meldung ist Ihr Hauptbildschirm während der Tour. Gehen Sie wie folgt vor, um ein Problem zu dokumentieren:
 Schritt 1: Kategorie wählen
+Wählen Sie aus dem Raster die passende Kategorie aus (z. B. Überfüllt oder Beschädigt).
 
-Tippen Sie auf den zutreffenden Grund der Meldung (z. B. Chip defekt, Überfüllt, Fehlbefüllung oder Beschädigt).
+Spezialfall "In Schüttung gefallen": Bei dieser Auswahl werden keine Fotos benötigt; es wird lediglich der exakte GPS-Standort übermittelt.
 
-(Sonderfall: Wählen Sie „in Schüttung gefallen“, blendet die App die Fotofunktion aus und fokussiert sich ausschließlich auf die sofortige GPS-Standortermittlung.)
-Schritt 2: Fotos aufnehmen (Pflicht)
+Schritt 2: Fotos aufnehmen
+Klicken Sie auf die entsprechenden Foto-Zonen:
 
-Für eine vollständige Dokumentation benötigt das System fotografische Beweise.
+Tonne ($\text{📷}$): Ein Foto der Tonne/Situation (Pflichtfeld).
+Strichcode ($\text{🔍}$): Ein Foto des Barcodes (optional).
+Automatische Erkennung: Die App versucht, die Strichcode-Nummer automatisch aus dem Foto zu lesen und in das Textfeld einzutragen.
+Schritt 3: Standort-Check
+Der GPS-Standort wird automatisch beim ersten Foto ermittelt.
 
-    Tonne (Pflicht): Tippen Sie auf das linke Feld („Tonne fotografieren“) und machen Sie ein Bild der beanstandeten Tonne.
+Sie sehen die Genauigkeit (z. B. $\pm 5\text{m}$) und die ermittelte Adresse.
+Falls die Adresse nicht passt, nutzen Sie den Button "Standort erneut ermitteln".
+Schritt 4: Zusatzinfos & Senden
+Geben Sie bei Bedarf eine Strichcode-Nummer manuell ein oder schreiben Sie Bemerkungen in das Textfeld.
+Dubletten-Warnung: Wenn die App erkennt, dass diese Tonne (gleicher Barcode oder Standort) bereits gemeldet wurde, erscheint eine Warnung in Rot. Prüfen Sie, ob die Meldung wirklich erneut gesendet werden muss.
+Klicken Sie auf "Meldung senden".
+4. Versand & Teilen
+Je nach Gerät erfolgt der Versand unterschiedlich:
 
-    Strichcode (Optional): Tippen Sie auf das rechte Feld, um den Strichcode abzufotografieren.
+Direktversand: Es öffnet sich das Teilen-Menü Ihres Handys. Wählen Sie Ihre E-Mail-App aus. Die Fotos werden automatisch als Anhang beigefügt.
+Manueller Versand: Falls Ihr Gerät den Direktversand nicht unterstützt, wird die Meldung per E-Mail gestartet. Die Fotos sind im Verlauf gespeichert und müssen in diesem Fall manuell an die Mail angehängt werden.
+5. Verlauf & Verwaltung
+Im Reiter Verlauf ($\text{📋}$) finden Sie eine Übersicht aller gesendeten Meldungen.
 
-    Smart-Funktion: Wenn Ihr Gerät dies unterstützt, liest die App den Strichcode aus dem Foto automatisch aus und trägt die Nummer unten ins Textfeld ein.
+Suche: Filtern Sie Meldungen nach Datum, Ort, Strichcode oder Kategorie.
+Bearbeiten: Durch Klick auf "Bearbeiten" können Sie Kategorien oder Notizen korrigieren und die Meldung erneut senden.
+Archiv: Meldungen, die älter als 30 Tage sind, werden automatisch in das Archiv verschoben, um die Liste übersichtlich zu halten.
+Löschen: Einzelne Einträge oder der gesamte Verlauf können gelöscht werden.
+6. Daten-Export (für Büro/Leitung)
+Um eine Liste aller Meldungen für die Abrechnung oder Dokumentation zu erhalten:
 
-Schritt 3: GPS-Standort prüfen
-
-Sobald Sie das erste Foto aufnehmen, ermittelt die App automatisch im Hintergrund Ihren genauen GPS-Standort und wandelt diesen in eine Straßenadresse um.
-
-    Sollte die Adresse ungenau sein, können Sie jederzeit auf „📍 Standort erneut ermitteln“ tippen.
-
-Schritt 4: Zusatzinformationen & Absenden
-
-    Kontrollieren Sie die Strichcode-Nummer (falls vorhanden) und fügen Sie bei Bedarf kurze Bemerkungen im Textfeld hinzu.
-
-    Tippen Sie abschließend auf „📤 Meldung mit Fotos senden“.
-
-    Es öffnet sich der Teilen-Dialog Ihres Smartphones. Wählen Sie hier Ihre gewünschte E-Mail-App aus. Alle Daten sind bereits im Textfeld formatiert und die Fotos automatisch als komprimierte Anhänge beigefügt.
-
-3. Duplikat-Warnung (Sicherheitsfunktion)
-
-Das System denkt mit: Wenn Sie versuchen, eine Meldung abzusenden, gleicht die App diese mit Ihren vorherigen Meldungen ab.
-
-    Wird derselbe Strichcode erkannt oder befinden Sie sich im Umkreis von 15 Metern einer bereits gemeldeten Tonne, erscheint eine rote Warnmeldung (⚠️ Tonne bereits gemeldet!).
-
-    Sie können die Meldung trotzdem absenden, die Disposition wird in der E-Mail jedoch auf die Mehrfachmeldung hingewiesen.
-
-4. Verwaltung und Historie (Verlauf)
-
-Unter dem Reiter 📋 Verlauf finden Sie alle jemals getätigten Meldungen.
-Suchen und Filtern
-
-    Nutzen Sie die Suchleiste, um nach Datum, Straßenname oder Strichcode zu suchen.
-
-    Nutzen Sie das Dropdown-Menü, um sich nur Meldungen einer bestimmten Kategorie (z. B. nur „Überfüllt“) anzeigen zu lassen.
-
-Aktionen pro Eintrag
-
-Jeder Eintrag im Verlauf bietet drei Optionen:
-
-    ✏️ Bearbeiten: Korrigieren Sie nachträglich Kategorie, Strichcode oder Bemerkungen.
-
-    📤 Erneut senden: Versendet die exakt gleiche E-Mail samt Fotos noch einmal, falls beim ersten Mal etwas schiefgelaufen ist.
-
-    🗑 Löschen: Entfernt den Eintrag dauerhaft von Ihrem Gerät.
-
-Archivierung
-
-Um Ihr Gerät nicht zu überlasten, verschiebt die App Meldungen, die älter als 30 Tage sind, automatisch in das visuelle Archiv (am Ende der Verlaufsliste).
-Excel-Export (Für Berichte)
-
-Sie können Ihre gesammelten Daten als formatierte .xlsx-Tabelle exportieren:
-
-    Wählen Sie den gewünschten Zeitraum (Von / Bis).
-
-    Tippen Sie auf „⬇️ Herunterladen“ (um die Datei auf dem Handy zu speichern) oder auf „📤 Per Mail senden“ (um die Tabelle direkt an die Einsatzleitung zu schicken).
-
-5. Wichtige Hinweise & Datenschutz
-
-    Offline-Fähigkeit: Die App speichert alle Daten lokal auf Ihrem Smartphone. Wenn der Speicherplatz Ihres Handys voll läuft, löscht die App automatisch die ältesten Fotos im Verlauf, behält aber die Textdaten.
-
-    Datensparsamkeit: Die App komprimiert alle aufgenommenen Bilder vollautomatisch im Hintergrund. Dadurch wird Ihr mobiles Datenvolumen beim E-Mail-Versand massiv geschont.
+Gehen Sie zum Reiter Verlauf ($\text{📋}$).
+Wählen Sie den Zeitraum (Von $\rightarrow$ Bis) aus.
+Klicken Sie auf "Herunterladen", um eine Excel-Datei (.xlsx) zu speichern, oder auf "Per Mail senden", um die Tabelle direkt an die Zentrale zu schicken.
+7. Fehlerbehebung (FAQ)
+Problem	Lösung
+GPS wird nicht ermittelt	Prüfen Sie, ob die Standortberechtigung für den Browser in den Handy-Einstellungen aktiviert ist.
+Fotos werden nicht geladen	Die App komprimiert Bilder automatisch. Wenn der Speicher voll ist, löscht die App automatisch die ältesten Fotos.
+E-Mail öffnet sich nicht	Stellen Sie sicher, dass eine Standard-E-Mail-App (z. B. Gmail, Outlook) auf Ihrem Gerät eingerichtet ist.
+Senden-Button ist grau	Prüfen Sie, ob alle Pflichtfelder ($\text{*}$) ausgefüllt sind und eine Kategorie gewählt wurde.
+© Michael Elvey | Tonnenmeldung v2.0
