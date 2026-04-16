@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -26,7 +27,7 @@ body{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 .hdr-text{flex:1;min-width:0}
 .hdr-title{font-size:16px;font-weight:700;letter-spacing:.3px}
 .hdr-sub{font-size:10px;color:var(--txm);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hdr-copy{font-size:8px;color:#2e2e2e;text-align:right;flex-shrink:0;line-height:1.4}
+.hdr-copy{font-size:10px;color:var(--txm);text-align:right;flex-shrink:0;line-height:1.4}
 
 /* Content & Tabs */
 .content{flex:1;overflow-y:auto;padding:11px 11px 4px;-webkit-overflow-scrolling:touch}
@@ -152,6 +153,12 @@ input[type=date]{color-scheme:dark}
 .empty{text-align:center;padding:40px 16px;color:var(--txm)}
 .empty-ico{font-size:44px;margin-bottom:8px}
 .req{color:var(--or)}
+
+/* Help Styles */
+.help-text{font-size:12px;color:var(--tx);line-height:1.6}
+.help-list{margin: 10px 0; padding-left: 15px}
+.help-list li{margin-bottom: 8px; color: var(--txm)}
+.help-list b{color: var(--tx)}
 </style>
 </head>
 <body>
@@ -338,11 +345,56 @@ input[type=date]{color-scheme:dark}
   </div>
 </div>
 
+<!-- ══════════════════ TAB: HILFE ══════════════════ -->
+<div class="content" id="pHilfe" style="display:none">
+  <div class="card">
+    <div class="card-hd">Willkommen zur Tonnenmeldung</div>
+    <div class="card-bd help-text">
+      Diese App dient dazu, Probleme bei der Tonnenabholung schnell und präzise an die Disposition zu melden. Alle Daten werden lokal auf Ihrem Gerät gespeichert.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">🚀 Erste Schritte</div>
+    <div class="card-bd help-text">
+      <ul class="help-list">
+        <li><b>Einstellungen:</b> Gehen Sie zuerst auf den Reiter ⚙️, um Ihren Namen, das Kennzeichen und die Ziel-E-Mail-Adresse zu hinterlegen.</li>
+        <li><b>Kategorie wählen:</b> Wählen Sie im Reiter 🚨 die passende Kategorie für die Meldung aus.</li>
+        <li><b>Fotos aufnehmen:</b> Fotografieren Sie die Tonne. Der GPS-Standort wird automatisch beim ersten Foto ermittelt.</li>
+        <li><b>Senden:</b> Prüfen Sie die Details und klicken Sie auf "Meldung senden".</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">💡 Wichtige Funktionen</div>
+    <div class="card-bd help-text">
+      <ul class="help-list">
+        <li><b>Strichcode-Scan:</b> Wenn Sie ein Foto vom Strichcode machen, versucht die App, die Nummer automatisch zu erkennen.</li>
+        <li><b>Dubletten-Warnung:</b> Die App warnt Sie, wenn eine Tonne am selben Ort oder mit demselben Strichcode bereits gemeldet wurde.</li>
+        <li><b>Spezialfall "Schüttung":</b> Bei der Kategorie "In Schüttung gefallen" werden Fotos weggelassen, da hier nur der exakte GPS-Standort entscheidend ist.</li>
+        <li><b>Verlauf:</b> Unter 📋 finden Sie alle gesendeten Meldungen. Diese können Sie bearbeiten oder erneut senden.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hd">📊 Export & Archiv</div>
+    <div class="card-bd help-text">
+      <ul class="help-list">
+        <li><b>Excel-Export:</b> Sie können Zeiträume wählen und alle Meldungen als Tabelle herunterladen oder per Mail versenden.</li>
+        <li><b>Archiv:</b> Meldungen, die älter als 30 Tage sind, werden automatisch ins Archiv verschoben, um die Übersicht zu behalten.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
 <!-- ── Tab-Bar ── -->
 <div class="tabs">
   <button class="tab active" id="t-m" onclick="goTab('m')"><span class="tab-ico">🚨</span><span>Meldung</span></button>
   <button class="tab" id="t-e" onclick="goTab('e')"><span class="tab-ico">⚙️</span><span>Einstellungen</span></button>
   <button class="tab" id="t-v" onclick="goTab('v')"><span class="tab-ico">📋</span><span>Verlauf</span></button>
+  <button class="tab" id="t-h" onclick="goTab('h')"><span class="tab-ico">❓</span><span>Hilfe</span></button>
 </div>
 
 <!-- ── Edit-Modal ── -->
@@ -491,8 +543,8 @@ function pad2(n){return n<10?'0'+n:String(n);}
    TABS
 ═══════════════════════════════════════════ */
 function goTab(t){
-  ['m','e','v'].forEach(function(k){
-    var map={m:'pMeldung',e:'pEinst',v:'pVerlauf'};
+  ['m','e','v','h'].forEach(function(k){
+    var map={m:'pMeldung',e:'pEinst',v:'pVerlauf',h:'pHilfe'};
     document.getElementById(map[k]).style.display=k===t?'block':'none';
     document.getElementById('t-'+k).classList.toggle('active',k===t);
   });
@@ -1098,3 +1150,4 @@ init();
 </script>
 </body>
 </html>
+```
