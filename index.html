@@ -152,7 +152,7 @@ input[type=file].hidden{display:none!important}
       <div class="pgrid">
         <div>
           <div class="pslot" id="slot0" onclick="triggerPhoto(0)"><span class="pico">📷</span><span class="psub">Tonne / Behälter</span></div>
-          <div class="prq">* Pflichtfoto</div>
+          <div class="prq">Optionales Foto</div>
         </div>
         <div>
           <div class="pslot" id="slot1" onclick="triggerPhoto(1)"><span class="pico">🔍</span><span class="psub">Strichcode (optional)</span></div>
@@ -168,7 +168,7 @@ input[type=file].hidden{display:none!important}
       <div class="clabel">📍 GPS-Standort</div>
       <div class="gpsbox">
         <span class="gpsico" id="gpsIco">📡</span>
-        <div style="flex:1"><div class="gpstxt" id="gpsTxt">Wird beim ersten Foto automatisch erfasst</div><div class="gpssmall" id="gpsSub"></div></div>
+        <div style="flex:1"><div class="gpstxt" id="gpsTxt">Wird automatisch erfasst</div><div class="gpssmall" id="gpsSub"></div></div>
         <button class="gpsbtn" id="gpsBtn" onclick="captureGPS(true)">Jetzt</button>
       </div>
     </div>
@@ -188,7 +188,7 @@ input[type=file].hidden{display:none!important}
   <div class="pane" id="pane-v">
     <div class="sbar">
       <input type="text" id="stxt" placeholder="🔍 Suchen…" oninput="renderHistory()">
-      <select id="scat" onchange="renderHistory()"><option value="">Alle</option></select>
+      <select id="scat" onchange="renderHiso()"> <option value="">Alle</option></select>
     </div>
     <div id="histList"></div>
     <button class="btn btn-s" onclick="showExport()" style="margin-top:4px">📊 Excel-Export</button>
@@ -217,7 +217,7 @@ input[type=file].hidden{display:none!important}
     </div>
     <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
     <div style="text-align:center;margin-top:24px;color:var(--gray4);font-size:12px;line-height:1.8">
-      Mülltonnen-Meldung · Version 1.4<br>© Michael Elvey
+      Mülltonnen-Meldung · Version 1.5<br>© Michael Elvey
     </div>
   </div>
 </div>
@@ -315,7 +315,7 @@ function setGPS(gps, txt) {
     tico.textContent = '✅'; ttxt.textContent = gps.address||`${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`;
     tsub.textContent = `±${gps.accuracy}m | ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}`;
   } else {
-    tico.textContent = '📡'; ttxt.textContent = txt||'Wird beim ersten Foto automatisch erfasst'; tsub.textContent = '';
+    tico.textContent = '📡'; ttxt.textContent = txt||'Wird automatisch erfasst'; tsub.textContent = '';
   }
 }
 
@@ -382,6 +382,8 @@ async function tryBarcode(dataUrl) {
       document.getElementById('bcBox').classList.remove('hidden');
       document.getElementById('bcVal').textContent = cur.barcode;
       toast('📊 Strichcode erkannt: '+cur.barcode);
+      // GPS-Position beim Barcode-Scan erfassen
+      captureGPS(false);
     }
   } catch { }
 }
@@ -422,11 +424,11 @@ function checkDups() {
 
 async function sendEntry() {
   if(!cur.category) { toast('⚠️ Bitte Kategorie auswählen!'); return; }
-  const isSch = cur.category===NO_PHOTO;
-  if(!isSch&&!cur.photos[0]) { toast('⚠️ Bitte Foto aufnehmen!'); return; }
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
-  if(isSch&&!cur.gps) {
+  
+  // GPS-Standort erfassen, falls noch nicht gesperrt (egal ob Foto/Barcode vorhanden)
+  if(!cur.gps) {
     btn.innerHTML = '<span class="spin"></span>GPS wird erfasst…';
     await new Promise(res=>{
       navigator.geolocation.getCurrentPosition(async pos=>{
@@ -437,6 +439,7 @@ async function sendEntry() {
       },()=>res(),{enableHighAccuracy:true,timeout:20000});
     });
   }
+  
   btn.innerHTML = '<span class="spin"></span>Wird gesendet…';
   cur.notes = document.getElementById('notesIn').value.trim();
   cur.updatedAt = new Date().toISOString();
