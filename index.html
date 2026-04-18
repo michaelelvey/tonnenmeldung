@@ -188,7 +188,7 @@ input[type=file].hidden{display:none!important}
   <div class="pane" id="pane-v">
     <div class="sbar">
       <input type="text" id="stxt" placeholder="🔍 Suchen…" oninput="renderHistory()">
-      <select id="scat" onchange="renderHiso()"> <option value="">Alle</option></select>
+      <select id="scat" onchange="renderHistory()"><option value="">Alle</option></select>
     </div>
     <div id="histList"></div>
     <button class="btn btn-s" onclick="showExport()" style="margin-top:4px">📊 Excel-Export</button>
@@ -217,7 +217,7 @@ input[type=file].hidden{display:none!important}
     </div>
     <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
     <div style="text-align:center;margin-top:24px;color:var(--gray4);font-size:12px;line-height:1.8">
-      Mülltonnen-Meldung · Version 1.5<br>© Michael Elvey
+      Mülltonnen-Meldung · Version 1.6<br>© Michael Elvey
     </div>
   </div>
 </div>
@@ -382,7 +382,6 @@ async function tryBarcode(dataUrl) {
       document.getElementById('bcBox').classList.remove('hidden');
       document.getElementById('bcVal').textContent = cur.barcode;
       toast('📊 Strichcode erkannt: '+cur.barcode);
-      // GPS-Position beim Barcode-Scan erfassen
       captureGPS(false);
     }
   } catch { }
@@ -427,7 +426,6 @@ async function sendEntry() {
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
   
-  // GPS-Standort erfassen, falls noch nicht gesperrt (egal ob Foto/Barcode vorhanden)
   if(!cur.gps) {
     btn.innerHTML = '<span class="spin"></span>GPS wird erfasst…';
     await new Promise(res=>{
@@ -446,18 +444,22 @@ async function sendEntry() {
   const dups = findDups(cur), subj = buildSubj(cur), body = buildBody(cur, dups), photos = cur.photos.filter(Boolean);
   
   let sent = false;
-  if(photos.length>0 && navigator.share && navigator.canShare) {
+  if(navigator.share) {
     try {
-      const files = await toFiles(photos, cur.id);
-      if(navigator.canShare({files})) { 
-        await navigator.share({title:subj, text:body, files}); 
-        sent = true; 
+      let shareData = { title: subj, text: body };
+      if(photos.length > 0) {
+        const files = await toFiles(photos, cur.id);
+        if(navigator.canShare({files})) {
+          shareData.files = files;
+        }
       }
+      await navigator.share(shareData);
+      sent = true;
     } catch(err) { if(err.name!=='AbortError') { } }
   }
   
   if(!sent) { 
-    toast('ℹ️ Fotos werden via Mail-Link nicht unterstützt. Bitte manuell anhängen.');
+    toast('ℹ️ Teilen-Menü nicht verfügbar. Nutze E-Mail-Link.');
     window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`,'_blank'); 
     sent = true; 
   }
@@ -497,14 +499,21 @@ async function resend(id) {
   const e = entries.find(x=>x.id===id); if(!e) return;
   const dups=findDups(e), subj=buildSubj(e), body=buildBody(e,dups), photos=e.photos?.filter(Boolean)||[];
   let sent=false;
-  if(photos.length>0&&navigator.share && navigator.canShare) {
+  if(navigator.share) {
     try {
-      const files=await toFiles(photos,e.id);
-      if(navigator.canShare({files})){await navigator.share({title:subj,text:body,files});sent=true;}
+      let shareData = { title: subj, text: body };
+      if(photos.length > 0) {
+        const files = await toFiles(photos,e.id);
+        if(navigator.canShare({files})) {
+          shareData.files = files;
+        }
+      }
+      await navigator.share(shareData);
+      sent = true;
     } catch(err){}
   }
   if(!sent) { 
-    toast('ℹ️ Fotos werden via Mail-Link nicht unterstützt. Bitte manuell anhängen.');
+    toast('ℹ️ Teilen-Menü nicht verfügbar. Nutze E-Mail-Link.');
     window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); 
   }
   e.sentCount++; e.updatedAt=new Date().toISOString(); save(); renderHistory(); toast('📤 Erneut gesendet');
