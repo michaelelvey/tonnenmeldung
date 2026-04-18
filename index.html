@@ -417,9 +417,7 @@ function checkDups() {
     w.classList.remove('hidden');
     l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} · ${d.gps?.address||'kein GPS'}</div>`).join('');
   } else { w.classList.add('hidden'); }
-}
-
-async function sendEntry() {
+}async function sendEntry() {
   if(!cur.category) { toast('⚠️ Bitte Kategorie auswählen!'); return; }
   const isSch = cur.category===NO_PHOTO;
   if(!isSch&&!cur.photos[0]) { toast('⚠️ Bitte Foto aufnehmen!'); return; }
@@ -474,10 +472,14 @@ async function toFiles(photos, id) {
   }
   return files;
 }
+
 function buildSubj(e) { return `Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`; }
 function buildBody(e, dups=[]) {
   const ln=['=== MÜLLTONNEN-MELDUNG ===','',`Fahrer: ${e.driverName||'-'}`,`Fahrzeug: ${e.licensePlate||'-'}`,`Landkreis: ${e.district||'-'}`,`Datum: ${fmtDT(e.createdAt)}`,'',`Müllart: ${e.wasteType||'-'}`,`Kategorie: ${e.category}`,`Standort: ${e.gps?.address||'-'}`];
-  if(e.gps) ln.push(`GPS: ${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}`);
+  if(e.gps) {
+    ln.push(`GPS: ${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}`);
+    ln.push(`Karte: https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`);
+  }
   ln.push(`Strichcode: ${e.barcode||'-'}`);
   if(e.notes) ln.push(`Anmerkungen: ${e.notes}`);
   if(dups.length>0) { ln.push('','⚠️ DUPLIKATE:'); dups.forEach((d,i)=>ln.push(`${i+1}. ${fmtDT(d.createdAt)} | ${d.category}`)); }
@@ -529,7 +531,6 @@ function selWasteType(type) {
   cur.wasteType = type;
   document.querySelectorAll('.wgrid .cbtn').forEach(b=>b.classList.toggle('sel', b.dataset.w === type));
 }
-
 function renderHistory() {
   const txt=(document.getElementById('stxt').value||'').toLowerCase(), cat=document.getElementById('scat').value, list=document.getElementById('histList');
   let filtered=entries.filter(e=>{
@@ -603,9 +604,7 @@ function doExport(mode) {
     } else { window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); }
     closeExport();
   }
-}
-
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+}function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function loadSettingsUI() {
   document.getElementById('sName').value=settings.driverName||'';
