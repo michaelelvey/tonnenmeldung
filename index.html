@@ -218,7 +218,7 @@ input[type=file].hidden{display:none!important}
     </div>
     <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
     <div style="text-align:center;margin-top:24px;color:var(--gray4);font-size:12px;line-height:1.8">
-      Mülltonnen-Meldung · Version 1.7<br>© Michael Elvey
+      Mülltonnen-Meldung · Version 1.8 (IndexedDB)<br>© Michael Elvey
     </div>
   </div>
 </div>
@@ -242,7 +242,7 @@ input[type=file].hidden{display:none!important}
     <div class="field"><label>Anmerkungen</label><textarea id="edNotes" rows="3"></textarea></div>
     <div class="mbtn-row">
       <button class="btn btn-p" onclick="saveEdit()">Speichern</button>
-      <button class="btn btn-s" onclick="closeEdit()">Abbrechen</button>
+      <button class="btn btn-s" onclick="closeT()">Abbrechen</button>
     </div>
   </div>
 </div>
@@ -253,29 +253,80 @@ const WASTE_TYPES = ['Restmüll (RM)', 'Biomüll (BIO)', 'Papiermüll (Papier)']
 const NO_PHOTO = 'in Schüttung gefallen';
 const DUP_M = 15;
 const ARC_DAYS = 30;
-const SK_ENT = 'mt_entries';
-const SK_SET = 'mt_settings';
 const IMG_W = 1280;
 const IMG_Q = 0.72;
 
 let entries = [], settings = {driverName:'',licensePlate:'',district:'',email:'', defaultWasteType: WASTE_TYPES[0]};
 let cur = null, editId = null, gpsLocked = false, firstPhoto = true;
 
-function load() {
+// ==================== INDEXED DB WRAPPER ====================
+const DB_NAME = 'MuelltonnenDB';
+const DB_VERSION = 1;
+
+async function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('entries')) db.createObjectStore('entries', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings');
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function dbPut(storeName, data) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const req = store.put(data);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbGet(storeName, key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const req = store.get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbGetAll(storeName) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbDelete(storeName, key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const req = store.delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function loadData() {
   try {
-    const e = localStorage.getItem(SK_ENT); entries = e ? JSON.parse(e) : [];
-    const s = localStorage.getItem(SK_SET); if(s) settings = {...settings,...JSON.parse(s)};
-  } catch { entries = []; }
+    entries = await dbGetAll('entries');
+    const s = await dbGet('settings', 'config');
+    if (s) settings = {...settings, ...s};
+  } catch (e) { console.error("DB Load Error", e); }
 }
-function save() { 
-  try { 
-    localStorage.setItem(SK_ENT, JSON.stringify(entries)); 
-  } catch(e) { 
-    toast('⚠️ SPEICHER VOLL! Bitte Archiv löschen.'); 
-    console.error("LocalStorage Full", e);
-  } 
-}
-function saveSet() { localStorage.setItem(SK_SET, JSON.stringify(settings)); }
 
 function newEntry() {
   cur = {
@@ -428,6 +479,7 @@ function checkDups() {
     l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} · ${d.gps?.address||'kein GPS'}</div>`).join('');
   } else { w.classList.add('hidden'); }
 }
+
 async function sendEntry() {
   if(!cur.category) { toast('⚠️ Bitte Kategorie auswählen!'); return; }
   const btn = document.getElementById('sendBtn');
@@ -471,7 +523,9 @@ async function sendEntry() {
     sent = true; 
   }
   
-  cur.sentCount++; entries.unshift({...cur}); save();
+  cur.sentCount++; 
+  await dbPut('entries', {...cur});
+  entries.unshift({...cur});
   toast('✅ Meldung gesendet!');
   setTimeout(()=>{ resetForm(); showTab('v'); }, 800);
 }
@@ -523,7 +577,9 @@ async function resend(id) {
     toast('ℹ️ Teilen-Menü nicht verfügbar. Nutze E-Mail-Link.');
     window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); 
   }
-  e.sentCount++; e.updatedAt=new Date().toISOString(); save(); renderHistory(); toast('📤 Erneut gesendet');
+  e.sentCount++; e.updatedAt=new Date().toISOString(); 
+  await dbPut('entries', e);
+  renderHistory(); toast('📤 Erneut gesendet');
 }
 
 function resetForm() {
@@ -554,8 +610,12 @@ function selWasteType(type) {
   document.querySelectorAll('.wgrid .cbtn').forEach(b=>b.classList.toggle('sel', b.dataset.w === type));
 }
 
-function renderHistory() {
+async function renderHistory() {
   const txt=(document.getElementById('stxt').value||'').toLowerCase(), cat=document.getElementById('scat').value, list=document.getElementById('histList');
+  
+  // Daten frisch aus DB laden
+  entries = await dbGetAll('entries');
+  
   let filtered=entries.filter(e=>{
     if(cat&&e.category!==cat) return false;
     if(txt){
@@ -585,17 +645,20 @@ function editEntry(id) {
   document.getElementById('edNotes').value=e.notes||'';
   document.getElementById('editModal').classList.remove('h');
 }
-function saveEdit() {
+async function saveEdit() {
   const e=entries.find(x=>x.id===editId); if(!e) return;
   e.category=document.getElementById('edCat').value;
   e.notes=document.getElementById('edNotes').value.trim();
-  e.updatedAt=new Date().toISOString(); save(); closeEdit(); renderHistory(); toast('✅ Gespeichert');
+  e.updatedAt=new Date().toISOString(); 
+  await dbPut('entries', e);
+  closeEdit(); renderHistory(); toast('✅ Gespeichert');
 }
 function closeEdit() { editId=null; document.getElementById('editModal').classList.add('h'); }
 
-function delEntry(id) {
+async function delEntry(id) {
   if(!confirm('Löschen?')) return;
-  entries=entries.filter(e=>e.id!==id); save(); renderHistory(); toast('🗑️ Gelöscht');
+  await dbDelete('entries', id);
+  renderHistory(); toast('🗑️ Gelöscht');
 }
 
 function showExport() {
@@ -605,10 +668,11 @@ function showExport() {
 }
 function closeExport() { document.getElementById('exportModal').classList.add('h'); }
 
-function doExport(mode) {
+async function doExport(mode) {
   const from=new Date(document.getElementById('exFrom').value), to=new Date(document.getElementById('exTo').value);
   to.setHours(23,59,59,999);
-  const rows=entries.filter(e=>{ const d=new Date(e.createdAt); return d>=from&&d<=to; }).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  const allEntries = await dbGetAll('entries');
+  const rows=allEntries.filter(e=>{ const d=new Date(e.createdAt); return d>=from&&d<=to; }).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
   if(!rows.length){ alert('Keine Daten.'); return; }
   const xrows=rows.map(e=>`<Row><Cell><Data ss:Type="String">${esc(fmtDT(e.createdAt))}</Data></Cell><Cell><Data ss:Type="String">${esc(e.wasteType||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.category)}</Data></Cell><Cell><Data ss:Type="String">${esc(e.gps?.address||'')}</Data></Cell><Cell><Data ss:Type="${e.gps?.lat?'Number':'String'}">${e.gps?.lat||''}</Data></Cell><Cell><Data ss:Type="${e.gps?.lng?'Number':'String'}">${e.gps?.lng||''}</Data></Cell><Cell><Data ss:Type="String">${esc(e.barcode||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.driverName||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.licensePlate||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.district||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.notes||'')}</Data></Cell><Cell><Data ss:Type="Number">${e.sentCount||0}</Data></Cell><Cell><Data ss:Type="String">${e.archived?'Archiv':'Aktiv'}</Data></Cell></Row>`).join('');
   const HCOLS=['Datum/Zeit','Müllart','Kategorie','Adresse','Breitengrad','Längengrad','Strichcode','Fahrername','Kennzeichen','Landkreis','Anmerkungen','Gesendet','Status'];
@@ -631,41 +695,45 @@ function doExport(mode) {
 
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function loadSettingsUI() {
+async function loadSettingsUI() {
   document.getElementById('sName').value=settings.driverName||'';
   document.getElementById('sPlate').value=settings.licensePlate||'';
   document.getElementById('sDist').value=settings.district||'';
   document.getElementById('sEmail').value=settings.email||'';
   document.getElementById('sWaste').value=settings.defaultWasteType||WASTE_TYPES[0];
-  document.getElementById('stActive').textContent=entries.filter(e=>!e.archived).length;
-  document.getElementById('stArchived').textContent=entries.filter(e=>e.archived).length;
-  document.getElementById('stTotal').textContent=entries.length;
+  
+  const all = await dbGetAll('entries');
+  document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
+  document.getElementById('stArchived').textContent=all.filter(e=>e.archived).length;
+  document.getElementById('stTotal').textContent=all.length;
 }
 
-function saveSettings() {
+async function saveSettings() {
   settings.driverName=document.getElementById('sName').value.trim();
   settings.licensePlate=document.getElementById('sPlate').value.trim();
   settings.district=document.getElementById('sDist').value.trim();
   settings.email=document.getElementById('sEmail').value.trim();
   settings.defaultWasteType=document.getElementById('sWaste').value;
-  saveSet();
+  await dbPut('settings', settings); // In IndexedDB als Objekt gespeichert
   if(cur){cur.driverName=settings.driverName;cur.licensePlate=settings.licensePlate;cur.district=settings.district;}
   toast('✅ Gespeichert');
   setTimeout(()=>showTab('m'),600);
 }
 
-function clearArchived() {
-  if(!confirm('Alle archivierten Meldungen löschen, um Platz zu schaffen?')) return;
-  entries = entries.filter(e => !e.archived);
-  save();
-  renderHistory();
+async function clearArchived() {
+  if(!confirm('Alle archivierten Meldungen löschen?')) return;
+  const all = await dbGetAll('entries');
+  for(let e of all) { if(e.archived) await dbDelete('entries', e.id); }
   loadSettingsUI();
+  renderHistory();
   toast('🗑️ Archiv gelöscht');
 }
 
-function clearAll() {
+async function clearAll() {
   if(!confirm('ALLES löschen?')) return;
-  entries=[];save();renderHistory();loadSettingsUI();toast('🗑️ Gelöscht');
+  const all = await dbGetAll('entries');
+  for(let e of all) { await dbDelete('entries', e.id); }
+  renderHistory(); loadSettingsUI(); toast('🗑️ Gelöscht');
 }
 
 function showTab(name) {
@@ -726,12 +794,12 @@ function buildUI() {
   CATS.forEach(c=>{ const o=document.createElement('option');o.value=c.k;o.textContent=c.k;ec.appendChild(o); });
 }
 
-function init() {
-  load();
+async function init() {
+  await loadData();
   initPWA();
   buildUI();
   newEntry();
-  loadSettingsUI();
+  await loadSettingsUI();
   selWasteType(settings.defaultWasteType);
   document.getElementById('exportModal').addEventListener('click',function(e){if(e.target===this)closeExport();});
   document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeEdit();});
@@ -741,4 +809,3 @@ init();
 </script>
 </body>
 </html>
-
