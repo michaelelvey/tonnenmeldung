@@ -213,11 +213,12 @@ input[type=file].hidden{display:none!important}
       <div class="erow"><span class="el">Aktive Einträge:</span><strong id="stActive">0</strong></div>
       <div class="erow"><span class="el">Archiviert:</span><strong id="stArchived">0</strong></div>
       <div class="erow"><span class="el">Gesamt:</span><strong id="stTotal">0</strong></div>
-      <button class="btn btn-d" style="margin-top:12px;padding:11px;font-size:13.5px" onclick="clearAll()">🗑️ Alle Daten löschen</button>
+      <button class="btn btn-s" style="margin-top:12px;padding:11px;font-size:13px" onclick="clearArchived()">🗑️ Archiv löschen (Platz schaffen)</button>
+      <button class="btn btn-d" style="margin-top:8px;padding:11px;font-size:13px" onclick="clearAll()">🗑️ Alle Daten löschen</button>
     </div>
     <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
     <div style="text-align:center;margin-top:24px;color:var(--gray4);font-size:12px;line-height:1.8">
-      Mülltonnen-Meldung · Version 1.6<br>© Michael Elvey
+      Mülltonnen-Meldung · Version 1.7<br>© Michael Elvey
     </div>
   </div>
 </div>
@@ -266,7 +267,14 @@ function load() {
     const s = localStorage.getItem(SK_SET); if(s) settings = {...settings,...JSON.parse(s)};
   } catch { entries = []; }
 }
-function save() { try { localStorage.setItem(SK_ENT, JSON.stringify(entries)); } catch { toast('⚠️ Speicher voll!'); } }
+function save() { 
+  try { 
+    localStorage.setItem(SK_ENT, JSON.stringify(entries)); 
+  } catch(e) { 
+    toast('⚠️ SPEICHER VOLL! Bitte Archiv löschen.'); 
+    console.error("LocalStorage Full", e);
+  } 
+}
 function saveSet() { localStorage.setItem(SK_SET, JSON.stringify(settings)); }
 
 function newEntry() {
@@ -420,7 +428,6 @@ function checkDups() {
     l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} · ${d.gps?.address||'kein GPS'}</div>`).join('');
   } else { w.classList.add('hidden'); }
 }
-
 async function sendEntry() {
   if(!cur.category) { toast('⚠️ Bitte Kategorie auswählen!'); return; }
   const btn = document.getElementById('sendBtn');
@@ -509,7 +516,7 @@ async function resend(id) {
         }
       }
       await navigator.share(shareData);
-      sent = true;
+      sent=true;
     } catch(err){}
   }
   if(!sent) { 
@@ -647,6 +654,15 @@ function saveSettings() {
   setTimeout(()=>showTab('m'),600);
 }
 
+function clearArchived() {
+  if(!confirm('Alle archivierten Meldungen löschen, um Platz zu schaffen?')) return;
+  entries = entries.filter(e => !e.archived);
+  save();
+  renderHistory();
+  loadSettingsUI();
+  toast('🗑️ Archiv gelöscht');
+}
+
 function clearAll() {
   if(!confirm('ALLES löschen?')) return;
   entries=[];save();renderHistory();loadSettingsUI();toast('🗑️ Gelöscht');
@@ -725,3 +741,4 @@ init();
 </script>
 </body>
 </html>
+
