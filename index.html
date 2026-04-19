@@ -13,13 +13,15 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--g:#1a5c1a;--g2:#2d7a2d;--g3:#e6f4e6;--g4:#c8e6c8;--o:#d05a00;--r:#b91c1c;--y:#b45309;--yl:#fef3c7;--gray:#6b7280;--gray2:#d1d5db;--gray3:#f3f4f6;--gray4:#9ca3af;--text:#111827;--white:#fff;--blue:#1d4ed8;--blue-l:#eff6ff;--radius:14px;--shadow:0 1px 8px rgba(0,0,0,.10),0 4px 16px rgba(0,0,0,.06);--shadow-sm:0 1px 4px rgba(0,0,0,.08);--header-h:52px;--tab-h:58px;--font:'DM Sans',system-ui,-apple-system,sans-serif}
+:root.dark{--text:#f9fafb;--white:#1f2937;--gray:#9ca3af;--gray2:#374151;--gray3:#111827;--gray4:#6b7280;--g3:#064e3b;--g4:#065f46;--blue-l:#1e3a8a;--blue:#bfdbfe;--yl:#78350f;--y:#fcd34d;}
 html,body{height:100%;overflow:hidden}
-body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column}
+body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column;transition:background 0.3s, color 0.3s}
+:root.dark body {background:#030712;}
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:var(--white);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);position:relative;z-index:10}
+#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);position:relative;z-index:10}
 #hdr h1{font-size:16px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:7px}
 #hdr .cr{font-size:10px;opacity:.65;font-weight:400}
-#tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0;box-shadow:0 1px 0 var(--gray2)}
+#tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0;box-shadow:0 1px 0 var(--gray2);transition:background 0.3s}
 .tb{flex:1;border:none;background:none;cursor:pointer;padding:10px 4px 8px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--gray4);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;transition:color .2s}
 .tb .ti{font-size:19px;line-height:1}
 .tb::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2.5px;background:var(--g);border-radius:2px 2px 0 0;transform:scaleX(0);transition:transform .2s}
@@ -28,7 +30,7 @@ body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;f
 #wrap{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .pane{display:none;padding:14px 14px 24px}
 .pane.on{display:block}
-.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;transition:background 0.3s}
 .clabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gray4);margin-bottom:11px;display:flex;align-items:center;gap:5px}
 .req{color:var(--o);margin-left:2px}
 .catgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
@@ -54,9 +56,10 @@ body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;f
 .gpsbtn{font-size:12px;font-weight:700;padding:6px 11px;border:none;background:var(--g2);color:#fff;border-radius:7px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .gpsbtn:disabled{background:var(--gray2);color:var(--gray4);cursor:not-allowed}
 .bcbox{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#fefce8;border:1.5px solid #fcd34d;border-radius:9px;margin-top:10px}
+:root.dark .bcbox{background:#451a03;border-color:#78350f}
 .bcval{font-family:'Courier New',monospace;font-size:13px;font-weight:600;margin-top:2px;word-break:break-all}
 .bcclear{background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray4);padding:0 2px}
-textarea,input[type=text],input[type=email],input[type=date],select{width:100%;padding:11px 12px;border:1.5px solid var(--gray2);border-radius:9px;font-family:var(--font);font-size:14px;outline:none;background:var(--white);color:var(--text);-webkit-appearance:none;appearance:none;transition:border-color .2s}
+textarea,input[type=text],input[type=email],input[type=date],select{width:100%;padding:11px 12px;border:1.5px solid var(--gray2);border-radius:9px;font-family:var(--font);font-size:14px;outline:none;background:var(--white);color:var(--text);-webkit-appearance:none;appearance:none;transition:border-color .2s,background .3s,color .3s}
 textarea:focus,input:focus,select:focus{border-color:var(--g2)}
 textarea{min-height:68px;resize:vertical}
 .field{margin-bottom:13px}
@@ -70,15 +73,18 @@ textarea{min-height:68px;resize:vertical}
 .sm{padding:7px 11px;font-size:12.5px;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:var(--font)}
 .alert{padding:10px 13px;border-radius:9px;font-size:13px;margin-bottom:11px;line-height:1.45}
 .aw{background:var(--yl);color:var(--y);border:1.5px solid #fcd34d}
+:root.dark .aw{background:#451a03;color:#fcd34d;border-color:#92400e}
 .ai{background:var(--blue-l);color:var(--blue);border:1.5px solid #bfdbfe}
 .ag{background:var(--g3);color:var(--g);border:1.5px solid var(--g4)}
 .schinfo{background:var(--blue-l);border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--blue);display:flex;align-items:flex-start;gap:9px;margin-bottom:12px}
+:root.dark .schinfo{background:#1e3a8a;border-color:#1d4ed8;color:#bfdbfe}
 .hentry{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden}
 .hhead{padding:13px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none}
 .hhead:active{background:var(--gray3)}
 .hico{font-size:22px;flex-shrink:0;line-height:1;margin-top:1px}
 .hinfo{flex:1;min-width:0}
 .hcat{font-size:14px;font-weight:700;color:var(--g)}
+:root.dark .hcat{color:#34d399;}
 .hmeta{font-size:11.5px;color:var(--gray4);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .harch{font-size:10px;font-weight:700;padding:3px 7px;border-radius:9px;background:var(--yl);color:var(--y);flex-shrink:0;align-self:center}
 .hchev{color:var(--gray4);font-size:14px;flex-shrink:0;align-self:center;margin-left:4px;transition:transform .2s}
@@ -103,7 +109,7 @@ textarea{min-height:68px;resize:vertical}
 .empty{text-align:center;padding:48px 20px;color:var(--gray4)}
 .empty .ei{font-size:48px;margin-bottom:10px}
 .empty p{font-size:14px;font-weight:500}
-.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite;vertical-align:middle;margin-right:6px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:transparent;border-radius:50%;animation:sp .65s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
 #toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2937;color:#fff;padding:10px 18px;border-radius:50px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -115,12 +121,16 @@ input[type=file].hidden{display:none!important}
 <body>
 <div id="hdr">
   <h1>🗑️ Mülltonnen-Meldung</h1>
-  <span class="cr">© Michael Elvey</span>
+  <div style="display:flex; flex-direction:column; align-items:flex-end; line-height:1.2">
+    <span class="cr">© Michael Elvey</span>
+    <span class="cr">Version 2.0</span>
+  </div>
 </div>
 <div id="tabs">
   <button class="tb on" onclick="showTab('m')" id="tb-m"><span class="ti">📋</span>Meldung</button>
   <button class="tb" onclick="showTab('v')" id="tb-v"><span class="ti">🕐</span>Verlauf</button>
   <button class="tb" onclick="showTab('e')" id="tb-e"><span class="ti">⚙️</span>Einstellungen</button>
+  <button class="tb" onclick="showTab('h')" id="tb-h"><span class="ti">❓</span>Hilfe</button>
 </div>
 <div id="wrap">
   <div class="pane on" id="pane-m">
@@ -174,7 +184,7 @@ input[type=file].hidden{display:none!important}
     <input type="file" id="fi0" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(0)">
     <input type="file" id="fi1" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(1)">
   </div>
-  <div class="pane" id="pane-v">
+<div class="pane" id="pane-v">
     <div class="sbar">
       <input type="text" id="stxt" placeholder="🔍 Suchen…" oninput="renderHistory()">
       <select id="scat" onchange="renderHistory()"><option value="">Alle</option></select>
@@ -195,7 +205,14 @@ input[type=file].hidden{display:none!important}
           <option value="Papiermüll (Papier)">Papiermüll (Papier)</option>
         </select>
       </div>
-      <div class="field" style="margin-bottom:0"><label>📧 E-Mail Dispo</label><input type="email" id="sEmail"></div>
+      <div class="field"><label>📧 E-Mail Dispo</label><input type="email" id="sEmail"></div>
+      <div class="field" style="margin-bottom:0"><label>🎨 Erscheinungsbild</label>
+        <select id="sTheme">
+          <option value="auto">System (Automatisch)</option>
+          <option value="light">Hell</option>
+          <option value="dark">Dunkel</option>
+        </select>
+      </div>
     </div>
     <div class="card">
       <div class="clabel">📊 Datenbank</div>
@@ -207,7 +224,27 @@ input[type=file].hidden{display:none!important}
     </div>
     <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
     <div style="text-align:center;margin-top:24px;color:var(--gray4);font-size:12px;line-height:1.8">
-      Mülltonnen-Meldung · Version 1.9 (IndexedDB)<br>© Michael Elvey
+      Mülltonnen-Meldung · Version 2.0 (IndexedDB)<br>© Michael Elvey
+    </div>
+  </div>
+<div class="pane" id="pane-h">
+    <div class="card">
+      <div class="clabel">📖 Bedienungsanleitung</div>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">1. Meldung erfassen</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Wählen Sie zunächst eine <strong>Kategorie</strong> und die <strong>Müllart</strong> aus. Die App passt die erforderlichen Felder automatisch an. Wenn Sie "in Schüttung gefallen" wählen, wird kein Foto benötigt.</p>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">2. Fotos & Barcode</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Tippen Sie auf das Kamerasymbol, um ein Foto aufzunehmen. Wenn Sie den Strichcode-Platzhalter nutzen, versucht die App automatisch den <strong>Strichcode</strong> auszulesen.</p>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">3. GPS & Senden</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Ihr GPS-Standort wird automatisch erfasst. Sobald alle Daten vollständig sind, können Sie die Meldung über den "Meldung senden"-Button verschicken. Ein Duplikat-Filter warnt Sie vor doppelten Einträgen im selben Bereich.</p>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">4. Verlauf & Export</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Unter "Verlauf" finden Sie alle gesendeten Meldungen. Sie können diese durchsuchen, bearbeiten oder erneut versenden. Über "Excel-Export" lassen sich Daten für die Disposition herunterladen.</p>
+    </div>
+    <div class="card">
+      <div class="clabel">❓ Häufige Fragen (FAQ)</div>
+      <strong style="font-size:13px;display:block;margin-top:5px">Warum wird kein GPS gefunden?</strong>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:10px;line-height:1.4">Bitte stellen Sie sicher, dass die Standortfreigabe in den Berechtigungen des Browsers für diese Seite aktiviert ist.</p>
+      <strong style="font-size:13px;display:block">Was bedeutet "Mögliche Duplikate"?</strong>
+      <p style="font-size:13px;color:var(--gray);line-height:1.4">Die App erkennt, wenn im Umkreis von 15 Metern kürzlich eine ähnliche Meldung (z.B. selber Barcode oder Ort) erstellt wurde, um Mehrfachmeldungen zu vermeiden.</p>
     </div>
   </div>
 </div>
@@ -245,7 +282,7 @@ const ARC_DAYS = 30;
 const IMG_W = 1280;
 const IMG_Q = 0.72;
 
-let entries = [], settings = {driverName:'',licensePlate:'',district:'',email:'', defaultWasteType: WASTE_TYPES[0]};
+let entries = [], settings = {driverName:'',licensePlate:'',district:'',email:'', defaultWasteType: WASTE_TYPES[0], theme: 'auto'};
 let cur = null, editId = null, gpsLocked = false, firstPhoto = true;
 
 const DB_NAME = 'MuelltonnenDB';
@@ -263,7 +300,6 @@ async function openDB() {
     request.onerror = () => reject(request.error);
   });
 }
-
 async function dbPut(storeName, data, key = null) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -274,7 +310,6 @@ async function dbPut(storeName, data, key = null) {
     req.onerror = () => reject(req.error);
   });
 }
-
 async function dbGet(storeName, key) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -285,7 +320,6 @@ async function dbGet(storeName, key) {
     req.onerror = () => reject(req.error);
   });
 }
-
 async function dbGetAll(storeName) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -296,7 +330,6 @@ async function dbGetAll(storeName) {
     req.onerror = () => reject(req.error);
   });
 }
-
 async function dbDelete(storeName, key) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -307,12 +340,12 @@ async function dbDelete(storeName, key) {
     req.onerror = () => reject(req.error);
   });
 }
-
 async function loadData() {
   try {
     entries = await dbGetAll('entries');
     const s = await dbGet('settings', 'config');
     if (s) settings = {...settings, ...s};
+    applyTheme(settings.theme || 'auto');
   } catch (e) { console.error("DB Load Error", e); }
 }
 
@@ -325,7 +358,6 @@ function newEntry() {
     district:settings.district, archived:false, sentCount:0
   };
 }
-
 async function captureGPS(manual=false) {
   if(!navigator.geolocation){ setGPS(null,'GPS nicht verfügbar'); return; }
   setGPS(null,'📡 Standort wird ermittelt…');
@@ -466,9 +498,7 @@ function checkDups() {
     w.classList.remove('hidden');
     l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} · ${d.gps?.address||'kein GPS'}</div>`).join('');
   } else { w.classList.add('hidden'); }
-}
-
-async function sendEntry() {
+}async function sendEntry() {
   if(!cur.category) { toast('⚠️ Bitte Kategorie auswählen!'); return; }
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
@@ -646,7 +676,6 @@ async function delEntry(id) {
   await dbDelete('entries', id);
   renderHistory(); toast('🗑️ Gelöscht');
 }
-
 function showExport() {
   const today=new Date(), from=new Date(today); from.setDate(from.getDate()-30);
   document.getElementById('exFrom').value=fmtISO(from); document.getElementById('exTo').value=fmtISO(today);
@@ -679,7 +708,17 @@ async function doExport(mode) {
   }
 }
 
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s){ return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"'); }
+
+function applyTheme(theme) {
+  const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if (isDark) document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (settings.theme === 'auto') applyTheme('auto');
+});
 
 async function loadSettingsUI() {
   document.getElementById('sName').value=settings.driverName||'';
@@ -687,6 +726,7 @@ async function loadSettingsUI() {
   document.getElementById('sDist').value=settings.district||'';
   document.getElementById('sEmail').value=settings.email||'';
   document.getElementById('sWaste').value=settings.defaultWasteType||WASTE_TYPES[0];
+  document.getElementById('sTheme').value=settings.theme||'auto';
   const all = await dbGetAll('entries');
   document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
   document.getElementById('stArchived').textContent=all.filter(e=>e.archived).length;
@@ -699,6 +739,9 @@ async function saveSettings() {
   settings.district=document.getElementById('sDist').value.trim();
   settings.email=document.getElementById('sEmail').value.trim();
   settings.defaultWasteType=document.getElementById('sWaste').value;
+  settings.theme=document.getElementById('sTheme').value;
+  
+  applyTheme(settings.theme);
   await dbPut('settings', settings, 'config');
   if(cur){cur.driverName=settings.driverName;cur.licensePlate=settings.licensePlate;cur.district=settings.district;}
   toast('✅ Gespeichert');
@@ -794,4 +837,3 @@ init();
 </script>
 </body>
 </html>
-
