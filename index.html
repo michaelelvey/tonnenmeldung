@@ -11,59 +11,99 @@
 <link rel="manifest" id="pwaManifest">
 <title>🗑️ Mülltonnen-Meldung</title>
 <style>
+/* CSS Reset und grundlegende Box-Modelleigenschaften */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+/* Zentrale Farb- und Design-Variablen (Light Mode) */
 :root{--g:#1a5c1a;--g2:#2d7a2d;--g3:#e6f4e6;--g4:#c8e6c8;--o:#d05a00;--r:#b91c1c;--y:#b45309;--yl:#fef3c7;--gray:#6b7280;--gray2:#d1d5db;--gray3:#f3f4f6;--gray4:#9ca3af;--text:#111827;--white:#fff;--blue:#1d4ed8;--blue-l:#eff6ff;--radius:14px;--shadow:0 1px 8px rgba(0,0,0,.10),0 4px 16px rgba(0,0,0,.06);--shadow-sm:0 1px 4px rgba(0,0,0,.08);--header-h:52px;--tab-h:58px;--font:'DM Sans',system-ui,-apple-system,sans-serif}
+
+/* Farb-Variablen für den Dark Mode überschreiben */
 :root.dark{--text:#f9fafb;--white:#1f2937;--gray:#9ca3af;--gray2:#374151;--gray3:#111827;--gray4:#6b7280;--g3:#064e3b;--g4:#065f46;--blue-l:#1e3a8a;--blue:#bfdbfe;--yl:#78350f;--y:#fcd34d;}
+
 html,body{height:100%;overflow:hidden}
+
+/* Standard Body Styling */
 body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column;transition:background 0.3s, color 0.3s}
-:root.dark body {background:#030712;}
+:root.dark body {background:#030712;} /* Dunkler Hintergrund im Darkmode */
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+/* Styling für den oberen Header / Titelbereich */
 #hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);position:relative;z-index:10}
 #hdr h1{font-size:16px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:7px}
 #hdr .cr{font-size:10px;opacity:.65;font-weight:400}
+
+/* Styling für die Navigationstabs (Meldung, Verlauf, etc.) */
 #tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0;box-shadow:0 1px 0 var(--gray2);transition:background 0.3s}
 .tb{flex:1;border:none;background:none;cursor:pointer;padding:10px 4px 8px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--gray4);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;transition:color .2s}
 .tb .ti{font-size:19px;line-height:1}
+/* Aktiver Tab Indikator (grüner Balken unten) */
 .tb::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2.5px;background:var(--g);border-radius:2px 2px 0 0;transform:scaleX(0);transition:transform .2s}
 .tb.on{color:var(--g)}
 .tb.on::after{transform:scaleX(1)}
+
+/* Scrollbarer Hauptbereich für den Inhalt der Tabs */
 #wrap{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .pane{display:none;padding:14px 14px 24px}
 .pane.on{display:block}
+
+/* Allgemeines Karten-Design für Boxen */
 .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;transition:background 0.3s}
 .clabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gray4);margin-bottom:11px;display:flex;align-items:center;gap:5px}
 .req{color:var(--o);margin-left:2px}
+
+/* Grid-Layouts für Kategorien und Müllart */
 .catgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.wgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px} /* Auf 2 Spalten angepasst, da 4 Items vorhanden sind */
+
+/* Standard Kategorie- und Auswahl-Buttons */
 .cbtn{padding:10px 8px 9px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-family:var(--font);font-size:12.5px;font-weight:500;cursor:pointer;text-align:center;line-height:1.3;color:var(--text);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
 .cbtn .ci{font-size:18px}
 .cbtn:active{transform:scale(.96)}
+
+/* Hervorhebung ausgewählter Buttons */
 .cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g);font-weight:700;box-shadow:0 0 0 3px var(--g4)}
+
+/* --- FIX: Bessere Lesbarkeit ausgewählter Buttons im Darkmode --- */
+:root.dark .cbtn.sel { color: #ffffff; }
+
+/* Grid für die Fotoplätze */
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pslot{aspect-ratio:4/3;border:2px dashed var(--gray2);border-radius:11px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--gray3);position:relative;transition:border-color .2s,background .2s}
 .pslot:active{background:var(--gray2)}
 .pslot.hp{border-style:solid;border-color:var(--g2);background:transparent}
 .pslot img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Text über den Fotos */
 .plabel{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:600;text-align:center;padding:4px 4px 5px}
 .pico{font-size:24px;margin-bottom:3px}
 .psub{font-size:10.5px;color:var(--gray4);text-align:center;padding:0 4px}
+
+/* Button zum Löschen von Fotos */
 .pdel{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);font-weight:700;z-index:2}
 .prq{font-size:10px;color:var(--o);margin-top:3px;font-weight:500}
+
+/* GPS und Barcode Boxen */
 .gpsbox{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;background:var(--gray3);border-radius:10px}
 .gpsico{font-size:20px;flex-shrink:0;line-height:1;margin-top:1px}
 .gpstxt{flex:1;font-size:13px;font-weight:500;word-break:break-word}
 .gpssmall{font-size:11px;color:var(--gray4);margin-top:2px;font-weight:400}
 .gpsbtn{font-size:12px;font-weight:700;padding:6px 11px;border:none;background:var(--g2);color:#fff;border-radius:7px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .gpsbtn:disabled{background:var(--gray2);color:var(--gray4);cursor:not-allowed}
+
 .bcbox{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#fefce8;border:1.5px solid #fcd34d;border-radius:9px;margin-top:10px}
-:root.dark .bcbox{background:#451a03;border-color:#78350f}
+:root.dark .bcbox{background:#451a03;border-color:#78350f} /* Darkmode Barcode Box */
 .bcval{font-family:'Courier New',monospace;font-size:13px;font-weight:600;margin-top:2px;word-break:break-all}
 .bcclear{background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray4);padding:0 2px}
+
+/* Textfelder und Selects */
 textarea,input[type=text],input[type=email],input[type=date],select{width:100%;padding:11px 12px;border:1.5px solid var(--gray2);border-radius:9px;font-family:var(--font);font-size:14px;outline:none;background:var(--white);color:var(--text);-webkit-appearance:none;appearance:none;transition:border-color .2s,background .3s,color .3s}
 textarea:focus,input:focus,select:focus{border-color:var(--g2)}
 textarea{min-height:68px;resize:vertical}
 .field{margin-bottom:13px}
 .field label{display:block;font-size:12.5px;font-weight:600;color:var(--gray);margin-bottom:5px}
+
+/* Haupt-Buttons (Senden, etc.) */
 .btn{display:block;width:100%;padding:14px;border:none;border-radius:11px;cursor:pointer;font-family:var(--font);font-size:15px;font-weight:700;text-align:center;transition:all .15s}
 .btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
@@ -71,13 +111,15 @@ textarea{min-height:68px;resize:vertical}
 .btn-s{background:var(--gray3);color:var(--text);border:1.5px solid var(--gray2)}
 .btn-d{background:var(--r);color:#fff}
 .sm{padding:7px 11px;font-size:12.5px;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:var(--font)}
+
+/* Warnungen und Alerts */
 .alert{padding:10px 13px;border-radius:9px;font-size:13px;margin-bottom:11px;line-height:1.45}
 .aw{background:var(--yl);color:var(--y);border:1.5px solid #fcd34d}
 :root.dark .aw{background:#451a03;color:#fcd34d;border-color:#92400e}
-.ai{background:var(--blue-l);color:var(--blue);border:1.5px solid #bfdbfe}
-.ag{background:var(--g3);color:var(--g);border:1.5px solid var(--g4)}
 .schinfo{background:var(--blue-l);border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--blue);display:flex;align-items:flex-start;gap:9px;margin-bottom:12px}
 :root.dark .schinfo{background:#1e3a8a;border-color:#1d4ed8;color:#bfdbfe}
+
+/* Historien-Liste im Verlauf */
 .hentry{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden}
 .hhead{padding:13px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none}
 .hhead:active{background:var(--gray3)}
@@ -89,6 +131,8 @@ textarea{min-height:68px;resize:vertical}
 .harch{font-size:10px;font-weight:700;padding:3px 7px;border-radius:9px;background:var(--yl);color:var(--y);flex-shrink:0;align-self:center}
 .hchev{color:var(--gray4);font-size:14px;flex-shrink:0;align-self:center;margin-left:4px;transition:transform .2s}
 .hchev.open{transform:rotate(180deg)}
+
+/* Historien-Details */
 .hbody{display:none;padding:12px 14px 15px;border-top:1px solid var(--gray3)}
 .hbody.open{display:block}
 .ephotos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
@@ -97,9 +141,13 @@ textarea{min-height:68px;resize:vertical}
 .erow .el{color:var(--gray4);flex-shrink:0;min-width:80px}
 .eacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .dup-item{padding:5px 8px;background:var(--gray3);border-radius:6px;font-size:11.5px;margin-top:4px}
+
+/* Suchleiste im Verlauf */
 .sbar{display:flex;gap:8px;margin-bottom:12px}
 .sbar input{flex:1}
 .sbar select{width:auto;flex-shrink:0;min-width:90px}
+
+/* Overlay & Modals (Export, Edit) */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(3px)}
 .overlay.h{display:none}
 .modal{background:var(--white);border-radius:var(--radius);padding:20px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
@@ -109,15 +157,21 @@ textarea{min-height:68px;resize:vertical}
 .empty{text-align:center;padding:48px 20px;color:var(--gray4)}
 .empty .ei{font-size:48px;margin-bottom:10px}
 .empty p{font-size:14px;font-weight:500}
+
+/* Lade-Spinner */
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:transparent;border-radius:50%;animation:sp .65s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+/* Pop-up Toast Meldung (unten mitte) */
 #toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2937;color:#fff;padding:10px 18px;border-radius:50px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Utility Klassen */
 .hidden{display:none!important}
 input[type=file].hidden{display:none!important}
-.divider{border:none;border-top:1px solid var(--gray2);margin:12px 0}
 </style>
 </head>
+
 <body>
 <div id="hdr">
   <h1>🗑️ Mülltonnen-Meldung</h1>
@@ -126,26 +180,40 @@ input[type=file].hidden{display:none!important}
     <span class="cr">Version 2.0</span>
   </div>
 </div>
+
 <div id="tabs">
   <button class="tb on" onclick="showTab('m')" id="tb-m"><span class="ti">📋</span>Meldung</button>
   <button class="tb" onclick="showTab('v')" id="tb-v"><span class="ti">🕐</span>Verlauf</button>
   <button class="tb" onclick="showTab('e')" id="tb-e"><span class="ti">⚙️</span>Einstellungen</button>
   <button class="tb" onclick="showTab('h')" id="tb-h"><span class="ti">❓</span>Hilfe</button>
 </div>
+
 <div id="wrap">
+  
   <div class="pane on" id="pane-m">
     <div class="card">
       <div class="clabel">📁 Kategorie <span class="req">*</span></div>
       <div class="catgrid" id="catGrid"></div>
     </div>
+    
     <div class="card">
       <div class="clabel">🗑️ Müllart</div>
       <div class="wgrid" id="wasteGrid"></div>
     </div>
-    <div class="schinfo hidden" id="schInfo">
+    
+    <div class="card">
+      <div class="clabel">🛑 Status <span class="req">*</span></div>
+      <div class="catgrid">
+        <button class="cbtn" id="btnActGeleert" onclick="selAction('Geleert')"><span class="ci">✅</span>Geleert</button>
+        <button class="cbtn sel" id="btnActStehen" onclick="selAction('Stehen gelassen')"><span class="ci">⛔</span>Stehen gelassen</button>
+      </div>
+    </div>
+
+<div class="schinfo hidden" id="schInfo">
       <span style="font-size:20px;flex-shrink:0">📍</span>
       <div><strong>In Schüttung gefallen</strong><br>Kein Foto erforderlich. GPS wird beim Senden erfasst.</div>
     </div>
+    
     <div class="card" id="photoCard">
       <div class="clabel">📷 Fotos</div>
       <div class="pgrid">
@@ -163,6 +231,7 @@ input[type=file].hidden{display:none!important}
         <button class="bcclear" onclick="clearBarcode()">✕</button>
       </div>
     </div>
+    
     <div class="card">
       <div class="clabel">📍 GPS-Standort</div>
       <div class="gpsbox">
@@ -171,28 +240,34 @@ input[type=file].hidden{display:none!important}
         <button class="gpsbtn" id="gpsBtn" onclick="captureGPS(true)">Jetzt</button>
       </div>
     </div>
+    
     <div class="card">
       <div class="clabel">📝 Anmerkungen</div>
       <textarea id="notesIn" placeholder="Optionale Hinweise..." rows="2"></textarea>
     </div>
+    
     <div class="alert aw hidden" id="dupWarn">
       <strong>⚠️ Mögliche Duplikate gefunden!</strong>
       <div id="dupList" style="margin-top:6px"></div>
     </div>
+    
     <button class="btn btn-p" id="sendBtn" onclick="sendEntry()">📤 Meldung senden</button>
     <button class="btn btn-s" style="margin-top:8px" onclick="resetForm()">🔄 Formular zurücksetzen</button>
+    
     <input type="file" id="fi0" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(0)">
     <input type="file" id="fi1" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(1)">
   </div>
-<div class="pane" id="pane-v">
+
+  <div class="pane" id="pane-v">
     <div class="sbar">
       <input type="text" id="stxt" placeholder="🔍 Suchen…" oninput="renderHistory()">
       <select id="scat" onchange="renderHistory()"><option value="">Alle</option></select>
     </div>
     <div id="histList"></div>
-    <button class="btn btn-s" onclick="showExport()" style="margin-top:4px">📊 Excel-Export</button>
+    <button class="btn btn-s" onclick="showExport()" style="margin-top:4px">📊 CSV-Export</button>
   </div>
-  <div class="pane" id="pane-e">
+
+<div class="pane" id="pane-e">
     <div class="card">
       <div class="clabel">👤 Fahrerinformationen</div>
       <div class="field"><label>Fahrername</label><input type="text" id="sName"></div>
@@ -203,7 +278,7 @@ input[type=file].hidden{display:none!important}
           <option value="Restmüll (RM)">Restmüll (RM)</option>
           <option value="Biomüll (BIO)">Biomüll (BIO)</option>
           <option value="Papiermüll (Papier)">Papiermüll (Papier)</option>
-        </select>
+          <option value="Gelbersack">Gelbersack</option> </select>
       </div>
       <div class="field"><label>📧 E-Mail Dispo</label><input type="email" id="sEmail"></div>
       <div class="field" style="margin-bottom:0"><label>🎨 Erscheinungsbild</label>
@@ -214,6 +289,7 @@ input[type=file].hidden{display:none!important}
         </select>
       </div>
     </div>
+    
     <div class="card">
       <div class="clabel">📊 Datenbank</div>
       <div class="erow"><span class="el">Aktive Einträge:</span><strong id="stActive">0</strong></div>
@@ -227,31 +303,32 @@ input[type=file].hidden{display:none!important}
       Mülltonnen-Meldung · Version 2.0 (IndexedDB)<br>© Michael Elvey
     </div>
   </div>
-<div class="pane" id="pane-h">
+
+  <div class="pane" id="pane-h">
     <div class="card">
       <div class="clabel">📖 Bedienungsanleitung</div>
       <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">1. Meldung erfassen</h3>
-      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Wählen Sie zunächst eine <strong>Kategorie</strong> und die <strong>Müllart</strong> aus. Die App passt die erforderlichen Felder automatisch an. Wenn Sie "in Schüttung gefallen" wählen, wird kein Foto benötigt.</p>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Wählen Sie zunächst eine <strong>Kategorie</strong>, die <strong>Müllart</strong> und den <strong>Status</strong> aus. Wenn Sie "in Schüttung gefallen" wählen, wird kein Foto benötigt.</p>
       <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">2. Fotos & Barcode</h3>
-      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Tippen Sie auf das Kamerasymbol, um ein Foto aufzunehmen. Wenn Sie den Strichcode-Platzhalter nutzen, versucht die App automatisch den <strong>Strichcode</strong> auszulesen.</p>
-      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">3. GPS & Senden</h3>
-      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Ihr GPS-Standort wird automatisch erfasst. Sobald alle Daten vollständig sind, können Sie die Meldung über den "Meldung senden"-Button verschicken. Ein Duplikat-Filter warnt Sie vor doppelten Einträgen im selben Bereich.</p>
-      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">4. Verlauf & Export</h3>
-      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Unter "Verlauf" finden Sie alle gesendeten Meldungen. Sie können diese durchsuchen, bearbeiten oder erneut versenden. Über "Excel-Export" lassen sich Daten für die Disposition herunterladen.</p>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Tippen Sie auf das Kamerasymbol. Beim Strichcode-Platzhalter versucht die App automatisch den Code auszulesen.</p>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">3. Senden & Export</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Ein Duplikat-Filter warnt Sie vor Doppelungen im Umkreis. Im "Verlauf" können Sie Einträge als CSV für Excel exportieren.</p>
     </div>
     <div class="card">
       <div class="clabel">❓ Häufige Fragen (FAQ)</div>
-      <strong style="font-size:13px;display:block;margin-top:5px">Warum wird kein GPS gefunden?</strong>
-      <p style="font-size:13px;color:var(--gray);margin-bottom:10px;line-height:1.4">Bitte stellen Sie sicher, dass die Standortfreigabe in den Berechtigungen des Browsers für diese Seite aktiviert ist.</p>
-      <strong style="font-size:13px;display:block">Was bedeutet "Mögliche Duplikate"?</strong>
-      <p style="font-size:13px;color:var(--gray);line-height:1.4">Die App erkennt, wenn im Umkreis von 15 Metern kürzlich eine ähnliche Meldung (z.B. selber Barcode oder Ort) erstellt wurde, um Mehrfachmeldungen zu vermeiden.</p>
+      <strong style="font-size:13px;display:block;margin-top:5px">Wo finde ich archivierte Meldungen?</strong>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:10px;line-height:1.4">Meldungen über 30 Tage werden beim Starten automatisch archiviert. Sie sind weiterhin im CSV-Export und der Duplikats-Prüfung enthalten.</p>
+      <strong style="font-size:13px;display:block">Versand der CSV per E-Mail klappt nicht?</strong>
+      <p style="font-size:13px;color:var(--gray);line-height:1.4">Standard-E-Mail-Links unterstützen keine Dateianhänge. Bitte laden Sie die CSV über "Download" herunter und hängen sie manuell im E-Mail Programm an.</p>
     </div>
   </div>
 </div>
+
 <div id="toast"></div>
+
 <div class="overlay h" id="exportModal">
   <div class="modal">
-    <h3>📊 Excel-Export</h3>
+    <h3>📊 CSV-Export</h3>
     <div class="field"><label>Von</label><input type="date" id="exFrom"></div>
     <div class="field"><label>Bis</label><input type="date" id="exTo"></div>
     <div class="mbtn-row">
@@ -261,6 +338,7 @@ input[type=file].hidden{display:none!important}
     <button class="btn btn-s" style="margin-top:8px;padding:11px;font-size:13.5px" onclick="closeExport()">Abbrechen</button>
   </div>
 </div>
+
 <div class="overlay h" id="editModal">
   <div class="modal">
     <h3>✏️ Eintrag bearbeiten</h3>
@@ -274,11 +352,21 @@ input[type=file].hidden{display:none!important}
 </div>
 
 <script>
-const CATS = [{k:'Chip defekt',i:'💾'},{k:'nicht (korrekt) bereitgestellt',i:'❌'},{k:'Überfüllt',i:'📦'},{k:'Fehlbefüllung',i:'⚠️'},{k:'in Schüttung gefallen',i:'⬇️'},{k:'anfahren nicht möglich',i:'🚫'},{k:'Beschädigt',i:'🔨'},{k:'Sonstiges',i:'📌'}];
-const WASTE_TYPES = ['Restmüll (RM)', 'Biomüll (BIO)', 'Papiermüll (Papier)'];
+/* KONSTANTEN: Neue Kategorien und Müllart integriert */
+const CATS = [
+  {k:'Chip defekt',i:'💾'},{k:'nicht (korrekt) bereitgestellt',i:'❌'},
+  {k:'Überfüllt',i:'📦'},{k:'Fehlbefüllung',i:'⚠️'},
+  {k:'in Schüttung gefallen',i:'⬇️'},{k:'anfahren nicht möglich',i:'🚫'},
+  {k:'Beschädigt',i:'🔨'},
+  {k:'Kein Sack vom LK',i:'🚯'}, /* NEU hinzugefügt */
+  {k:'Nachfahrt',i:'🚚'}, /* NEU hinzugefügt */
+  {k:'Sonstiges',i:'📌'}
+];
+/* NEU: "Gelbersack" hinzugefügt */
+const WASTE_TYPES = ['Restmüll (RM)', 'Biomüll (BIO)', 'Papiermüll (Papier)', 'Gelbersack'];
 const NO_PHOTO = 'in Schüttung gefallen';
-const DUP_M = 15;
-const ARC_DAYS = 30;
+const DUP_M = 15; // Meter-Radius für Duplikate
+const ARC_DAYS = 30; // Tage bis zur automatischen Archivierung
 const IMG_W = 1280;
 const IMG_Q = 0.72;
 
@@ -288,6 +376,7 @@ let cur = null, editId = null, gpsLocked = false, firstPhoto = true;
 const DB_NAME = 'MuelltonnenDB';
 const DB_VERSION = 1;
 
+/* INDEXED DB DATENBANK FUNKTIONEN */
 async function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -340,12 +429,44 @@ async function dbDelete(storeName, key) {
     req.onerror = () => reject(req.error);
   });
 }
+
+/* --- NEU: Wake Lock API (Bildschirm bleibt an) --- */
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Bildschirm bleibt an (Wake Lock aktiv)');
+    }
+  } catch (err) { console.log('Wake Lock nicht möglich:', err.message); }
+}
+/* Reaktivieren, wenn Tab wieder fokussiert wird */
+document.addEventListener('visibilitychange', () => {
+  if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+});
+
+/* --- NEU: Automatische Archivierung älter als 30 Tage --- */
+async function applyAutoArchive() {
+  const now = Date.now();
+  const thirtyDaysMs = ARC_DAYS * 24 * 60 * 60 * 1000;
+  let updated = false;
+  for (let e of entries) {
+    if (!e.archived && (now - new Date(e.createdAt).getTime() > thirtyDaysMs)) {
+      e.archived = true;
+      await dbPut('entries', e);
+      updated = true;
+    }
+  }
+  if (updated) entries = await dbGetAll('entries'); // Neu laden nach update
+}
+
 async function loadData() {
   try {
     entries = await dbGetAll('entries');
     const s = await dbGet('settings', 'config');
     if (s) settings = {...settings, ...s};
     applyTheme(settings.theme || 'auto');
+    await applyAutoArchive(); // Führt die >30 Tage Regel direkt beim Start aus
   } catch (e) { console.error("DB Load Error", e); }
 }
 
@@ -353,11 +474,22 @@ function newEntry() {
   cur = {
     id: Date.now().toString(36)+Math.random().toString(36).slice(2),
     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    category:'', wasteType: settings.defaultWasteType, photos:[null,null], barcode:null,
+    category:'', wasteType: settings.defaultWasteType, 
+    action: 'Stehen gelassen', // NEU: Standard-Aktion
+    photos:[null,null], barcode:null,
     gps:null, notes:'', driverName:settings.driverName, licensePlate:settings.licensePlate,
     district:settings.district, archived:false, sentCount:0
   };
 }
+
+/* Steuert die Auswahl der Aktion (Geleert / Stehen gelassen) */
+function selAction(act) {
+  cur.action = act;
+  document.getElementById('btnActGeleert').classList.toggle('sel', act === 'Geleert');
+  document.getElementById('btnActStehen').classList.toggle('sel', act === 'Stehen gelassen');
+}
+
+/* GPS und Reverse Geocoding */
 async function captureGPS(manual=false) {
   if(!navigator.geolocation){ setGPS(null,'GPS nicht verfügbar'); return; }
   setGPS(null,'📡 Standort wird ermittelt…');
@@ -398,6 +530,7 @@ function setGPS(gps, txt) {
   }
 }
 
+/* Foto Handling */
 function triggerPhoto(slot) { document.getElementById('fi'+slot).click(); }
 
 async function handlePhoto(slot) {
@@ -472,6 +605,7 @@ function clearBarcode() {
   document.getElementById('bcVal').textContent = '';
 }
 
+/* Duplikate - Durchsucht auch das Archiv! */
 function haversine(a,b,c,d) {
   const R=6371000, dl=(c-a)*Math.PI/180, dk=(d-b)*Math.PI/180;
   const x=Math.sin(dl/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dk/2)**2;
@@ -498,7 +632,10 @@ function checkDups() {
     w.classList.remove('hidden');
     l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} · ${d.gps?.address||'kein GPS'}</div>`).join('');
   } else { w.classList.add('hidden'); }
-}async function sendEntry() {
+}
+
+/* Meldung Absenden */
+async function sendEntry() {
   if(!cur.category) { toast('⚠️ Bitte Kategorie auswählen!'); return; }
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
@@ -526,9 +663,7 @@ function checkDups() {
       let shareData = { title: subj, text: body };
       if(photos.length > 0) {
         const files = await toFiles(photos, cur.id);
-        if(navigator.canShare({files})) {
-          shareData.files = files;
-        }
+        if(navigator.canShare({files})) { shareData.files = files; }
       }
       await navigator.share(shareData);
       sent = true;
@@ -561,8 +696,10 @@ async function toFiles(photos, id) {
 }
 
 function buildSubj(e) { return `Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`; }
+
+/* Generiert den E-Mail/WhatsApp Text - NEU: Status mit drin */
 function buildBody(e, dups=[]) {
-  const ln=['=== MÜLLTONNEN-MELDUNG ===','',`Fahrer: ${e.driverName||'-'}`,`Fahrzeug: ${e.licensePlate||'-'}`,`Landkreis: ${e.district||'-'}`,`Datum: ${fmtDT(e.createdAt)}`,'',`Müllart: ${e.wasteType||'-'}`,`Kategorie: ${e.category}`,`Standort: ${e.gps?.address||'-'}`];
+  const ln=['=== MÜLLTONNEN-MELDUNG ===','',`Fahrer: ${e.driverName||'-'}`,`Fahrzeug: ${e.licensePlate||'-'}`,`Landkreis: ${e.district||'-'}`,`Datum: ${fmtDT(e.createdAt)}`,'',`Müllart: ${e.wasteType||'-'}`,`Aktion/Status: ${e.action||'-'}`,`Kategorie: ${e.category}`,`Standort: ${e.gps?.address||'-'}`];
   if(e.gps) {
     ln.push(`GPS: ${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}`);
     ln.push(`Karte: https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`);
@@ -583,9 +720,7 @@ async function resend(id) {
       let shareData = { title: subj, text: body };
       if(photos.length > 0) {
         const files = await toFiles(photos,e.id);
-        if(navigator.canShare({files})) {
-          shareData.files = files;
-        }
+        if(navigator.canShare({files})) { shareData.files = files; }
       }
       await navigator.share(shareData);
       sent=true;
@@ -612,11 +747,12 @@ function resetForm() {
   document.getElementById('sendBtn').innerHTML='📤 Meldung senden';
   document.getElementById('sendBtn').disabled=false;
   selWasteType(settings.defaultWasteType);
+  selAction('Stehen gelassen'); // Standardwert setzen
 }
 
 function selCat(cat) {
   cur.category = cat;
-  document.querySelectorAll('.catgrid .cbtn').forEach(b=>b.classList.toggle('sel',b.dataset.k===cat));
+  document.querySelectorAll('#catGrid .cbtn').forEach(b=>b.classList.toggle('sel',b.dataset.k===cat));
   const isSch = cat===NO_PHOTO;
   document.getElementById('schInfo').classList.toggle('hidden',!isSch);
   document.getElementById('photoCard').classList.toggle('hidden',isSch);
@@ -634,7 +770,7 @@ async function renderHistory() {
   let filtered=entries.filter(e=>{
     if(cat&&e.category!==cat) return false;
     if(txt){
-      const s=[e.category,e.wasteType,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();
+      const s=[e.category,e.wasteType,e.action,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();
       if(!s.includes(txt)) return false;
     }
     return true;
@@ -646,7 +782,7 @@ async function renderHistory() {
 
 function renderHE(e) {
   const cat=CATS.find(c=>c.k===e.category)||{i:'🗑️'}, photos=(e.photos||[]).filter(Boolean);
-  return `<div class="hentry"><div class="hhead" onclick="toggleHE('${e.id}')"><span class="hico">${cat.i}</span><div class="hinfo"><div class="hcat">${e.category} <span style="font-weight:400;color:var(--gray);font-size:12px">(${e.wasteType||'–'})</span></div><div class="hmeta">${fmtDT(e.createdAt)} · ${e.driverName||'–'}</div></div>${e.archived?'<span class="harch">Archiv</span>':''}<span class="hchev" id="chev-${e.id}">▼</span></div><div class="hbody" id="hb-${e.id}">${photos.length?`<div class="ephotos">${photos.map(p=>`<img src="${p}" onclick="fullscreen(this)">`).join('')}</div>`:''}<div class="erow"><span class="el">Müllart:</span><strong style="color:var(--g)">${e.wasteType||'–'}</strong></div><div class="erow"><span class="el">Fahrzeug:</span><strong>${e.licensePlate||'–'}</strong></div><div class="erow"><span class="el">Landkreis:</span><strong>${e.district||'–'}</strong></div><div class="erow"><span class="el">Gesendet:</span>${e.sentCount}×</div><div class="eacts"><button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button><button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button><button class="sm btn-d" style="background:var(--r);color:#fff" onclick="delEntry('${e.id}')">🗑️ Löschen</button></div></div></div>`;
+  return `<div class="hentry"><div class="hhead" onclick="toggleHE('${e.id}')"><span class="hico">${cat.i}</span><div class="hinfo"><div class="hcat">${e.category} <span style="font-weight:400;color:var(--gray);font-size:12px">(${e.wasteType||'–'})</span></div><div class="hmeta">${fmtDT(e.createdAt)} · ${e.driverName||'–'}</div></div>${e.archived?'<span class="harch">Archiv</span>':''}<span class="hchev" id="chev-${e.id}">▼</span></div><div class="hbody" id="hb-${e.id}">${photos.length?`<div class="ephotos">${photos.map(p=>`<img src="${p}" onclick="fullscreen(this)">`).join('')}</div>`:''}<div class="erow"><span class="el">Müllart:</span><strong style="color:var(--g)">${e.wasteType||'–'}</strong></div><div class="erow"><span class="el">Status:</span><strong>${e.action||'–'}</strong></div><div class="erow"><span class="el">Fahrzeug:</span><strong>${e.licensePlate||'–'}</strong></div><div class="erow"><span class="el">Landkreis:</span><strong>${e.district||'–'}</strong></div><div class="erow"><span class="el">Gesendet:</span>${e.sentCount}×</div><div class="eacts"><button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button><button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button><button class="sm btn-d" style="background:var(--r);color:#fff" onclick="delEntry('${e.id}')">🗑️ Löschen</button></div></div></div>`;
 }
 
 function toggleHE(id) {
@@ -676,6 +812,7 @@ async function delEntry(id) {
   await dbDelete('entries', id);
   renderHistory(); toast('🗑️ Gelöscht');
 }
+
 function showExport() {
   const today=new Date(), from=new Date(today); from.setDate(from.getDate()-30);
   document.getElementById('exFrom').value=fmtISO(from); document.getElementById('exTo').value=fmtISO(today);
@@ -683,32 +820,56 @@ function showExport() {
 }
 function closeExport() { document.getElementById('exportModal').classList.add('h'); }
 
+/* --- FIX: Korrekter CSV Export (Damit Excel es fehlerfrei öffnet) --- */
 async function doExport(mode) {
   const from=new Date(document.getElementById('exFrom').value), to=new Date(document.getElementById('exTo').value);
   to.setHours(23,59,59,999);
   const allEntries = await dbGetAll('entries');
   const rows=allEntries.filter(e=>{ const d=new Date(e.createdAt); return d>=from&&d<=to; }).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
-  if(!rows.length){ alert('Keine Daten.'); return; }
-  const xrows=rows.map(e=>`<Row><Cell><Data ss:Type="String">${esc(fmtDT(e.createdAt))}</Data></Cell><Cell><Data ss:Type="String">${esc(e.wasteType||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.category)}</Data></Cell><Cell><Data ss:Type="String">${esc(e.gps?.address||'')}</Data></Cell><Cell><Data ss:Type="${e.gps?.lat?'Number':'String'}">${e.gps?.lat||''}</Data></Cell><Cell><Data ss:Type="${e.gps?.lng?'Number':'String'}">${e.gps?.lng||''}</Data></Cell><Cell><Data ss:Type="String">${esc(e.barcode||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.driverName||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.licensePlate||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.district||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.notes||'')}</Data></Cell><Cell><Data ss:Type="Number">${e.sentCount||0}</Data></Cell><Cell><Data ss:Type="String">${e.archived?'Archiv':'Aktiv'}</Data></Cell></Row>`).join('');
-  const HCOLS=['Datum/Zeit','Müllart','Kategorie','Adresse','Breitengrad','Längengrad','Strichcode','Fahrername','Kennzeichen','Landkreis','Anmerkungen','Gesendet','Status'];
-  const hrow=HCOLS.map(h=>`<Cell ss:StyleID="h"><Data ss:Type="String">${h}</Data></Cell>`).join('');
-  const xml=`<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1a5c1a" ss:Pattern="Solid"/></Style></Styles><Worksheet ss:Name="Meldungen"><Table><Row>${hrow}</Row>${xrows}</Table></Worksheet></Workbook>`;
-  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
-  const fn=`Muell_${fmtISO(from)}_${fmtISO(to)}.xls`;
-  if(mode==='dl'){
-    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=fn; a.click();
-    closeExport(); toast('📥 Exportiert');
+  
+  if(!rows.length){ alert('Keine Daten in diesem Zeitraum gefunden.'); return; }
+  
+  const HCOLS=['Datum/Zeit','Müllart','Status','Kategorie','Adresse','Breitengrad','Längengrad','Strichcode','Fahrername','Kennzeichen','Landkreis','Anmerkungen','Gesendet','Archiviert'];
+  
+  // BOM hinzufügen, damit Excel Umlaute (UTF-8) richtig erkennt
+  let csvContent = '\uFEFF' + HCOLS.join(';') + '\n';
+  
+  rows.forEach(e => {
+    const row = [
+      fmtDT(e.createdAt), e.wasteType||'', e.action||'Stehen gelassen', e.category||'', e.gps?.address||'', 
+      e.gps?.lat||'', e.gps?.lng||'', e.barcode||'', e.driverName||'', e.licensePlate||'', 
+      e.district||'', (e.notes||'').replace(/\n/g, ' '), e.sentCount||0, e.archived?'Ja':'Nein'
+    ];
+    // CSV Safe Strings (Quotes escapen)
+    csvContent += row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';') + '\n';
+  });
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const fn = `Muell_Export_${fmtISO(from)}_${fmtISO(to)}.csv`;
+
+  if(mode === 'dl') {
+    const url = URL.createObjectURL(blob); 
+    const a = document.createElement('a'); a.href = url; a.download = fn; a.click();
+    URL.revokeObjectURL(url);
+    closeExport(); toast('📥 CSV heruntergeladen');
   } else {
-    const subj=`Müll Export ${fmtD(from.toISOString())}–${fmtD(to.toISOString())}`, body=`Anbei der Export.\n\n© Michael Elvey`;
-    const file=new File([blob],fn,{type:'application/vnd.ms-excel'});
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-      navigator.share({title:subj,text:body,files:[file]}).catch(()=>{ window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); });
-    } else { window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); }
-    closeExport();
+    // Versuch die Datei per native Share-Schnittstelle zu teilen (E-Mail, WhatsApp)
+    const file = new File([blob], fn, { type: 'text/csv' });
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      try {
+        await navigator.share({
+          title: `Müll Export ${fmtD(from.toISOString())}–${fmtD(to.toISOString())}`,
+          text: 'Anbei der CSV-Export.\n\n© Michael Elvey',
+          files: [file]
+        });
+        closeExport();
+      } catch (err) { console.log("Teilen abgebrochen", err); }
+    } else {
+      // Hinweis, da mailto: keine Dateianhänge erlaubt!
+      alert('Hinweis: Ihr Gerät/Browser unterstützt den direkten Versand von Dateien nicht. Bitte laden Sie die Datei herunter ("Download") und hängen Sie diese manuell im E-Mail Programm an.');
+    }
   }
 }
-
-function esc(s){ return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"'); }
 
 function applyTheme(theme) {
   const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -752,9 +913,7 @@ async function clearArchived() {
   if(!confirm('Alle archivierten Meldungen löschen?')) return;
   const all = await dbGetAll('entries');
   for(let e of all) { if(e.archived) await dbDelete('entries', e.id); }
-  loadSettingsUI();
-  renderHistory();
-  toast('🗑️ Archiv gelöscht');
+  loadSettingsUI(); renderHistory(); toast('🗑️ Archiv gelöscht');
 }
 
 async function clearAll() {
@@ -829,8 +988,10 @@ async function init() {
   newEntry();
   await loadSettingsUI();
   selWasteType(settings.defaultWasteType);
+  selAction('Stehen gelassen');
   document.getElementById('exportModal').addEventListener('click',function(e){if(e.target===this)closeExport();});
   document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeEdit();});
+  requestWakeLock(); // Wake Lock direkt beim Start anfordern
 }
 
 init();
