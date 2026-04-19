@@ -5,80 +5,51 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Mülltonnen">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a5c1a">
-<title>🗑️ Mülltonnen-Meldung v2.01</title>
+<title>Mülltonnen-Meldung v2.01</title>
 <style>
-/* Modernes Design-System */
+/* Reset & Basis-Styling */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --g:#1a5c1a; --g2:#2d7a2d; --g3:#e6f4e6; --g4:#c8e6c8; 
-  --o:#d05a00; --r:#b91c1c; --y:#b45309; --yl:#fef3c7; 
   --gray:#6b7280; --gray2:#d1d5db; --gray3:#f3f4f6; --gray4:#9ca3af; 
   --text:#111827; --white:#fff; --radius:14px; --shadow:0 1px 8px rgba(0,0,0,.1); 
-  --header-h:52px; --font:'DM Sans',system-ui,-apple-system,sans-serif
+  --header-h:52px; --font:system-ui,-apple-system,sans-serif
 }
-html,body{height:100%;overflow:hidden;font-family:var(--font);background:#f0f2f0;color:var(--text)}
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
-#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:var(--white);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-#hdr h1{font-size:16px;font-weight:700;display:flex;align-items:center;gap:7px}
-
+#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:var(--white);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10}
+#hdr h1{font-size:16px;font-weight:700}
 #tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0}
-.tb{flex:1;border:none;background:none;cursor:pointer;padding:12px 4px 10px;font-size:11px;font-weight:600;color:var(--gray4);display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;transition:0.2s}
+.tb{flex:1;border:none;background:none;cursor:pointer;padding:12px 4px 10px;font-size:11px;font-weight:600;color:var(--gray4);display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
 .tb.on{color:var(--g)}
-.tb::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:3px;background:var(--g);border-radius:3px 3px 0 0;transform:scaleX(0);transition:0.2s}
+.tb::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:3px;background:var(--g);transform:scaleX(0);transition:0.2s}
 .tb.on::after{transform:scaleX(1)}
-
 #wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.pane{display:none;padding:14px 14px 30px}
+.pane{display:none;padding:14px}
 .pane.on{display:block}
 
 .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
-.clabel{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray4);margin-bottom:11px;display:flex;align-items:center;gap:5px}
-
+.clabel{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray4);margin-bottom:11px}
 .catgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .wgrid{display:grid;grid-template-columns:repeat(4, 1fr);gap:6px} 
-
-.cbtn{padding:12px 4px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-size:12px;font-weight:600;cursor:pointer;text-align:center;color:var(--text);transition:all 0.1s}
-.cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g);box-shadow:0 0 0 3px var(--g4)}
-.cbtn:active{transform:scale(0.96)}
-
-textarea, input, select{width:100%;padding:12px;border:1.5px solid var(--gray2);border-radius:10px;font-size:14px;background:var(--white);font-family:inherit}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;font-weight:600;color:var(--gray);margin-bottom:5px}
-
-.btn{display:block;width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;transition:0.2s}
-.btn-p{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;box-shadow:0 4px 12px rgba(26,92,26,0.2)}
+.cbtn{padding:12px 4px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text)}
+.cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g)}
+textarea, input, select{width:100%;padding:12px;border:1.5px solid var(--gray2);border-radius:10px;font-size:14px;background:var(--white);margin-bottom:10px}
+.btn{display:block;width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700}
+.btn-p{background:var(--g);color:#fff}
 .btn-s{background:var(--gray3);color:var(--text);border:1.5px solid var(--gray2);margin-top:8px}
-
-</head>
-<body>
-<div id="hdr">
-  <h1>🗑️ Mülltonnen-Meldung <small style="font-size:10px;opacity:0.7;margin-left:5px">v2.01</small></h1>
-  <span style="font-size:10px;opacity:0.6">© Michael Elvey</span>
-</div>
-
-<div id="tabs">
-  <button class="tb on" onclick="showTab('m')" id="tb-m">📋 Meldung</button>
-  <button class="tb" onclick="showTab('v')" id="tb-v">🕐 Verlauf</button>
-  <button class="tb" onclick="showTab('e')" id="tb-e">⚙️ Setup</button>
-  <button class="tb" onclick="showTab('h')" id="tb-h">❓ Hilfe</button>
-</div>
 
 <div id="wrap">
   <div class="pane on" id="pane-m">
     <div class="card">
-      <div class="clabel">📁 Kategorie wählen *</div>
+      <div class="clabel">📁 Kategorie *</div>
       <div class="catgrid" id="catGrid"></div>
     </div>
-
-<div class="card">
-      <div class="clabel">🗑️ Müllart (RM, Bio, Papier, GS)</div>
+    <div class="card">
+      <div class="clabel">🗑️ Müllart</div>
       <div class="wgrid" id="wasteGrid"></div>
     </div>
-
     <div class="card">
       <div class="clabel">🚦 Status</div>
       <div class="catgrid" id="statusGrid">
@@ -86,81 +57,54 @@ textarea, input, select{width:100%;padding:12px;border:1.5px solid var(--gray2);
         <button class="cbtn" id="stat-NichtGeleert" onclick="selStatus('Nicht Geleert')">⚠️ Nicht Geleert</button>
       </div>
     </div>
-
     <div class="card">
-      <div class="clabel">📝 Hinweise & Standort</div>
-      <textarea id="notesIn" placeholder="Besonderheiten hier eintragen..." rows="2"></textarea>
-      <div id="gpsStatus" style="font-size:11px;color:var(--gray4);margin-top:8px">GPS wird beim Senden erfasst.</div>
+      <div class="clabel">📝 Hinweise</div>
+      <textarea id="notesIn" placeholder="Besonderheiten..."></textarea>
     </div>
-
-    <button class="btn btn-p" id="sendBtn" onclick="sendEntry()">📤 Meldung senden</button>
-    <button class="btn btn-s" onclick="resetForm()">🔄 Leeren</button>
+    <button class="btn btn-p" id="sendBtn" onclick="sendEntry()">📤 Senden</button>
   </div>
 
 <div class="pane" id="pane-v">
     <div id="histList"></div>
   </div>
-
   <div class="pane" id="pane-e">
     <div class="card">
-      <div class="clabel">👤 Ersteinrichtung</div>
-      <div class="field"><label>Fahrername</label><input type="text" id="sName" placeholder="Max Mustermann"></div>
-      <div class="field"><label>Fahrzeugkennzeichen</label><input type="text" id="sPlate" placeholder="HH-XY 123"></div>
-      <div class="field"><label>Standard Müllsorte</label>
-        <select id="sWaste">
-          <option value="Restmüll (RM)">Restmüll (RM)</option>
-          <option value="Biomüll (BIO)">Biomüll (BIO)</option>
-          <option value="Papiermüll (Papier)">Papiermüll (Papier)</option>
-          <option value="Gelber Sack (GS)">Gelber Sack (GS)</option>
-        </select>
-      </div>
-      <div class="field"><label>Dispo E-Mail</label><input type="email" id="sEmail" placeholder="zentrale@firma.de"></div>
+      <div class="clabel">👤 Setup</div>
+      <input type="text" id="sName" placeholder="Fahrername">
+      <input type="text" id="sPlate" placeholder="Kennzeichen">
+      <select id="sWaste">
+        <option value="Restmüll (RM)">Restmüll (RM)</option>
+        <option value="Biomüll (BIO)">Biomüll (BIO)</option>
+        <option value="Papiermüll (Papier)">Papiermüll (Papier)</option>
+        <option value="Gelber Sack (GS)">Gelber Sack (GS)</option>
+      </select>
+      <input type="email" id="sEmail" placeholder="Dispo E-Mail">
     </div>
-    <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
+    <button class="btn btn-p" onclick="saveSettings()">💾 Speichern</button>
   </div>
-
-<div class="pane" id="pane-h">
-    <div class="card">
-      <div class="clabel">📖 Benutzerhandbuch v2.01</div>
-      <div style="font-size:13px; line-height:1.5">
-        <p><strong>1. Schritt (Setup):</strong> Gehen Sie zuerst auf "Setup" und füllen Sie Ihre Daten aus. Speichern nicht vergessen!</p>
-        <br>
-        <p><strong>2. Schritt (Meldung):</strong> Wählen Sie eine Kategorie. Die Müllart wird aus Ihren Standards übernommen, kann aber per Schnellklick (RM, Bio...) geändert werden.</p>
-        <br>
-        <p><strong>3. Schritt (Status):</strong> Der Status "Geleert" ist immer vorausgewählt.</p>
-        <br>
-        <p><strong>4. Schritt (Senden):</strong> Klicken Sie auf Senden. Die App öffnet Ihr E-Mail Programm mit allen Daten.</p>
-      </div>
-    </div>
+  <div class="pane" id="pane-h">
+    <div class="card"><div class="clabel">📖 Handbuch</div>
+    <p style="font-size:13px">1. Unter Setup Daten ausfüllen.<br>2. Meldung wählen.<br>3. Senden klicken.</p></div>
   </div>
 </div>
-
-<div id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:12px 20px;border-radius:30px;font-size:13px;display:none;z-index:1000"></div>
+<div id="toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px;border-radius:20px;display:none;z-index:99"></div>
 
 <script>
-/**
- * APP LOGIK v2.01
- */
+// Punkt 1 & 2: Müllarten-Mapping & Standard-Status
 const CATS = [
   {k:'Chip defekt',i:'💾'}, {k:'nicht bereitgestellt',i:'❌'},
   {k:'Überfüllt',i:'📦'}, {k:'Fehlbefüllung',i:'⚠️'},
   {k:'in Schüttung gefallen',i:'⬇️'}, {k:'Sonstiges',i:'📌'}
 ];
-
-// Mapping für die Buttons: Display (Kurz) vs. Value (Lang)
 const WASTE_MAP = [
-  {v: 'Restmüll (RM)', d: 'RM'},
-  {v: 'Biomüll (BIO)', d: 'Bio'},
-  {v: 'Papiermüll (Papier)', d: 'Papier'},
-  {v: 'Gelber Sack (GS)', d: 'GS'}
+  {v: 'Restmüll (RM)', d: 'RM'}, {v: 'Biomüll (BIO)', d: 'Bio'},
+  {v: 'Papiermüll (Papier)', d: 'Papier'}, {v: 'Gelber Sack (GS)', d: 'GS'}
 ];
-
 let settings = {driverName:'', licensePlate:'', email:'', defaultWasteType: 'Restmüll (RM)'};
 let cur = { category: '', wasteType: 'Restmüll (RM)', status: 'Geleert' };
-const DB_NAME = 'MuellAppDB_v2';
+const DB_NAME = 'TonnenDB_v2';
 
-// Datenbank-Initialisierung (Stabilerer Ansatz)
-function initDB() {
+async function openDB() {
   return new Promise((resolve) => {
     const req = indexedDB.open(DB_NAME, 1);
     req.onupgradeneeded = (e) => {
@@ -171,9 +115,7 @@ function initDB() {
     req.onsuccess = (e) => resolve(e.target.result);
   });
 }
-</script>
 
-<script>
 function showTab(id) {
   document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
@@ -181,160 +123,94 @@ function showTab(id) {
   document.getElementById('pane-'+id).classList.add('on');
   if(id === 'v') renderHistory();
 }
-
-// Rendert die RM, Bio, Papier, GS Buttons (Punkt 1 Korrektur)
 function renderWasteButtons() {
   const container = document.getElementById('wasteGrid');
+  if(!container) return;
   container.innerHTML = WASTE_MAP.map(item => `
     <button class="cbtn ${cur.wasteType === item.v ? 'sel' : ''}" 
             onclick="selWasteType('${item.v}')">${item.d}</button>
   `).join('');
 }
-
-function selWasteType(val) {
-  cur.wasteType = val;
-  renderWasteButtons();
-}
-
+function selWasteType(val) { cur.wasteType = val; renderWasteButtons(); }
 function selStatus(val) {
   cur.status = val;
   document.getElementById('stat-Geleert').classList.toggle('sel', val === 'Geleert');
   document.getElementById('stat-NichtGeleert').classList.toggle('sel', val === 'Nicht Geleert');
 }
 
-function selCat(val) {
-  cur.category = val;
-  document.querySelectorAll('#catGrid .cbtn').forEach(btn => {
-    btn.classList.toggle('sel', btn.getAttribute('data-k') === val);
-  });
-}
-</script>
-
-<script>
 async function sendEntry() {
   if(!cur.category) { showToast('Bitte Kategorie wählen!'); return; }
-  
   const notes = document.getElementById('notesIn').value;
-  const subject = `Müll-Meldung: ${cur.category} (${cur.wasteType})`;
+  const body = `Fahrer: ${settings.driverName}\nFahrzeug: ${settings.licensePlate}\nArt: ${cur.wasteType}\nStatus: ${cur.status}\nKategorie: ${cur.category}\nInfo: ${notes}`;
+  const mailLink = `mailto:${settings.email}?subject=Meldung ${cur.category}&body=${encodeURIComponent(body)}`;
   
-  const body = `MÜLLTONNEN-MELDUNG v2.01
-------------------------------
-Fahrer: ${settings.driverName || 'Nicht angegeben'}
-Fahrzeug: ${settings.licensePlate || 'Nicht angegeben'}
-Datum/Zeit: ${new Date().toLocaleString('de-DE')}
-
-KATEGORIE: ${cur.category}
-MÜLLART: ${cur.wasteType}
-STATUS: ${cur.status}
-HINWEIS: ${notes || '-'}
-------------------------------`;
-
-  const mailLink = `mailto:${settings.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  
-  // In Historie speichern
-  const db = await initDB();
-  const entry = { ...cur, id: Date.now(), notes: notes, date: new Date().toISOString() };
+  const db = await openDB();
   const tx = db.transaction('history', 'readwrite');
-  tx.objectStore('history').add(entry);
+  tx.objectStore('history').add({ ...cur, id: Date.now(), notes, date: new Date().toISOString() });
   
   window.location.href = mailLink;
-  showToast('📧 Mail wird vorbereitet...');
+  showToast('📧 Sende...');
   setTimeout(resetForm, 1000);
 }
-
 function resetForm() {
   cur.category = '';
   cur.wasteType = settings.defaultWasteType;
   cur.status = 'Geleert';
   document.getElementById('notesIn').value = '';
+  document.querySelectorAll('#catGrid .cbtn').forEach(b => b.classList.remove('sel'));
   selStatus('Geleert');
   renderWasteButtons();
-  // Kategorien Buttons optisch zurücksetzen
-  document.querySelectorAll('#catGrid .cbtn').forEach(b => b.classList.remove('sel'));
 }
-</script>
 
-<script>
 async function saveSettings() {
-  settings.driverName = document.getElementById('sName').value;
-  settings.licensePlate = document.getElementById('sPlate').value;
-  settings.email = document.getElementById('sEmail').value;
-  settings.defaultWasteType = document.getElementById('sWaste').value;
-  
-  const db = await initDB();
+  settings = {
+    driverName: document.getElementById('sName').value,
+    licensePlate: document.getElementById('sPlate').value,
+    email: document.getElementById('sEmail').value,
+    defaultWasteType: document.getElementById('sWaste').value
+  };
+  const db = await openDB();
   const tx = db.transaction('settings', 'readwrite');
   tx.objectStore('settings').put(settings, 'config');
-  
-  showToast('💾 Gespeichert!');
+  showToast('💾 Gespeichert');
   cur.wasteType = settings.defaultWasteType;
   renderWasteButtons();
   showTab('m');
 }
-
-async function renderHistory() {
-  const container = document.getElementById('histList');
-  const db = await initDB();
-  const tx = db.transaction('history', 'readonly');
-  const list = await new Promise(res => {
-    tx.objectStore('history').getAll().onsuccess = (e) => res(e.target.result);
-  });
-  
-  if(list.length === 0) {
-    container.innerHTML = '<div style="text-align:center;color:gray;padding:20px">Noch keine Meldungen vorhanden.</div>';
-    return;
-  }
-  
-  container.innerHTML = list.reverse().map(e => `
-    <div class="card" style="font-size:13px">
-      <strong>${new Date(e.date).toLocaleString('de-DE')}</strong><br>
-      ${e.category} | ${e.wasteType} | ${e.status}
-    </div>
-  `).join('');
-}
-
 function showToast(m) {
   const t = document.getElementById('toast');
   t.textContent = m; t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3000);
+  setTimeout(() => t.style.display = 'none', 2500);
 }
-</script>
 
-<script>
 async function startApp() {
-  try {
-    // 1. Kategorien bauen
-    const catContainer = document.getElementById('catGrid');
-    catContainer.innerHTML = CATS.map(c => `
-      <button class="cbtn" data-k="${c.k}" onclick="selCat('${c.k}')">
-        <span style="display:block;font-size:18px">${c.i}</span>${c.k}
-      </button>
-    `).join('');
+  // Kategorien Buttons
+  document.getElementById('catGrid').innerHTML = CATS.map(c => `
+    <button class="cbtn" onclick="selCat(this, '${c.k}')" data-k="${c.k}">
+      <span style="display:block;font-size:16px">${c.i}</span>${c.k}
+    </button>
+  `).join('');
 
-    // 2. DB laden
-    const db = await initDB();
-    const tx = db.transaction('settings', 'readonly');
-    const req = tx.objectStore('settings').get('config');
-    
-    req.onsuccess = () => {
-      if(req.result) {
-        settings = req.result;
-        // Felder im Setup füllen
-        document.getElementById('sName').value = settings.driverName || '';
-        document.getElementById('sPlate').value = settings.licensePlate || '';
-        document.getElementById('sEmail').value = settings.email || '';
-        document.getElementById('sWaste').value = settings.defaultWasteType || 'Restmüll (RM)';
-        cur.wasteType = settings.defaultWasteType;
-      }
-      // 3. UI Buttons rendern
-      renderWasteButtons();
-    };
-  } catch (err) {
-    console.error("Fehler beim Start:", err);
-    alert("Fehler beim Laden der App. Bitte Seite neu laden.");
-  }
+  const db = await openDB();
+  const tx = db.transaction('settings', 'readonly');
+  const req = tx.objectStore('settings').get('config');
+  req.onsuccess = () => {
+    if(req.result) {
+      settings = req.result;
+      document.getElementById('sName').value = settings.driverName || '';
+      document.getElementById('sPlate').value = settings.licensePlate || '';
+      document.getElementById('sEmail').value = settings.email || '';
+      document.getElementById('sWaste').value = settings.defaultWasteType || 'Restmüll (RM)';
+      cur.wasteType = settings.defaultWasteType;
+    }
+    renderWasteButtons();
+  };
 }
-
-// Start der App sicherstellen
+function selCat(btn, val) {
+  cur.category = val;
+  document.querySelectorAll('#catGrid .cbtn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
 window.onload = startApp;
 </script>
 </body>
