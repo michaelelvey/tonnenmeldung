@@ -11,7 +11,7 @@
 <link rel="manifest" id="pwaManifest">
 <title>🗑️ Mülltonnen-Meldung v2.01</title>
 <style>
-/* Grundlegendes Styling und Variablen-Definitionen */
+/* Design-System Definitionen */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --g:#1a5c1a; --g2:#2d7a2d; --g3:#e6f4e6; --g4:#c8e6c8; 
@@ -19,67 +19,50 @@
   --gray:#6b7280; --gray2:#d1d5db; --gray3:#f3f4f6; --gray4:#9ca3af; 
   --text:#111827; --white:#fff; --blue:#1d4ed8; --blue-l:#eff6ff; 
   --radius:14px; --shadow:0 1px 8px rgba(0,0,0,.10),0 4px 16px rgba(0,0,0,.06); 
-  --shadow-sm:0 1px 4px rgba(0,0,0,.08); --header-h:52px; --font:'DM Sans',system-ui,-apple-system,sans-serif
+  --header-h:52px; --font:'DM Sans',system-ui,-apple-system,sans-serif
 }
 html,body{height:100%;overflow:hidden}
 body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column}
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
-#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:var(--white);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);position:relative;z-index:10}
-#hdr h1{font-size:16px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:7px}
-#hdr .cr{font-size:10px;opacity:.65;font-weight:400}
+#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:var(--white);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10}
+#hdr h1{font-size:16px;font-weight:700;display:flex;align-items:center;gap:7px}
 
-/* Navigationstabs am oberen Rand */
-#tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0;box-shadow:0 1px 0 var(--gray2);overflow-x:auto}
-.tb{flex:1;min-width:70px;border:none;background:none;cursor:pointer;padding:10px 4px 8px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--gray4);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;transition:color .2s}
-.tb .ti{font-size:19px;line-height:1}
-.tb::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2.5px;background:var(--g);border-radius:2px 2px 0 0;transform:scaleX(0);transition:transform .2s}
+#tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0}
+.tb{flex:1;border:none;background:none;cursor:pointer;padding:10px 4px 8px;font-size:11px;font-weight:600;color:var(--gray4);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
 .tb.on{color:var(--g)}
+.tb::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2.5px;background:var(--g);border-radius:2px;transform:scaleX(0);transition:0.2s}
 .tb.on::after{transform:scaleX(1)}
 
-#wrap{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+#wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .pane{display:none;padding:14px 14px 24px}
 .pane.on{display:block}
 .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
-.clabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gray4);margin-bottom:11px;display:flex;align-items:center;gap:5px}
+.clabel{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray4);margin-bottom:11px;display:flex;align-items:center;gap:5px}
 
 .catgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.wgrid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px} /* 4 Spalten für kompakte Müllart-Buttons */
-.cbtn{padding:10px 6px 9px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;text-align:center;line-height:1.2;color:var(--text);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
-.cbtn .ci{font-size:18px}
-.cbtn:active{transform:scale(.96)}
-.cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g);font-weight:700;box-shadow:0 0 0 3px var(--g4)}
+/* Grid für die 4 umbenannten Müllarten */
+.wgrid{display:grid;grid-template-columns:repeat(4, 1fr);gap:5px} 
 
-/* Eingabefelder */
-textarea,input[type=text],input[type=email],input[type=date],select{width:100%;padding:11px 12px;border:1.5px solid var(--gray2);border-radius:9px;font-family:var(--font);font-size:14px;outline:none;background:var(--white);color:var(--text);-webkit-appearance:none;appearance:none}
+.cbtn{padding:10px 4px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-size:12px;font-weight:600;cursor:pointer;text-align:center;color:var(--text);transition:0.15s}
+.cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g);box-shadow:0 0 0 3px var(--g4)}
+
+textarea, input, select{width:100%;padding:11px;border:1.5px solid var(--gray2);border-radius:9px;font-size:14px;background:var(--white)}
 .field{margin-bottom:13px}
-.field label{display:block;font-size:12.5px;font-weight:600;color:var(--gray);margin-bottom:5px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--gray);margin-bottom:4px}
 
-/* Primäre Action-Buttons */
-.btn{display:block;width:100%;padding:14px;border:none;border-radius:11px;cursor:pointer;font-family:var(--font);font-size:15px;font-weight:700;text-align:center;transition:all .15s}
-.btn-p{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;box-shadow:0 3px 10px rgba(26,92,26,.3)}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:11px;cursor:pointer;font-size:15px;font-weight:700}
+.btn-p{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff}
 .btn-s{background:var(--gray3);color:var(--text);border:1.5px solid var(--gray2)}
 .btn-d{background:var(--r);color:#fff}
 
-/* Styling für das Benutzerhandbuch */
-.help-section{margin-bottom:20px}
-.help-section h4{font-size:14px;color:var(--g);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.help-section p{font-size:13px;line-height:1.5;color:var(--gray);margin-bottom:10px}
-.help-step{display:flex;gap:12px;margin-bottom:12px;background:var(--white);padding:12px;border-radius:10px;box-shadow:var(--shadow-sm)}
-.step-num{background:var(--g);color:var(--white);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.step-content{font-size:13px}
-.step-content strong{display:block;margin-bottom:2px;color:var(--text)}
+.help-step{display:flex;gap:10px;margin-bottom:12px;background:var(--gray3);padding:10px;border-radius:8px}
+.step-num{background:var(--g);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
 
-/* Toast Benachrichtigung */
-#toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2937;color:#fff;padding:10px 18px;border-radius:50px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.hidden{display:none!important}
-</style>
 </head>
-
 <body>
 <div id="hdr">
-  <h1>🗑️ Mülltonnen-Meldung <small style="font-size:10px;opacity:0.8;margin-left:5px">v2.01</small></h1>
+  <h1>🗑️ Mülltonnen-Meldung <small style="font-size:10px;opacity:0.7">v2.01</small></h1>
   <span class="cr">© Michael Elvey</span>
 </div>
 
@@ -93,11 +76,11 @@ textarea,input[type=text],input[type=email],input[type=date],select{width:100%;p
 <div id="wrap">
   <div class="pane on" id="pane-m">
     <div class="card">
-      <div class="clabel">📁 Kategorie <span class="req">*</span></div>
+      <div class="clabel">📁 Kategorie *</div>
       <div class="catgrid" id="catGrid"></div>
     </div>
-    
-    <div class="card">
+
+<div class="card">
       <div class="clabel">🗑️ Müllart</div>
       <div class="wgrid" id="wasteGrid"></div>
     </div>
@@ -105,195 +88,96 @@ textarea,input[type=text],input[type=email],input[type=date],select{width:100%;p
     <div class="card">
       <div class="clabel">🚦 Status</div>
       <div class="catgrid" id="statusGrid">
-        <button class="cbtn sel" data-s="Geleert" onclick="selStatus('Geleert')"><span class="ci">✅</span>Geleert</button>
-        <button class="cbtn" data-s="Nicht Geleert" onclick="selStatus('Nicht Geleert')"><span class="ci">⚠️</span>Nicht Geleert</button>
-      </div>
-    </div>
-
-<div class="schinfo hidden" id="schInfo">
-      <span style="font-size:20px;flex-shrink:0">📍</span>
-      <div><strong>In Schüttung gefallen</strong><br>Kein Foto erforderlich. GPS wird beim Senden erfasst.</div>
-    </div>
-
-    <div class="card" id="photoCard">
-      <div class="clabel">📷 Fotos</div>
-      <div class="pgrid">
-        <div style="display:flex;gap:10px">
-          <div style="flex:1">
-            <div class="pslot" id="slot0" onclick="triggerPhoto(0)" style="aspect-ratio:4/3;border:2px dashed var(--gray2);border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--gray3);position:relative">
-              <span class="pico">📷</span><span class="psub">Tonne</span>
-            </div>
-          </div>
-          <div style="flex:1">
-            <div class="pslot" id="slot1" onclick="triggerPhoto(1)" style="aspect-ratio:4/3;border:2px dashed var(--gray2);border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--gray3);position:relative">
-              <span class="pico">🔍</span><span class="psub">Barcode</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="bcbox hidden" id="bcBox" style="margin-top:10px;padding:8px;background:#fef3c7;border-radius:8px;display:flex;justify-content:space-between">
-        <span id="bcVal" style="font-family:monospace;font-weight:700"></span>
-        <button onclick="clearBarcode()">✕</button>
+        <button class="cbtn sel" data-s="Geleert" onclick="selStatus('Geleert')">✅ Geleert</button>
+        <button class="cbtn" data-s="Nicht Geleert" onclick="selStatus('Nicht Geleert')">⚠️ Nicht Geleert</button>
       </div>
     </div>
 
     <div class="card">
-      <div class="clabel">📍 GPS-Standort</div>
-      <div class="gpsbox">
-        <span class="gpsico" id="gpsIco">📡</span>
-        <div style="flex:1"><div class="gpstxt" id="gpsTxt">Wird automatisch erfasst</div><div class="gpssmall" id="gpsSub"></div></div>
-        <button class="gpsbtn" id="gpsBtn" onclick="captureGPS(true)">Jetzt</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="clabel">📝 Anmerkungen</div>
-      <textarea id="notesIn" placeholder="Besonderheiten (z.B. Tonne hinter Zaun)..." rows="2"></textarea>
+      <div class="clabel">📍 Standort & Fotos</div>
+      <div style="font-size:13px;color:var(--gray);margin-bottom:10px" id="gpsTxt">Wird automatisch erfasst...</div>
+      <textarea id="notesIn" placeholder="Optionale Hinweise..." rows="2"></textarea>
     </div>
 
     <button class="btn btn-p" id="sendBtn" onclick="sendEntry()">📤 Meldung senden</button>
-    <button class="btn btn-s" style="margin-top:8px" onclick="resetForm()">🔄 Formular leeren</button>
-    
-    <input type="file" id="fi0" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(0)">
-    <input type="file" id="fi1" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(1)">
   </div>
 
 <div class="pane" id="pane-v">
-    <div class="sbar">
-      <input type="text" id="stxt" placeholder="🔍 Suchen…" oninput="renderHistory()">
-      <select id="scat" onchange="renderHistory()"><option value="">Alle Kategorien</option></select>
-    </div>
     <div id="histList"></div>
-    <button class="btn btn-s" onclick="showExport()" style="margin-top:12px">📊 Excel-Export</button>
   </div>
 
   <div class="pane" id="pane-e">
     <div class="card">
-      <div class="clabel">👤 Basis-Konfiguration (Zuerst ausfüllen!)</div>
-      <div class="field"><label>Fahrername</label><input type="text" id="sName" placeholder="Max Mustermann"></div>
-      <div class="field"><label>Fahrzeugkennzeichen</label><input type="text" id="sPlate" placeholder="HH-XX-123" oninput="this.value=this.value.toUpperCase()"></div>
-      <div class="field"><label>Landkreis / Revier</label><input type="text" id="sDist" placeholder="Harburg Süd"></div>
+      <div class="clabel">👤 Setup (Zuerst ausfüllen!)</div>
+      <div class="field"><label>Fahrername</label><input type="text" id="sName"></div>
+      <div class="field"><label>Fahrzeug</label><input type="text" id="sPlate"></div>
       <div class="field"><label>Standard Müllsorte</label>
         <select id="sWaste">
-          <option value="Restmüll (RM)">RM (Restmüll)</option>
-          <option value="Biomüll (BIO)">Bio (Biomüll)</option>
-          <option value="Papiermüll (Papier)">Papier (Papiermüll)</option>
-          <option value="Gelber Sack (GS)">GS (Gelber Sack)</option>
+          <option value="Restmüll (RM)">Restmüll (RM)</option>
+          <option value="Biomüll (BIO)">Biomüll (BIO)</option>
+          <option value="Papiermüll (Papier)">Papiermüll (Papier)</option>
+          <option value="Gelber Sack (GS)">Gelber Sack (GS)</option>
         </select>
       </div>
-      <div class="field" style="margin-bottom:0"><label>📧 E-Mail Dispo (Empfänger)</label><input type="email" id="sEmail" placeholder="dispo@firma.de"></div>
+      <div class="field"><label>E-Mail Empfänger</label><input type="email" id="sEmail"></div>
     </div>
-    <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
-    
-    <div class="card" style="margin-top:15px">
-      <div class="clabel">📊 Datenverwaltung</div>
-      <div class="erow"><span class="el">Einträge lokal gespeichert:</span><strong id="stTotal">0</strong></div>
-      <button class="btn btn-d" style="margin-top:12px;padding:10px;font-size:13px" onclick="clearAll()">🗑️ Alle Daten lokal löschen</button>
-    </div>
+    <button class="btn btn-p" onclick="saveSettings()">💾 Speichern</button>
   </div>
 
 <div class="pane" id="pane-h">
     <div class="card">
-      <div class="clabel">📖 Benutzerhandbuch v2.01</div>
+      <div class="clabel">📖 Benutzerhandbuch</div>
+      <p style="font-size:13px;margin-bottom:15px">Willkommen zur Version 2.01. Bitte folgen Sie diesen Schritten:</p>
       
-      <div class="help-section">
-        <h4>1. Ersteinrichtung (Wichtig!)</h4>
-        <p>Bevor Sie die erste Meldung senden, müssen Sie Ihre Daten hinterlegen.</p>
-        <div class="help-step">
-          <div class="step-num">1</div>
-          <div class="step-content"><strong>Setup öffnen:</strong> Gehen Sie unten auf den Reiter "Setup".</div>
-        </div>
-        <div class="help-step">
-          <div class="step-num">2</div>
-          <div class="step-content"><strong>Daten eingeben:</strong> Tragen Sie Name, Kennzeichen und die E-Mail der Zentrale ein.</div>
-        </div>
-        <div class="help-step">
-          <div class="step-num">3</div>
-          <div class="step-content"><strong>Speichern:</strong> Klicken Sie auf "Einstellungen speichern". Diese Daten werden für jede Meldung automatisch übernommen.</div>
-        </div>
+      <div class="help-step">
+        <div class="step-num">1</div>
+        <div style="font-size:13px"><strong>Ersteinrichtung:</strong> Öffnen Sie den Reiter <strong>Setup</strong> und geben Sie einmalig Ihren Namen und das Fahrzeug an.</div>
+      </div>
+      
+      <div class="help-step">
+        <div class="step-num">2</div>
+        <div style="font-size:13px"><strong>Standard festlegen:</strong> Wählen Sie im Setup die Müllsorte, mit der Sie meistens arbeiten.</div>
       </div>
 
-      <div class="help-section">
-        <h4>2. Eine Meldung erstellen</h4>
-        <div class="help-step">
-          <div class="step-num">1</div>
-          <div class="step-content"><strong>Kategorie wählen:</strong> Wählen Sie den Grund der Meldung (z.B. "Überfüllt").</div>
-        </div>
-        <div class="help-step">
-          <div class="step-num">2</div>
-          <div class="step-content"><strong>Müllart & Status:</strong> Prüfen Sie, ob Müllart und Status (Standard: Geleert) korrekt sind.</div>
-        </div>
-        <div class="help-step">
-          <div class="step-num">3</div>
-          <div class="step-content"><strong>Foto & Barcode:</strong> Machen Sie bei Bedarf Fotos. Die App versucht Barcodes automatisch aus dem Bild zu lesen.</div>
-        </div>
-        <div class="help-step">
-          <div class="step-num">4</div>
-          <div class="step-content"><strong>Senden:</strong> Klicken Sie auf "Meldung senden". Es öffnet sich Ihr Mail-Programm oder das Teilen-Menü Ihres Handys.</div>
-        </div>
+      <div class="help-step">
+        <div class="step-num">3</div>
+        <div style="font-size:13px"><strong>Meldung senden:</strong> Kategorie wählen, ggf. Müllart kurz korrigieren und absenden. Der Status ist automatisch auf "Geleert".</div>
       </div>
     </div>
   </div>
 </div>
-
-<div id="toast"></div>
-
+<div id="toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px;border-radius:8px;display:none;z-index:1000"></div>
 <script>
-/**
- * KONFIGURATION & GLOBALE VARIABLEN
+/** * KONFIGURATION & MAPPING (Punkt 1: Umbenennung)
  */
 const VERSION = "2.01";
 const CATS = [
-  {k:'Chip defekt',i:'💾'},{k:'nicht bereitgestellt',i:'❌'},
-  {k:'Überfüllt',i:'📦'},{k:'Fehlbefüllung',i:'⚠️'},
-  {k:'in Schüttung gefallen',i:'⬇️'},{k:'Anfahren nicht möglich',i:'🚫'},
-  {k:'Beschädigt',i:'🔨'},{k:'Sonstiges',i:'📌'}
+  {k:'Chip defekt',i:'💾'}, {k:'nicht bereitgestellt',i:'❌'},
+  {k:'Überfüllt',i:'📦'}, {k:'Fehlbefüllung',i:'⚠️'},
+  {k:'in Schüttung gefallen',i:'⬇️'}, {k:'Sonstiges',i:'📌'}
 ];
 
-// Mapping für Anzeige-Namen (Buttons) vs. Datenbank-Werte
+// Definition der Müllarten: Value = Speicherwert, Display = Button-Beschriftung
 const WASTE_MAP = [
-  {display: 'RM', value: 'Restmüll (RM)'},
-  {display: 'Bio', value: 'Biomüll (BIO)'},
-  {display: 'Papier', value: 'Papiermüll (Papier)'},
-  {display: 'GS', value: 'Gelber Sack (GS)'}
+  {v: 'Restmüll (RM)', d: 'RM'},
+  {v: 'Biomüll (BIO)', d: 'Bio'},
+  {v: 'Papiermüll (Papier)', d: 'Papier'},
+  {v: 'Gelber Sack (GS)', d: 'GS'}
 ];
 
-const DB_NAME = 'MuelltonnenDB_v2';
-const DB_VERSION = 1;
+let settings = {driverName:'', licensePlate:'', email:'', defaultWasteType: 'Restmüll (RM)'};
+let cur = null;
+const DB_NAME = 'MuellDB_v2';
 
-let entries = [], settings = {driverName:'',licensePlate:'',district:'',email:'', defaultWasteType: 'Restmüll (RM)'};
-let cur = null, gpsLocked = false;
-
-/**
- * INDEXED-DB LOGIK (Lokale Speicherung)
- */
+// Datenbank Initialisierung
 async function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (e) => {
+  return new Promise((res) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = (e) => {
       const db = e.target.result;
-      if (!db.objectStoreNames.contains('entries')) db.createObjectStore('entries', { keyPath: 'id' });
-      if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings');
+      db.createObjectStore('entries', {keyPath:'id'});
+      db.createObjectStore('settings');
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-// Hilfsfunktionen für DB Operationen
-async function dbPut(store, data, key) {
-  const db = await openDB();
-  return new Promise((res) => {
-    const tx = db.transaction(store, 'readwrite');
-    tx.objectStore(store).put(data, key);
-    tx.oncomplete = () => res();
-  });
-}
-
-async function dbGet(store, key) {
-  const db = await openDB();
-  return new Promise((res) => {
-    const req = db.transaction(store, 'readonly').objectStore(store).get(key);
     req.onsuccess = () => res(req.result);
   });
 }
@@ -301,42 +185,31 @@ async function dbGet(store, key) {
 
 <script>
 /**
- * FORMULAR LOGIK
+ * FORMULAR-FUNKTIONEN
  */
 function newEntry() {
   cur = {
     id: Date.now().toString(36),
     createdAt: new Date().toISOString(),
-    category: '', 
-    wasteType: settings.defaultWasteType, 
-    status: 'Geleert', // Punkt 2: Standardmäßig "Geleert"
-    photos: [null, null],
-    barcode: null,
-    gps: null,
-    notes: '',
-    driverName: settings.driverName,
-    licensePlate: settings.licensePlate,
-    district: settings.district
+    category: '',
+    wasteType: settings.defaultWasteType,
+    status: 'Geleert' // Punkt 2: Standard "Geleert"
   };
+  updateWasteUI();
 }
 
-// UI-Update für Müllart-Buttons (Punkt 1: Umbenennung)
-function buildWasteGrid() {
+// Erzeugt die Buttons RM, Bio, Papier, GS (Punkt 1 Korrektur)
+function updateWasteUI() {
   const grid = document.getElementById('wasteGrid');
   grid.innerHTML = WASTE_MAP.map(w => `
-    <button class="cbtn ${cur.wasteType === w.value ? 'sel' : ''}" 
-            data-w="${w.value}" 
-            onclick="selWasteType('${w.value}')">
-      ${w.display}
-    </button>
+    <button class="cbtn ${cur.wasteType === w.v ? 'sel' : ''}" 
+            onclick="selWasteType('${w.v}')">${w.d}</button>
   `).join('');
 }
 
 function selWasteType(val) {
   cur.wasteType = val;
-  document.querySelectorAll('#wasteGrid .cbtn').forEach(b => {
-    b.classList.toggle('sel', b.dataset.w === val);
-  });
+  updateWasteUI();
 }
 
 function selStatus(val) {
@@ -346,140 +219,121 @@ function selStatus(val) {
   });
 }
 
-function selCat(cat) {
-  cur.category = cat;
+function selCat(val) {
+  cur.category = val;
   document.querySelectorAll('#catGrid .cbtn').forEach(b => {
-    b.classList.toggle('sel', b.dataset.k === cat);
+    b.classList.toggle('sel', b.dataset.k === val);
   });
-  // Sonderlogik für Schüttung (kein Foto nötig)
-  const isSch = cat === 'in Schüttung gefallen';
-  document.getElementById('schInfo').classList.toggle('hidden', !isSch);
-  document.getElementById('photoCard').classList.toggle('hidden', isSch);
 }
 </script>
+
 <script>
 /**
- * SENDEN & EXPORT
+ * VERSAND-LOGIK
  */
 async function sendEntry() {
-  if(!cur.category) { toast('⚠️ Bitte Kategorie wählen!'); return; }
+  if(!cur.category) { showToast('Bitte Kategorie wählen!'); return; }
   
-  const btn = document.getElementById('sendBtn');
-  btn.disabled = true;
-  btn.innerHTML = '⌛ Bereite Versand vor...';
-
-  // Falls GPS noch fehlt, kurz versuchen zu holen
-  if(!cur.gps) await captureGPS(false);
-
-  cur.notes = document.getElementById('notesIn').value.trim();
+  cur.notes = document.getElementById('notesIn').value;
   
-  const subject = `Meldung: ${cur.category} | ${cur.wasteType} | ${cur.licensePlate}`;
-  const body = `--- MÜLLTONNEN-MELDUNG v${VERSION} ---
-Datum: ${new Date(cur.createdAt).toLocaleString('de-DE')}
-Fahrer: ${cur.driverName}
-Fahrzeug: ${cur.licensePlate}
-Revier: ${cur.district}
+  // Betreffzeile für die E-Mail
+  const subject = `Meldung: ${cur.category} | ${cur.wasteType}`;
+  
+  // Textinhalt der Mail
+  const body = `MELDUNG v${VERSION}
+----------------------
+Datum: ${new Date().toLocaleString()}
+Fahrer: ${settings.driverName}
+Fahrzeug: ${settings.licensePlate}
 
-KATEGORIE: ${cur.category}
-MÜLLART: ${cur.wasteType}
-STATUS: ${cur.status}
-STANDORT: ${cur.gps?.address || 'Keine Adresse'}
-GPS: ${cur.gps ? cur.gps.lat + ',' + cur.gps.lng : 'Nicht erfasst'}
-BARCODE: ${cur.barcode || 'Keiner'}
+Müllart: ${cur.wasteType}
+Status: ${cur.status}
+Kategorie: ${cur.category}
+Hinweis: ${cur.notes}
+----------------------`;
 
-HINWEISE: ${cur.notes || 'Keine'}
---------------------------------------`;
-
-  // Versand via Mailto (Fallback für alle Geräte)
   const mailUri = `mailto:${settings.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  
-  // Versuch Web-Share API für Fotos (falls unterstützt)
-  if (navigator.share && cur.photos.some(p => p !== null)) {
-     // Komplexe Share-Logik hier möglich...
-  }
-  
   window.location.href = mailUri;
   
-  // Lokal speichern
-  await dbPut('entries', cur, cur.id);
-  toast('✅ Gesendet & Lokal gespeichert');
+  // Speichern in DB
+  const db = await openDB();
+  db.transaction('entries','readwrite').objectStore('entries').put(cur);
   
-  setTimeout(() => {
-    resetForm();
-    showTab('v');
-  }, 1000);
+  showToast('✅ Gesendet!');
+  setTimeout(resetForm, 1000);
 }
 
 function resetForm() {
   newEntry();
-  document.querySelectorAll('.cbtn').forEach(b => b.classList.remove('sel'));
   document.getElementById('notesIn').value = '';
-  document.getElementById('bcBox').classList.add('hidden');
-  selStatus('Geleert'); // Reset auf Standard
-  selWasteType(settings.defaultWasteType);
-  setGPS(null);
-  btn.disabled = false;
-  btn.innerHTML = '📤 Meldung senden';
+  document.querySelectorAll('#catGrid .cbtn').forEach(b => b.classList.remove('sel'));
+  selStatus('Geleert');
 }
 </script>
+
 <script>
 /**
- * INITIALISIERUNG & UI-HELPER
+ * SETUP & NAVIGATION
  */
-async function init() {
-  // 1. Daten laden
-  const s = await dbGet('settings', 'config');
-  if(s) settings = {...settings, ...s};
-  
-  const all = await openDB();
-  const tx = all.transaction('entries', 'readonly');
-  entries = await new Promise(res => {
-    tx.objectStore('entries').getAll().onsuccess = (e) => res(e.target.result);
-  });
-
-  // 2. UI aufbauen
-  document.getElementById('catGrid').innerHTML = CATS.map(c => `
-    <button class="cbtn" data-k="${c.k}" onclick="selCat('${c.k}')">
-      <span class="ci">${c.i}</span>${c.k}
-    </button>
-  `).join('');
-  
-  buildWasteGrid();
-  newEntry();
-  selWasteType(settings.defaultWasteType);
-  
-  // Update Zähler im Setup
-  document.getElementById('stTotal').textContent = entries.length;
-}
-
-function showTab(name) {
-  document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
-  document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
-  document.getElementById('tb-' + name).classList.add('on');
-  document.getElementById('pane-' + name).classList.add('on');
-}
-
 async function saveSettings() {
   settings.driverName = document.getElementById('sName').value;
   settings.licensePlate = document.getElementById('sPlate').value;
-  settings.district = document.getElementById('sDist').value;
   settings.email = document.getElementById('sEmail').value;
   settings.defaultWasteType = document.getElementById('sWaste').value;
   
-  await dbPut('settings', settings, 'config');
-  toast('✅ Einstellungen gespeichert!');
+  const db = await openDB();
+  db.transaction('settings','readwrite').objectStore('settings').put(settings, 'config');
+  
+  showToast('💾 Einstellungen gespeichert!');
+  newEntry(); // Standard-Müllart übernehmen
   showTab('m');
 }
 
-function toast(m) {
-  const t = document.getElementById('toast');
-  t.textContent = m; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+function showTab(id) {
+  document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+  document.getElementById('tb-'+id).classList.add('on');
+  document.getElementById('pane-'+id).classList.add('on');
 }
 
-// Start der App
+function showToast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+</script>
+
+<script>
+/**
+ * INITIALISIERUNG BEIM START
+ */
+async function init() {
+  // Kategorien Buttons bauen
+  document.getElementById('catGrid').innerHTML = CATS.map(c => `
+    <button class="cbtn" data-k="${c.k}" onclick="selCat('${c.k}')">
+      <span style="display:block;font-size:18px">${c.i}</span>${c.k}
+    </button>
+  `).join('');
+
+  // Einstellungen laden
+  const db = await openDB();
+  const req = db.transaction('settings','readonly').objectStore('settings').get('config');
+  req.onsuccess = () => {
+    if(req.result) {
+      settings = req.result;
+      document.getElementById('sName').value = settings.driverName;
+      document.getElementById('sPlate').value = settings.licensePlate;
+      document.getElementById('sEmail').value = settings.email;
+      document.getElementById('sWaste').value = settings.defaultWasteType;
+    }
+    newEntry(); // Startet die App mit den geladenen Werten
+  };
+}
+
+// Start-Befehl
 init();
 </script>
 </body>
 </html>
+
 
