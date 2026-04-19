@@ -37,13 +37,13 @@ body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;f
 .clabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gray4);margin-bottom:11px;display:flex;align-items:center;gap:5px}
 .req{color:var(--o);margin-left:2px}
 .catgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-/* KOMMENTAR: Das wgrid (Müllart) wird nun auch als 1fr 1fr angezeigt, da 4 Elemente besser in ein 2x2 Raster passen */
 .wgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+/* NEU: Ein 3-Spalten Grid für die 3 Aktionen, damit es ordentlich aussieht */
+.actgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
 .cbtn{padding:10px 8px 9px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-family:var(--font);font-size:12.5px;font-weight:500;cursor:pointer;text-align:center;line-height:1.3;color:var(--text);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
 .cbtn .ci{font-size:18px}
 .cbtn:active{transform:scale(.96)}
 .cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g);font-weight:700;box-shadow:0 0 0 3px var(--g4)}
-/* KOMMENTAR ZU ÄNDERUNG 1: Im Darkmode wird der ausgewählte Button nun weiß statt grün, damit er lesbar bleibt */
 :root.dark .cbtn.sel{color:#ffffff;}
 
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -154,7 +154,7 @@ input[type=file].hidden{display:none!important}
     
     <div class="card">
       <div class="clabel">✅ Aktion <span class="req">*</span></div>
-      <div class="catgrid" id="actionGrid"></div>
+      <div class="actgrid" id="actionGrid"></div>
     </div>
 
 <div class="schinfo hidden" id="schInfo">
@@ -296,7 +296,6 @@ input[type=file].hidden{display:none!important}
 
 <script>
 
-// KOMMENTAR ZU ÄNDERUNG 3: "Kein Sack vom LK" und "Nachfahrt" hinzugefügt
 const CATS = [
   {k:'Chip defekt',i:'💾'},
   {k:'nicht (korrekt) bereitgestellt',i:'❌'},
@@ -310,11 +309,10 @@ const CATS = [
   {k:'Sonstiges',i:'📌'}
 ];
 
-// KOMMENTAR ZU ÄNDERUNG 2: Gelbersack hinzugefügt
 const WASTE_TYPES = ['Restmüll (RM)', 'Biomüll (BIO)', 'Papiermüll (Papier)', 'Gelbersack'];
 
-// KOMMENTAR ZU ÄNDERUNG 4: Aktionen Definition
-const ACTIONS = ['Geleert', 'Stehen gelassen'];
+// KOMMENTAR ZU WUNSCH 2: "Keine Tonne" als dritte Aktion hinzugefügt
+const ACTIONS = ['Geleert', 'Stehen gelassen', 'Keine Tonne'];
 
 const NO_PHOTO = 'in Schüttung gefallen';
 const DUP_M = 15;
@@ -382,7 +380,6 @@ async function dbDelete(storeName, key) {
   });
 }
 
-// KOMMENTAR ZU ÄNDERUNG 5: Auto-Archivierung Logik beim Laden
 async function loadData() {
   try {
     entries = await dbGetAll('entries');
@@ -390,7 +387,6 @@ async function loadData() {
     if (s) settings = {...settings, ...s};
     applyTheme(settings.theme || 'auto');
     
-    // Auto-Archivieren nach 30 Tagen
     const now = Date.now();
     const thirtyDaysMs = ARC_DAYS * 24 * 60 * 60 * 1000;
     let needsUpdate = false;
@@ -400,12 +396,11 @@ async function loadData() {
         const createdTime = new Date(e.createdAt).getTime();
         if (now - createdTime > thirtyDaysMs) {
           e.archived = true;
-          await dbPut('entries', e); // Aktualisiere Eintrag in DB
+          await dbPut('entries', e); 
           needsUpdate = true;
         }
       }
     }
-    // Wenn archiviert wurde, laden wir die Einträge zur Sicherheit neu
     if (needsUpdate) entries = await dbGetAll('entries');
     
   } catch (e) { console.error("DB Load Error", e); }
@@ -415,7 +410,6 @@ function newEntry() {
   cur = {
     id: Date.now().toString(36)+Math.random().toString(36).slice(2),
     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    // KOMMENTAR ZU ÄNDERUNG 4: actionTaken zum Eintragsobjekt hinzugefügt
     category:'', wasteType: settings.defaultWasteType, actionTaken: '', photos:[null,null], barcode:null,
     gps:null, notes:'', driverName:settings.driverName, licensePlate:settings.licensePlate,
     district:settings.district, archived:false, sentCount:0
@@ -542,7 +536,6 @@ function haversine(a,b,c,d) {
   return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 
-// KOMMENTAR ZU ÄNDERUNG 5: Archivierte werden weiterhin für Duplikate herangezogen (da hier entries komplett durchsucht wird)
 function findDups(entry) {
   const seen=new Set(), res=[];
   entries.forEach(e=>{
@@ -561,12 +554,13 @@ function checkDups() {
   const w = document.getElementById('dupWarn'), l = document.getElementById('dupList');
   if(dups.length>0) {
     w.classList.remove('hidden');
-    l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} · ${d.gps?.address||'kein GPS'}</div>`).join('');
+    // Die UI-Duplikat-Liste zeigt für eine bessere Info ebenfalls die genommene Aktion
+    l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} (${d.actionTaken||'-'}) · ${d.gps?.address||'kein GPS'}</div>`).join('');
   } else { w.classList.add('hidden'); }
 }
 
 async function sendEntry() {
-  // KOMMENTAR ZU ÄNDERUNG 4: Überprüfung, ob die Aktion ausgewählt wurde
+  // KOMMENTAR ZU WUNSCH 3: Die Prüfung `!cur.actionTaken` macht die Aktion zwingend erforderlich
   if(!cur.category || !cur.actionTaken) { toast('⚠️ Bitte Kategorie und Aktion auswählen!'); return; }
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
@@ -611,7 +605,9 @@ async function sendEntry() {
   await dbPut('entries', {...cur});
   entries.unshift({...cur});
   toast('✅ Meldung gesendet!');
-  setTimeout(()=>{ resetForm(); showTab('v'); }, 800);
+  
+  // KOMMENTAR ZU WUNSCH 1: Bleibt nun nach dem Senden direkt auf dem Reiter "Meldung" ('m' statt 'v')
+  setTimeout(()=>{ resetForm(); showTab('m'); }, 800);
 }
 
 async function toFiles(photos, id) {
@@ -627,8 +623,8 @@ async function toFiles(photos, id) {
 }
 
 function buildSubj(e) { return `Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`; }
+
 function buildBody(e, dups=[]) {
-  // KOMMENTAR ZU ÄNDERUNG 4: e.actionTaken zur Textausgabe hinzugefügt
   const ln=['=== MÜLLTONNEN-MELDUNG ===','',`Fahrer: ${e.driverName||'-'}`,`Fahrzeug: ${e.licensePlate||'-'}`,`Landkreis: ${e.district||'-'}`,`Datum: ${fmtDT(e.createdAt)}`,'',`Müllart: ${e.wasteType||'-'}`,`Aktion: ${e.actionTaken||'-'}`,`Kategorie: ${e.category}`,`Standort: ${e.gps?.address||'-'}`];
   if(e.gps) {
     ln.push(`GPS: ${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}`);
@@ -636,7 +632,13 @@ function buildBody(e, dups=[]) {
   }
   ln.push(`Strichcode: ${e.barcode||'-'}`);
   if(e.notes) ln.push(`Anmerkungen: ${e.notes}`);
-  if(dups.length>0) { ln.push('','⚠️ DUPLIKATE:'); dups.forEach((d,i)=>ln.push(`${i+1}. ${fmtDT(d.createdAt)} | ${d.category}`)); }
+  
+  // KOMMENTAR ZU WUNSCH 5: "d.actionTaken" wird nun in der Duplikate-Mail-Auflistung hinzugefügt
+  if(dups.length>0) { 
+    ln.push('','⚠️ DUPLIKATE:'); 
+    dups.forEach((d,i)=>ln.push(`${i+1}. ${fmtDT(d.createdAt)} | ${d.category} | ${d.actionTaken||'Keine Aktion'}`)); 
+  }
+  
   ln.push('','---','© Michael Elvey');
   return ln.join('\n');
 }
@@ -668,6 +670,9 @@ async function resend(id) {
 function resetForm() {
   newEntry(); gpsLocked=false; firstPhoto=true;
   document.querySelectorAll('.catgrid .cbtn').forEach(b=>b.classList.remove('sel'));
+  // Entfernt die visuelle Auswahl der Müllart und Aktion
+  document.querySelectorAll('.wgrid .cbtn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.actgrid .cbtn').forEach(b=>b.classList.remove('sel'));
   for(let i=0;i<2;i++) delPhoto(i);
   setGPS(null); clearBarcode();
   document.getElementById('notesIn').value='';
@@ -677,7 +682,6 @@ function resetForm() {
   document.getElementById('sendBtn').innerHTML='📤 Meldung senden';
   document.getElementById('sendBtn').disabled=false;
   selWasteType(settings.defaultWasteType);
-  // KOMMENTAR ZU ÄNDERUNG 4: Aktionsauswahl aufheben
   selAction('');
 }
 
@@ -695,11 +699,11 @@ function selWasteType(type) {
   document.querySelectorAll('#wasteGrid .cbtn').forEach(b=>b.classList.toggle('sel', b.dataset.w === type));
 }
 
-// KOMMENTAR ZU ÄNDERUNG 4: Hilfsfunktion zur Aktionsauswahl
 function selAction(act) {
   cur.actionTaken = act;
   document.querySelectorAll('#actionGrid .cbtn').forEach(b=>b.classList.toggle('sel', b.dataset.a === act));
 }
+
 async function renderHistory() {
   const txt=(document.getElementById('stxt').value||'').toLowerCase(), cat=document.getElementById('scat').value, list=document.getElementById('histList');
   entries = await dbGetAll('entries');
@@ -718,7 +722,6 @@ async function renderHistory() {
 
 function renderHE(e) {
   const cat=CATS.find(c=>c.k===e.category)||{i:'🗑️'}, photos=(e.photos||[]).filter(Boolean);
-  // KOMMENTAR ZU ÄNDERUNG 4: "e.actionTaken" wird im Verlauf gerendert
   return `<div class="hentry"><div class="hhead" onclick="toggleHE('${e.id}')"><span class="hico">${cat.i}</span><div class="hinfo"><div class="hcat">${e.category} <span style="font-weight:400;color:var(--gray);font-size:12px">(${e.wasteType||'–'})</span></div><div class="hmeta">${fmtDT(e.createdAt)} · ${e.driverName||'–'}</div></div>${e.archived?'<span class="harch">Archiv</span>':''}<span class="hchev" id="chev-${e.id}">▼</span></div><div class="hbody" id="hb-${e.id}">${photos.length?`<div class="ephotos">${photos.map(p=>`<img src="${p}" onclick="fullscreen(this)">`).join('')}</div>`:''}<div class="erow"><span class="el">Müllart:</span><strong style="color:var(--g)">${e.wasteType||'–'}</strong></div><div class="erow"><span class="el">Aktion:</span><strong>${e.actionTaken||'–'}</strong></div><div class="erow"><span class="el">Fahrzeug:</span><strong>${e.licensePlate||'–'}</strong></div><div class="erow"><span class="el">Landkreis:</span><strong>${e.district||'–'}</strong></div><div class="erow"><span class="el">Gesendet:</span>${e.sentCount}×</div><div class="eacts"><button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button><button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button><button class="sm btn-d" style="background:var(--r);color:#fff" onclick="delEntry('${e.id}')">🗑️ Löschen</button></div></div></div>`;
 }
 
@@ -757,7 +760,6 @@ function showExport() {
 }
 function closeExport() { document.getElementById('exportModal').classList.add('h'); }
 
-// KOMMENTAR ZU ÄNDERUNG 6: CSV Export statt XML (funktioniert deutlich stabiler auf Handys)
 async function doExport(mode) {
   const from=new Date(document.getElementById('exFrom').value), to=new Date(document.getElementById('exTo').value);
   to.setHours(23,59,59,999);
@@ -765,7 +767,6 @@ async function doExport(mode) {
   const rows=allEntries.filter(e=>{ const d=new Date(e.createdAt); return d>=from&&d<=to; }).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
   if(!rows.length){ alert('Keine Daten.'); return; }
 
-  // CSV Generierung (Mit BOM, damit Excel UTF-8 richtig erkennt)
   const HCOLS=['Datum/Zeit','Müllart','Kategorie','Aktion','Adresse','Breitengrad','Längengrad','Strichcode','Fahrername','Kennzeichen','Landkreis','Anmerkungen','Gesendet','Status'];
   let csvContent = "\uFEFF"; 
   csvContent += HCOLS.map(h => `"${h}"`).join(";") + "\n";
@@ -775,7 +776,7 @@ async function doExport(mode) {
       fmtDT(e.createdAt), e.wasteType||'', e.category||'', e.actionTaken||'',
       e.gps?.address||'', e.gps?.lat||'', e.gps?.lng||'', e.barcode||'',
       e.driverName||'', e.licensePlate||'', e.district||'',
-      (e.notes||'').replace(/\r?\n/g, ' '), // Zeilenumbrüche für die CSV entfernen
+      (e.notes||'').replace(/\r?\n/g, ' '), 
       e.sentCount||0, e.archived?'Archiv':'Aktiv'
     ];
     csvContent += rowData.map(val => `"${String(val).replace(/"/g, '""')}"`).join(";") + "\n";
@@ -788,7 +789,6 @@ async function doExport(mode) {
     const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=fn; a.click();
     closeExport(); toast('📥 CSV Exportiert');
   } else {
-    // KOMMENTAR ZUR MAIL: mailto: unterstützt keine Dateianhänge! Wir nutzen stattdessen die Share-API vom Handy.
     const subj=`Müll Export ${fmtD(from.toISOString())}–${fmtD(to.toISOString())}`;
     const body=`Anbei der Export als CSV-Datei.\n\n© Michael Elvey`;
     const file=new File([blob], fn, {type:'text/csv'});
@@ -837,7 +837,15 @@ async function saveSettings() {
   
   applyTheme(settings.theme);
   await dbPut('settings', settings, 'config');
-  if(cur){cur.driverName=settings.driverName;cur.licensePlate=settings.licensePlate;cur.district=settings.district;}
+  
+  if(cur){
+    cur.driverName=settings.driverName;
+    cur.licensePlate=settings.licensePlate;
+    cur.district=settings.district;
+    // KOMMENTAR ZU WUNSCH 4: Müllsorte wird sofort im Hintergrund (UI & Objekt) aktualisiert!
+    selWasteType(settings.defaultWasteType);
+  }
+  
   toast('✅ Gespeichert');
   setTimeout(()=>showTab('m'),600);
 }
@@ -908,7 +916,6 @@ function initPWA() {
 function buildUI() {
   document.getElementById('catGrid').innerHTML=CATS.map(c=>`<button class="cbtn" data-k="${c.k}" onclick="selCat('${c.k.replace(/'/g,"\\'")}')"><span class="ci">${c.i}</span>${c.k}</button>`).join('');
   document.getElementById('wasteGrid').innerHTML=WASTE_TYPES.map(w=>`<button class="cbtn" data-w="${w}" onclick="selWasteType('${w.replace(/'/g,"\\'")}')">${w}</button>`).join('');
-  // KOMMENTAR ZU ÄNDERUNG 4: Action (Geleert / Stehen gelassen) initialisieren
   document.getElementById('actionGrid').innerHTML=ACTIONS.map(a=>`<button class="cbtn" data-a="${a}" onclick="selAction('${a}')">${a}</button>`).join('');
   
   const sc=document.getElementById('scat');
@@ -917,7 +924,6 @@ function buildUI() {
   CATS.forEach(c=>{ const o=document.createElement('option');o.value=c.k;o.textContent=c.k;ec.appendChild(o); });
 }
 
-// KOMMENTAR ZU ÄNDERUNG 7: Wakelock (Handy-Display anlassen, solange die App offen ist)
 let wakeLock = null;
 async function requestWakeLock() {
   if ('wakeLock' in navigator) {
@@ -941,7 +947,6 @@ async function init() {
   document.getElementById('exportModal').addEventListener('click',function(e){if(e.target===this)closeExport();});
   document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeEdit();});
   
-  // Wakelock anfordern
   requestWakeLock();
 }
 
