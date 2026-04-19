@@ -5,213 +5,846 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mülltonnen">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a5c1a">
-<title>Mülltonnen-Meldung v2.01</title>
+<link rel="manifest" id="pwaManifest">
+<title>🗑️ Mülltonnen-Meldung</title>
 <style>
-/* Reset & Basis-Styling */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --g:#1a5c1a; --g2:#2d7a2d; --g3:#e6f4e6; --g4:#c8e6c8; 
-  --gray:#6b7280; --gray2:#d1d5db; --gray3:#f3f4f6; --gray4:#9ca3af; 
-  --text:#111827; --white:#fff; --radius:14px; --shadow:0 1px 8px rgba(0,0,0,.1); 
-  --header-h:52px; --font:system-ui,-apple-system,sans-serif
-}
-body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+:root{--g:#1a5c1a;--g2:#2d7a2d;--g3:#e6f4e6;--g4:#c8e6c8;--o:#d05a00;--r:#b91c1c;--y:#b45309;--yl:#fef3c7;--gray:#6b7280;--gray2:#d1d5db;--gray3:#f3f4f6;--gray4:#9ca3af;--text:#111827;--white:#fff;--blue:#1d4ed8;--blue-l:#eff6ff;--radius:14px;--shadow:0 1px 8px rgba(0,0,0,.10),0 4px 16px rgba(0,0,0,.06);--shadow-sm:0 1px 4px rgba(0,0,0,.08);--header-h:52px;--tab-h:58px;--font:'DM Sans',system-ui,-apple-system,sans-serif}
+:root.dark{--text:#f9fafb;--white:#1f2937;--gray:#9ca3af;--gray2:#374151;--gray3:#111827;--gray4:#6b7280;--g3:#064e3b;--g4:#065f46;--blue-l:#1e3a8a;--blue:#bfdbfe;--yl:#78350f;--y:#fcd34d;}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column;transition:background 0.3s, color 0.3s}
+:root.dark body {background:#030712;}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
-#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:var(--white);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10}
-#hdr h1{font-size:16px;font-weight:700}
-#tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0}
-.tb{flex:1;border:none;background:none;cursor:pointer;padding:12px 4px 10px;font-size:11px;font-weight:600;color:var(--gray4);display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);position:relative;z-index:10}
+#hdr h1{font-size:16px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:7px}
+#hdr .cr{font-size:10px;opacity:.65;font-weight:400}
+#tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0;box-shadow:0 1px 0 var(--gray2);transition:background 0.3s}
+.tb{flex:1;border:none;background:none;cursor:pointer;padding:10px 4px 8px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--gray4);display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;transition:color .2s}
+.tb .ti{font-size:19px;line-height:1}
+.tb::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2.5px;background:var(--g);border-radius:2px 2px 0 0;transform:scaleX(0);transition:transform .2s}
 .tb.on{color:var(--g)}
-.tb::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:3px;background:var(--g);transform:scaleX(0);transition:0.2s}
 .tb.on::after{transform:scaleX(1)}
-#wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.pane{display:none;padding:14px}
+#wrap{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.pane{display:none;padding:14px 14px 24px}
 .pane.on{display:block}
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;transition:background 0.3s}
+.clabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gray4);margin-bottom:11px;display:flex;align-items:center;gap:5px}
+.req{color:var(--o);margin-left:2px}
+.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.wgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
 
-.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
-.clabel{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray4);margin-bottom:11px}
-.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.wgrid{display:grid;grid-template-columns:repeat(4, 1fr);gap:6px} 
-.cbtn{padding:12px 4px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text)}
-.cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g)}
-textarea, input, select{width:100%;padding:12px;border:1.5px solid var(--gray2);border-radius:10px;font-size:14px;background:var(--white);margin-bottom:10px}
-.btn{display:block;width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700}
-.btn-p{background:var(--g);color:#fff}
-.btn-s{background:var(--gray3);color:var(--text);border:1.5px solid var(--gray2);margin-top:8px}
+.cbtn{padding:10px 8px 9px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-family:var(--font);font-size:12.5px;font-weight:500;cursor:pointer;text-align:center;line-height:1.3;color:var(--text);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.cbtn .ci{font-size:18px}
+.cbtn:active{transform:scale(.96)}
+.cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g);font-weight:700;box-shadow:0 0 0 3px var(--g4)}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pslot{aspect-ratio:4/3;border:2px dashed var(--gray2);border-radius:11px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--gray3);position:relative;transition:border-color .2s,background .2s}
+.pslot:active{background:var(--gray2)}
+.pslot.hp{border-style:solid;border-color:var(--g2);background:transparent}
+.pslot img{width:100%;height:100%;object-fit:cover;display:block}
+.plabel{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:600;text-align:center;padding:4px 4px 5px}
+.pico{font-size:24px;margin-bottom:3px}
+.psub{font-size:10.5px;color:var(--gray4);text-align:center;padding:0 4px}
+.pdel{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);font-weight:700;z-index:2}
+.prq{font-size:10px;color:var(--o);margin-top:3px;font-weight:500}
+.gpsbox{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;background:var(--gray3);border-radius:10px}
+.gpsico{font-size:20px;flex-shrink:0;line-height:1;margin-top:1px}
+.gpstxt{flex:1;font-size:13px;font-weight:500;word-break:break-word}
+.gpssmall{font-size:11px;color:var(--gray4);margin-top:2px;font-weight:400}
+.gpsbtn{font-size:12px;font-weight:700;padding:6px 11px;border:none;background:var(--g2);color:#fff;border-radius:7px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.gpsbtn:disabled{background:var(--gray2);color:var(--gray4);cursor:not-allowed}
+.bcbox{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#fefce8;border:1.5px solid #fcd34d;border-radius:9px;margin-top:10px}
+:root.dark .bcbox{background:#451a03;border-color:#78350f}
+.bcval{font-family:'Courier New',monospace;font-size:13px;font-weight:600;margin-top:2px;word-break:break-all}
+.bcclear{background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray4);padding:0 2px}
+textarea,input[type=text],input[type=email],input[type=date],select{width:100%;padding:11px 12px;border:1.5px solid var(--gray2);border-radius:9px;font-family:var(--font);font-size:14px;outline:none;background:var(--white);color:var(--text);-webkit-appearance:none;appearance:none;transition:border-color .2s,background .3s,color .3s}
+textarea:focus,input:focus,select:focus{border-color:var(--g2)}
+textarea{min-height:68px;resize:vertical}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--gray);margin-bottom:5px}
 
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:11px;cursor:pointer;font-family:var(--font);font-size:15px;font-weight:700;text-align:center;transition:all .15s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-p{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;box-shadow:0 3px 10px rgba(26,92,26,.3)}
+.btn-s{background:var(--gray3);color:var(--text);border:1.5px solid var(--gray2)}
+.btn-d{background:var(--r);color:#fff}
+.sm{padding:7px 11px;font-size:12.5px;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:var(--font)}
+.alert{padding:10px 13px;border-radius:9px;font-size:13px;margin-bottom:11px;line-height:1.45}
+.aw{background:var(--yl);color:var(--y);border:1.5px solid #fcd34d}
+:root.dark .aw{background:#451a03;color:#fcd34d;border-color:#92400e}
+.ai{background:var(--blue-l);color:var(--blue);border:1.5px solid #bfdbfe}
+.ag{background:var(--g3);color:var(--g);border:1.5px solid var(--g4)}
+.schinfo{background:var(--blue-l);border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--blue);display:flex;align-items:flex-start;gap:9px;margin-bottom:12px}
+:root.dark .schinfo{background:#1e3a8a;border-color:#1d4ed8;color:#bfdbfe}
+.hentry{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden}
+.hhead{padding:13px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none}
+.hhead:active{background:var(--gray3)}
+.hico{font-size:22px;flex-shrink:0;line-height:1;margin-top:1px}
+.hinfo{flex:1;min-width:0}
+.hcat{font-size:14px;font-weight:700;color:var(--g)}
+:root.dark .hcat{color:#34d399;}
+.hmeta{font-size:11.5px;color:var(--gray4);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.harch{font-size:10px;font-weight:700;padding:3px 7px;border-radius:9px;background:var(--yl);color:var(--y);flex-shrink:0;align-self:center}
+.hchev{color:var(--gray4);font-size:14px;flex-shrink:0;align-self:center;margin-left:4px;transition:transform .2s}
+.hchev.open{transform:rotate(180deg)}
+.hbody{display:none;padding:12px 14px 15px;border-top:1px solid var(--gray3)}
+.hbody.open{display:block}
+.ephotos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.ephotos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer}
+.erow{font-size:12.5px;margin-bottom:4px;display:flex;gap:6px}
+.erow .el{color:var(--gray4);flex-shrink:0;min-width:80px}
+.eacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.dup-item{padding:5px 8px;background:var(--gray3);border-radius:6px;font-size:11.5px;margin-top:4px}
+.sbar{display:flex;gap:8px;margin-bottom:12px}
+.sbar input{flex:1}
+.sbar select{width:auto;flex-shrink:0;min-width:90px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(3px)}
+.overlay.h{display:none}
+.modal{background:var(--white);border-radius:var(--radius);padding:20px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:14px}
+.mbtn-row{display:flex;gap:8px;margin-top:4px}
+.mbtn-row .btn{flex:1;padding:12px;font-size:14px}
+.empty{text-align:center;padding:48px 20px;color:var(--gray4)}
+.empty .ei{font-size:48px;margin-bottom:10px}
+.empty p{font-size:14px;font-weight:500}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:transparent;border-radius:50%;animation:sp .65s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2937;color:#fff;padding:10px 18px;border-radius:50px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
+input[type=file].hidden{display:none!important}
+.divider{border:none;border-top:1px solid var(--gray2);margin:12px 0}
+</style>
+</head>
+
+<body>
+<div id="hdr">
+  <h1>🗑️ Mülltonnen-Meldung</h1>
+  <div style="display:flex; flex-direction:column; align-items:flex-end; line-height:1.2">
+    <span class="cr">© Michael Elvey</span>
+    <span class="cr">Version 2.0</span>
+  </div>
+</div>
+<div id="tabs">
+  <button class="tb on" onclick="showTab('m')" id="tb-m"><span class="ti">📋</span>Meldung</button>
+  <button class="tb" onclick="showTab('v')" id="tb-v"><span class="ti">🕐</span>Verlauf</button>
+  <button class="tb" onclick="showTab('e')" id="tb-e"><span class="ti">⚙️</span>Einstellungen</button>
+  <button class="tb" onclick="showTab('h')" id="tb-h"><span class="ti">❓</span>Hilfe</button>
+</div>
 <div id="wrap">
   <div class="pane on" id="pane-m">
     <div class="card">
-      <div class="clabel">📁 Kategorie *</div>
+      <div class="clabel">📁 Kategorie <span class="req">*</span></div>
       <div class="catgrid" id="catGrid"></div>
     </div>
     <div class="card">
       <div class="clabel">🗑️ Müllart</div>
       <div class="wgrid" id="wasteGrid"></div>
     </div>
-    <div class="card">
-      <div class="clabel">🚦 Status</div>
-      <div class="catgrid" id="statusGrid">
-        <button class="cbtn sel" id="stat-Geleert" onclick="selStatus('Geleert')">✅ Geleert</button>
-        <button class="cbtn" id="stat-NichtGeleert" onclick="selStatus('Nicht Geleert')">⚠️ Nicht Geleert</button>
+    <div class="schinfo hidden" id="schInfo">
+      <span style="font-size:20px;flex-shrink:0">📍</span>
+      <div><strong>In Schüttung gefallen</strong><br>Kein Foto erforderlich. GPS wird beim Senden erfasst.</div>
+    </div>
+    <div class="card" id="photoCard">
+      <div class="clabel">📷 Fotos</div>
+      <div class="pgrid">
+        <div>
+          <div class="pslot" id="slot0" onclick="triggerPhoto(0)"><span class="pico">📷</span><span class="psub">Tonne / Behälter</span></div>
+          <div class="prq">Optionales Foto</div>
+        </div>
+        <div>
+          <div class="pslot" id="slot1" onclick="triggerPhoto(1)"><span class="pico">🔍</span><span class="psub">Strichcode (optional)</span></div>
+        </div>
+      </div>
+      <div class="bcbox hidden" id="bcBox">
+        <span style="font-size:20px">📊</span>
+        <div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--gray4)">STRICHCODE ERKANNT</div><div class="bcval" id="bcVal"></div></div>
+        <button class="bcclear" onclick="clearBarcode()">✕</button>
       </div>
     </div>
     <div class="card">
-      <div class="clabel">📝 Hinweise</div>
-      <textarea id="notesIn" placeholder="Besonderheiten..."></textarea>
+      <div class="clabel">📍 GPS-Standort</div>
+      <div class="gpsbox">
+        <span class="gpsico" id="gpsIco">📡</span>
+        <div style="flex:1"><div class="gpstxt" id="gpsTxt">Wird automatisch erfasst</div><div class="gpssmall" id="gpsSub"></div></div>
+        <button class="gpsbtn" id="gpsBtn" onclick="captureGPS(true)">Jetzt</button>
+      </div>
     </div>
-    <button class="btn btn-p" id="sendBtn" onclick="sendEntry()">📤 Senden</button>
+    <div class="card">
+      <div class="clabel">📝 Anmerkungen</div>
+      <textarea id="notesIn" placeholder="Optionale Hinweise..." rows="2"></textarea>
+    </div>
+    <div class="alert aw hidden" id="dupWarn">
+      <strong>⚠️ Mögliche Duplikate gefunden!</strong>
+      <div id="dupList" style="margin-top:6px"></div>
+    </div>
+    <button class="btn btn-p" id="sendBtn" onclick="sendEntry()">📤 Meldung senden</button>
+    <button class="btn btn-s" style="margin-top:8px" onclick="resetForm()">🔄 Formular zurücksetzen</button>
+    <input type="file" id="fi0" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(0)">
+    <input type="file" id="fi1" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(1)">
   </div>
 
 <div class="pane" id="pane-v">
+    <div class="sbar">
+      <input type="text" id="stxt" placeholder="🔍 Suchen…" oninput="renderHistory()">
+      <select id="scat" onchange="renderHistory()"><option value="">Alle</option></select>
+    </div>
     <div id="histList"></div>
+    <button class="btn btn-s" onclick="showExport()" style="margin-top:4px">📊 Excel-Export</button>
   </div>
   <div class="pane" id="pane-e">
     <div class="card">
-      <div class="clabel">👤 Setup</div>
-      <input type="text" id="sName" placeholder="Fahrername">
-      <input type="text" id="sPlate" placeholder="Kennzeichen">
-      <select id="sWaste">
-        <option value="Restmüll (RM)">Restmüll (RM)</option>
-        <option value="Biomüll (BIO)">Biomüll (BIO)</option>
-        <option value="Papiermüll (Papier)">Papiermüll (Papier)</option>
-        <option value="Gelber Sack (GS)">Gelber Sack (GS)</option>
-      </select>
-      <input type="email" id="sEmail" placeholder="Dispo E-Mail">
+      <div class="clabel">👤 Fahrerinformationen</div>
+      <div class="field"><label>Fahrername</label><input type="text" id="sName"></div>
+      <div class="field"><label>Fahrzeugkennzeichen</label><input type="text" id="sPlate" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="field"><label>Landkreis / Gebiet</label><input type="text" id="sDist"></div>
+      <div class="field"><label>Standard Müllsorte</label>
+        <select id="sWaste">
+          <option value="Restmüll (RM)">Restmüll (RM)</option>
+          <option value="Biomüll (BIO)">Biomüll (BIO)</option>
+          <option value="Papiermüll (Papier)">Papiermüll (Papier)</option>
+        </select>
+      </div>
+      <div class="field"><label>📧 E-Mail Dispo</label><input type="email" id="sEmail"></div>
+      <div class="field" style="margin-bottom:0"><label>🎨 Erscheinungsbild</label>
+        <select id="sTheme">
+          <option value="auto">System (Automatisch)</option>
+          <option value="light">Hell</option>
+          <option value="dark">Dunkel</option>
+        </select>
+      </div>
     </div>
-    <button class="btn btn-p" onclick="saveSettings()">💾 Speichern</button>
+    <div class="card">
+      <div class="clabel">📊 Datenbank</div>
+      <div class="erow"><span class="el">Aktive Einträge:</span><strong id="stActive">0</strong></div>
+      <div class="erow"><span class="el">Archiviert:</span><strong id="stArchived">0</strong></div>
+      <div class="erow"><span class="el">Gesamt:</span><strong id="stTotal">0</strong></div>
+      <button class="btn btn-s" style="margin-top:12px;padding:11px;font-size:13px" onclick="clearArchived()">🗑️ Archiv löschen (Platz schaffen)</button>
+      <button class="btn btn-d" style="margin-top:8px;padding:11px;font-size:13px" onclick="clearAll()">🗑️ Alle Daten löschen</button>
+    </div>
+    <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
+    <div style="text-align:center;margin-top:24px;color:var(--gray4);font-size:12px;line-height:1.8">
+      Mülltonnen-Meldung · Version 2.0 (IndexedDB)<br>© Michael Elvey
+    </div>
   </div>
-  <div class="pane" id="pane-h">
-    <div class="card"><div class="clabel">📖 Handbuch</div>
-    <p style="font-size:13px">1. Unter Setup Daten ausfüllen.<br>2. Meldung wählen.<br>3. Senden klicken.</p></div>
+
+<div class="pane" id="pane-h">
+    <div class="card">
+      <div class="clabel">📖 Bedienungsanleitung</div>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">1. Meldung erfassen</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Wählen Sie zunächst eine <strong>Kategorie</strong> und die <strong>Müllart</strong> aus. Die App passt die erforderlichen Felder automatisch an. Wenn Sie "in Schüttung gefallen" wählen, wird kein Foto benötigt.</p>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">2. Fotos & Barcode</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Tippen Sie auf das Kamerasymbol, um ein Foto aufzunehmen. Wenn Sie den Strichcode-Platzhalter nutzen, versucht die App automatisch den <strong>Strichcode</strong> auszulesen.</p>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">3. GPS & Senden</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Ihr GPS-Standort wird automatisch erfasst. Sobald alle Daten vollständig sind, können Sie die Meldung über den "Meldung senden"-Button verschicken. Ein Duplikat-Filter warnt Sie vor doppelten Einträgen im selben Bereich.</p>
+      <h3 style="margin:10px 0 5px;font-size:14px;color:var(--g)">4. Verlauf & Export</h3>
+      <p style="font-size:13px;line-height:1.5;margin-bottom:10px">Unter "Verlauf" finden Sie alle gesendeten Meldungen. Sie können diese durchsuchen, bearbeiten oder erneut versenden. Über "Excel-Export" lassen sich Daten für die Disposition herunterladen.</p>
+    </div>
+    <div class="card">
+      <div class="clabel">❓ Häufige Fragen (FAQ)</div>
+      <strong style="font-size:13px;display:block;margin-top:5px">Warum wird kein GPS gefunden?</strong>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:10px;line-height:1.4">Bitte stellen Sie sicher, dass die Standortfreigabe in den Berechtigungen des Browsers für diese Seite aktiviert ist.</p>
+      <strong style="font-size:13px;display:block">Was bedeutet "Mögliche Duplikate"?</strong>
+      <p style="font-size:13px;color:var(--gray);line-height:1.4">Die App erkennt, wenn im Umkreis von 15 Metern kürzlich eine ähnliche Meldung (z.B. selber Barcode oder Ort) erstellt wurde, um Mehrfachmeldungen zu vermeiden.</p>
+    </div>
   </div>
 </div>
-<div id="toast" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px;border-radius:20px;display:none;z-index:99"></div>
+<div id="toast"></div>
+<div class="overlay h" id="exportModal">
+  <div class="modal">
+    <h3>📊 Excel-Export</h3>
+    <div class="field"><label>Von</label><input type="date" id="exFrom"></div>
+    <div class="field"><label>Bis</label><input type="date" id="exTo"></div>
+    <div class="mbtn-row">
+      <button class="btn btn-p" onclick="doExport('dl')">⬇️ Download</button>
+      <button class="btn btn-s" onclick="doExport('mail')">📧 Per Mail</button>
+    </div>
+    <button class="btn btn-s" style="margin-top:8px;padding:11px;font-size:13.5px" onclick="closeExport()">Abbrechen</button>
+  </div>
+</div>
+<div class="overlay h" id="editModal">
+  <div class="modal">
+    <h3>✏️ Eintrag bearbeiten</h3>
+    <div class="field"><label>Kategorie</label><select id="edCat"></select></div>
+    <div class="field"><label>Anmerkungen</label><textarea id="edNotes" rows="3"></textarea></div>
+    <div class="mbtn-row">
+      <button class="btn btn-p" onclick="saveEdit()">Speichern</button>
+      <button class="btn btn-s" onclick="closeT()">Abbrechen</button>
+    </div>
+  </div>
+</div>
 
 <script>
-// Punkt 1 & 2: Müllarten-Mapping & Standard-Status
-const CATS = [
-  {k:'Chip defekt',i:'💾'}, {k:'nicht bereitgestellt',i:'❌'},
-  {k:'Überfüllt',i:'📦'}, {k:'Fehlbefüllung',i:'⚠️'},
-  {k:'in Schüttung gefallen',i:'⬇️'}, {k:'Sonstiges',i:'📌'}
-];
-const WASTE_MAP = [
-  {v: 'Restmüll (RM)', d: 'RM'}, {v: 'Biomüll (BIO)', d: 'Bio'},
-  {v: 'Papiermüll (Papier)', d: 'Papier'}, {v: 'Gelber Sack (GS)', d: 'GS'}
-];
-let settings = {driverName:'', licensePlate:'', email:'', defaultWasteType: 'Restmüll (RM)'};
-let cur = { category: '', wasteType: 'Restmüll (RM)', status: 'Geleert' };
-const DB_NAME = 'TonnenDB_v2';
+const CATS = [{k:'Chip defekt',i:'💾'},{k:'nicht (korrekt) bereitgestellt',i:'❌'},{k:'Überfüllt',i:'📦'},{k:'Fehlbefüllung',i:'⚠️'},{k:'in Schüttung gefallen',i:'⬇️'},{k:'anfahren nicht möglich',i:'🚫'},{k:'Beschädigt',i:'🔨'},{k:'Sonstiges',i:'📌'}];
+const WASTE_TYPES = ['Restmüll (RM)', 'Biomüll (BIO)', 'Papiermüll (Papier)'];
+const NO_PHOTO = 'in Schüttung gefallen';
+const DUP_M = 15;
+const ARC_DAYS = 30;
+const IMG_W = 1280;
+const IMG_Q = 0.72;
+
+let entries = [], settings = {driverName:'',licensePlate:'',district:'',email:'', defaultWasteType: WASTE_TYPES[0], theme: 'auto'};
+let cur = null, editId = null, gpsLocked = false, firstPhoto = true;
+
+const DB_NAME = 'MuelltonnenDB';
+const DB_VERSION = 1;
 
 async function openDB() {
-  return new Promise((resolve) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = (e) => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
       const db = e.target.result;
-      if(!db.objectStoreNames.contains('settings')) db.createObjectStore('settings');
-      if(!db.objectStoreNames.contains('history')) db.createObjectStore('history', {keyPath: 'id'});
+      if (!db.objectStoreNames.contains('entries')) db.createObjectStore('entries', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings');
     };
-    req.onsuccess = (e) => resolve(e.target.result);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+async function dbPut(storeName, data, key = null) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const req = key ? store.put(data, key) : store.put(data);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbGet(storeName, key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const req = store.get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbGetAll(storeName) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbDelete(storeName, key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    const req = store.delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
   });
 }
 
-function showTab(id) {
-  document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
-  document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
-  document.getElementById('tb-'+id).classList.add('on');
-  document.getElementById('pane-'+id).classList.add('on');
-  if(id === 'v') renderHistory();
+async function loadData() {
+  try {
+    entries = await dbGetAll('entries');
+    const s = await dbGet('settings', 'config');
+    if (s) settings = {...settings, ...s};
+    applyTheme(settings.theme || 'auto');
+  } catch (e) { console.error("DB Load Error", e); }
 }
-function renderWasteButtons() {
-  const container = document.getElementById('wasteGrid');
-  if(!container) return;
-  container.innerHTML = WASTE_MAP.map(item => `
-    <button class="cbtn ${cur.wasteType === item.v ? 'sel' : ''}" 
-            onclick="selWasteType('${item.v}')">${item.d}</button>
-  `).join('');
+
+function newEntry() {
+  cur = {
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2),
+    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    category:'', wasteType: settings.defaultWasteType, photos:[null,null], barcode:null,
+    gps:null, notes:'', driverName:settings.driverName, licensePlate:settings.licensePlate,
+    district:settings.district, archived:false, sentCount:0
+  };
 }
-function selWasteType(val) { cur.wasteType = val; renderWasteButtons(); }
-function selStatus(val) {
-  cur.status = val;
-  document.getElementById('stat-Geleert').classList.toggle('sel', val === 'Geleert');
-  document.getElementById('stat-NichtGeleert').classList.toggle('sel', val === 'Nicht Geleert');
+async function captureGPS(manual=false) {
+  if(!navigator.geolocation){ setGPS(null,'GPS nicht verfügbar'); return; }
+  setGPS(null,'📡 Standort wird ermittelt…');
+  document.getElementById('gpsBtn').disabled = true;
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      const {latitude:lat,longitude:lng,accuracy:acc} = pos.coords;
+      const addr = await revGeo(lat,lng);
+      cur.gps = {lat,lng,accuracy:Math.round(acc),address:addr};
+      gpsLocked = true; setGPS(cur.gps);
+      document.getElementById('gpsBtn').disabled = false;
+      if(!manual) checkDups();
+    },
+    err => { setGPS(null,'⚠️ GPS-Fehler: '+err.message); document.getElementById('gpsBtn').disabled=false; },
+    {enableHighAccuracy:true,timeout:25000,maximumAge:0}
+  );
+}
+
+async function revGeo(lat,lng) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {headers:{'Accept-Language':'de'}});
+    const d = await r.json();
+    const a = d.address||{};
+    const road = a.road||a.pedestrian||a.path||a.street||'Unbekannte Straße';
+    const hn = a.house_number||'';
+    const city = a.city||a.town||a.village||a.suburb||a.municipality||'';
+    return hn ? `${road} in Höhe der Hausnr. ${hn} in ${city}` : `${road} in ${city}`;
+  } catch { return `${lat.toFixed(6)}, ${lng.toFixed(6)}`; }
+}
+
+function setGPS(gps, txt) {
+  const tico = document.getElementById('gpsIco'), ttxt = document.getElementById('gpsTxt'), tsub = document.getElementById('gpsSub');
+  if(gps) {
+    tico.textContent = '✅'; ttxt.textContent = gps.address||`${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`;
+    tsub.textContent = `±${gps.accuracy}m | ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}`;
+  } else {
+    tico.textContent = '📡'; ttxt.textContent = txt||'Wird automatisch erfasst'; tsub.textContent = '';
+  }
+}
+
+function triggerPhoto(slot) { document.getElementById('fi'+slot).click(); }
+
+async function handlePhoto(slot) {
+  const input = document.getElementById('fi'+slot);
+  const file = input.files[0]; if(!file) return;
+  try {
+    const comp = await compress(file);
+    cur.photos[slot] = comp; setSlot(slot, comp); input.value = '';
+    if(firstPhoto && !gpsLocked) { firstPhoto=false; captureGPS(false); }
+    if(!cur.barcode) await tryBarcode(comp);
+    checkDups();
+  } catch(err) { alert('Foto-Fehler: '+err.message); }
+}
+
+function compress(file) {
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = e => {
+      const img = new Image();
+      img.onload = ()=>{
+        const c = document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>IMG_W){h=Math.round(h*IMG_W/w);w=IMG_W;}
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        res(c.toDataURL('image/jpeg',IMG_Q));
+      };
+      img.onerror=rej; img.src=e.target.result;
+    };
+    r.onerror=rej; r.readAsDataURL(file);
+  });
+}
+
+function setSlot(slot, dataUrl) {
+  const el = document.getElementById('slot'+slot);
+  const lbl = slot===0?'Tonne / Behälter':'Strichcode';
+  el.innerHTML = `<img src="${dataUrl}" onclick="event.stopPropagation();fullscreen(this)"><div class="plabel">${lbl}</div><button class="pdel" onclick="event.stopPropagation();delPhoto(${slot})">✕</button>`;
+  el.classList.add('hp');
+  el.onclick = () => fullscreen(el.querySelector('img'));
+}
+
+function delPhoto(slot) {
+  cur.photos[slot] = null;
+  const el = document.getElementById('slot'+slot);
+  el.innerHTML = `<span class="pico">${slot===0?'📷':'🔍'}</span><span class="psub">${slot===0?'Tonne / Behälter':'Strichcode (optional)'}</span>`;
+  el.classList.remove('hp');
+  el.onclick = ()=>triggerPhoto(slot);
+  if(slot===1) clearBarcode();
+}
+
+async function tryBarcode(dataUrl) {
+  if(!window.BarcodeDetector) return;
+  try {
+    const detector = new BarcodeDetector();
+    const resp = await fetch(dataUrl); const blob = await resp.blob();
+    const bmp = await createImageBitmap(blob);
+    const codes = await detector.detect(bmp);
+    bmp.close();
+    if(codes&&codes.length>0) {
+      cur.barcode = codes[0].rawValue;
+      document.getElementById('bcBox').classList.remove('hidden');
+      document.getElementById('bcVal').textContent = cur.barcode;
+      toast('📊 Strichcode erkannt: '+cur.barcode);
+      captureGPS(false);
+    }
+  } catch { }
+}
+
+function clearBarcode() {
+  cur.barcode = null;
+  document.getElementById('bcBox').classList.add('hidden');
+  document.getElementById('bcVal').textContent = '';
+}
+
+function haversine(a,b,c,d) {
+  const R=6371000, dl=(c-a)*Math.PI/180, dk=(d-b)*Math.PI/180;
+  const x=Math.sin(dl/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dk/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function findDups(entry) {
+  const seen=new Set(), res=[];
+  entries.forEach(e=>{
+    if(e.id===entry.id||seen.has(e.id)) return;
+    let dup=false;
+    if(entry.barcode&&e.barcode&&entry.barcode===e.barcode) dup=true;
+    if(!dup&&entry.gps&&e.gps&&haversine(entry.gps.lat,entry.gps.lng,e.gps.lat,e.gps.lng)<=DUP_M) dup=true;
+    if(dup){seen.add(e.id);res.push(e);}
+  });
+  return res.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+}
+
+function checkDups() {
+  if(!cur) return;
+  const dups = findDups(cur);
+  const w = document.getElementById('dupWarn'), l = document.getElementById('dupList');
+  if(dups.length>0) {
+    w.classList.remove('hidden');
+    l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} · ${d.gps?.address||'kein GPS'}</div>`).join('');
+  } else { w.classList.add('hidden'); }
 }
 
 async function sendEntry() {
-  if(!cur.category) { showToast('Bitte Kategorie wählen!'); return; }
-  const notes = document.getElementById('notesIn').value;
-  const body = `Fahrer: ${settings.driverName}\nFahrzeug: ${settings.licensePlate}\nArt: ${cur.wasteType}\nStatus: ${cur.status}\nKategorie: ${cur.category}\nInfo: ${notes}`;
-  const mailLink = `mailto:${settings.email}?subject=Meldung ${cur.category}&body=${encodeURIComponent(body)}`;
+  if(!cur.category) { toast('⚠️ Bitte Kategorie auswählen!'); return; }
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
   
-  const db = await openDB();
-  const tx = db.transaction('history', 'readwrite');
-  tx.objectStore('history').add({ ...cur, id: Date.now(), notes, date: new Date().toISOString() });
+  if(!cur.gps) {
+    btn.innerHTML = '<span class="spin"></span>GPS wird erfasst…';
+    await new Promise(res=>{
+      navigator.geolocation.getCurrentPosition(async pos=>{
+        const {latitude:lat,longitude:lng,accuracy:acc}=pos.coords;
+        const addr=await revGeo(lat,lng);
+        cur.gps={lat,lng,accuracy:Math.round(acc),address:addr};
+        setGPS(cur.gps); res();
+      },()=>res(),{enableHighAccuracy:true,timeout:20000});
+    });
+  }
   
-  window.location.href = mailLink;
-  showToast('📧 Sende...');
-  setTimeout(resetForm, 1000);
+  btn.innerHTML = '<span class="spin"></span>Wird gesendet…';
+  cur.notes = document.getElementById('notesIn').value.trim();
+  cur.updatedAt = new Date().toISOString();
+  const dups = findDups(cur), subj = buildSubj(cur), body = buildBody(cur, dups), photos = cur.photos.filter(Boolean);
+  
+  let sent = false;
+  if(navigator.share) {
+    try {
+      let shareData = { title: subj, text: body };
+      if(photos.length > 0) {
+        const files = await toFiles(photos, cur.id);
+        if(navigator.canShare({files})) {
+          shareData.files = files;
+        }
+      }
+      await navigator.share(shareData);
+      sent = true;
+    } catch(err) { if(err.name!=='AbortError') { } }
+  }
+  
+  if(!sent) { 
+    toast('ℹ️ Teilen-Menü nicht verfügbar. Nutze E-Mail-Link.');
+    window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`,'_blank'); 
+    sent = true; 
+  }
+  
+  cur.sentCount++; 
+  await dbPut('entries', {...cur});
+  entries.unshift({...cur});
+  toast('✅ Meldung gesendet!');
+  setTimeout(()=>{ resetForm(); showTab('v'); }, 800);
 }
+
+async function toFiles(photos, id) {
+  const files=[];
+  for(let i=0;i<photos.length;i++){
+    if(!photos[i]) continue;
+    try {
+      const r=await fetch(photos[i]); const b=await r.blob();
+      files.push(new File([b],`Muell_${id}_${i+1}.jpg`,{type:'image/jpeg'}));
+    } catch(e) { console.error("File conversion error", e); }
+  }
+  return files;
+}
+
+function buildSubj(e) { return `Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`; }
+function buildBody(e, dups=[]) {
+  const ln=['=== MÜLLTONNEN-MELDUNG ===','',`Fahrer: ${e.driverName||'-'}`,`Fahrzeug: ${e.licensePlate||'-'}`,`Landkreis: ${e.district||'-'}`,`Datum: ${fmtDT(e.createdAt)}`,'',`Müllart: ${e.wasteType||'-'}`,`Kategorie: ${e.category}`,`Standort: ${e.gps?.address||'-'}`];
+  if(e.gps) {
+    ln.push(`GPS: ${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}`);
+    ln.push(`Karte: https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`);
+  }
+  ln.push(`Strichcode: ${e.barcode||'-'}`);
+  if(e.notes) ln.push(`Anmerkungen: ${e.notes}`);
+  if(dups.length>0) { ln.push('','⚠️ DUPLIKATE:'); dups.forEach((d,i)=>ln.push(`${i+1}. ${fmtDT(d.createdAt)} | ${d.category}`)); }
+  ln.push('','---','© Michael Elvey');
+  return ln.join('\n');
+}
+
+async function resend(id) {
+  const e = entries.find(x=>x.id===id); if(!e) return;
+  const dups=findDups(e), subj=buildSubj(e), body=buildBody(e,dups), photos=e.photos?.filter(Boolean)||[];
+  let sent=false;
+  if(navigator.share) {
+    try {
+      let shareData = { title: subj, text: body };
+      if(photos.length > 0) {
+        const files = await toFiles(photos,e.id);
+        if(navigator.canShare({files})) {
+          shareData.files = files;
+        }
+      }
+      await navigator.share(shareData);
+      sent=true;
+    } catch(err){}
+  }
+  if(!sent) { 
+    toast('ℹ️ Teilen-Menü nicht verfügbar. Nutze E-Mail-Link.');
+    window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); 
+  }
+  e.sentCount++; e.updatedAt=new Date().toISOString(); 
+  await dbPut('entries', e);
+  renderHistory(); toast('📤 Erneut gesendet');
+}
+
 function resetForm() {
-  cur.category = '';
-  cur.wasteType = settings.defaultWasteType;
-  cur.status = 'Geleert';
-  document.getElementById('notesIn').value = '';
-  document.querySelectorAll('#catGrid .cbtn').forEach(b => b.classList.remove('sel'));
-  selStatus('Geleert');
-  renderWasteButtons();
+  newEntry(); gpsLocked=false; firstPhoto=true;
+  document.querySelectorAll('.catgrid .cbtn').forEach(b=>b.classList.remove('sel'));
+  for(let i=0;i<2;i++) delPhoto(i);
+  setGPS(null); clearBarcode();
+  document.getElementById('notesIn').value='';
+  document.getElementById('schInfo').classList.add('hidden');
+  document.getElementById('photoCard').classList.remove('hidden');
+  document.getElementById('dupWarn').classList.add('hidden');
+  document.getElementById('sendBtn').innerHTML='📤 Meldung senden';
+  document.getElementById('sendBtn').disabled=false;
+  selWasteType(settings.defaultWasteType);
+}
+
+function selCat(cat) {
+  cur.category = cat;
+  document.querySelectorAll('.catgrid .cbtn').forEach(b=>b.classList.toggle('sel',b.dataset.k===cat));
+  const isSch = cat===NO_PHOTO;
+  document.getElementById('schInfo').classList.toggle('hidden',!isSch);
+  document.getElementById('photoCard').classList.toggle('hidden',isSch);
+  checkDups();
+}
+
+function selWasteType(type) {
+  cur.wasteType = type;
+  document.querySelectorAll('.wgrid .cbtn').forEach(b=>b.classList.toggle('sel', b.dataset.w === type));
+}
+
+async function renderHistory() {
+  const txt=(document.getElementById('stxt').value||'').toLowerCase(), cat=document.getElementById('scat').value, list=document.getElementById('histList');
+  entries = await dbGetAll('entries');
+  let filtered=entries.filter(e=>{
+    if(cat&&e.category!==cat) return false;
+    if(txt){
+      const s=[e.category,e.wasteType,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();
+      if(!s.includes(txt)) return false;
+    }
+    return true;
+  });
+  filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(!filtered.length){ list.innerHTML=`<div class="empty"><div class="ei">📭</div><p>Keine Einträge</p></div>`; return; }
+  list.innerHTML=filtered.map(e=>renderHE(e)).join('');
+}
+
+function renderHE(e) {
+  const cat=CATS.find(c=>c.k===e.category)||{i:'🗑️'}, photos=(e.photos||[]).filter(Boolean);
+  return `<div class="hentry"><div class="hhead" onclick="toggleHE('${e.id}')"><span class="hico">${cat.i}</span><div class="hinfo"><div class="hcat">${e.category} <span style="font-weight:400;color:var(--gray);font-size:12px">(${e.wasteType||'–'})</span></div><div class="hmeta">${fmtDT(e.createdAt)} · ${e.driverName||'–'}</div></div>${e.archived?'<span class="harch">Archiv</span>':''}<span class="hchev" id="chev-${e.id}">▼</span></div><div class="hbody" id="hb-${e.id}">${photos.length?`<div class="ephotos">${photos.map(p=>`<img src="${p}" onclick="fullscreen(this)">`).join('')}</div>`:''}<div class="erow"><span class="el">Müllart:</span><strong style="color:var(--g)">${e.wasteType||'–'}</strong></div><div class="erow"><span class="el">Fahrzeug:</span><strong>${e.licensePlate||'–'}</strong></div><div class="erow"><span class="el">Landkreis:</span><strong>${e.district||'–'}</strong></div><div class="erow"><span class="el">Gesendet:</span>${e.sentCount}×</div><div class="eacts"><button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button><button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button><button class="sm btn-d" style="background:var(--r);color:#fff" onclick="delEntry('${e.id}')">🗑️ Löschen</button></div></div></div>`;
+}
+
+function toggleHE(id) {
+  const b=document.getElementById('hb-'+id), c=document.getElementById('chev-'+id);
+  if(b) { b.classList.toggle('open'); if(c) c.classList.toggle('open'); }
+}
+
+function editEntry(id) {
+  editId=id; const e=entries.find(x=>x.id===id); if(!e) return;
+  document.getElementById('edCat').innerHTML=CATS.map(c=>`<option value="${c.k}"${c.k===e.category?' selected':''}>${c.k}</option>`).join('');
+  document.getElementById('edNotes').value=e.notes||'';
+  document.getElementById('editModal').classList.remove('h');
+}
+async function saveEdit() {
+  const e=entries.find(x=>x.id===editId); if(!e) return;
+  e.category=document.getElementById('edCat').value;
+  e.notes=document.getElementById('edNotes').value.trim();
+  e.updatedAt=new Date().toISOString(); 
+  await dbPut('entries', e);
+  closeEdit(); renderHistory(); toast('✅ Gespeichert');
+}
+function closeEdit() { editId=null; document.getElementById('editModal').classList.add('h'); }
+function closeT() { closeEdit(); }
+
+async function delEntry(id) {
+  if(!confirm('Löschen?')) return;
+  await dbDelete('entries', id);
+  renderHistory(); toast('🗑️ Gelöscht');
+}
+
+function showExport() {
+  const today=new Date(), from=new Date(today); from.setDate(from.getDate()-30);
+  document.getElementById('exFrom').value=fmtISO(from); document.getElementById('exTo').value=fmtISO(today);
+  document.getElementById('exportModal').classList.remove('h');
+}
+function closeExport() { document.getElementById('exportModal').classList.add('h'); }
+
+async function doExport(mode) {
+  const from=new Date(document.getElementById('exFrom').value), to=new Date(document.getElementById('exTo').value);
+  to.setHours(23,59,59,999);
+  const allEntries = await dbGetAll('entries');
+  const rows=allEntries.filter(e=>{ const d=new Date(e.createdAt); return d>=from&&d<=to; }).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  if(!rows.length){ alert('Keine Daten.'); return; }
+  const xrows=rows.map(e=>`<Row><Cell><Data ss:Type="String">${esc(fmtDT(e.createdAt))}</Data></Cell><Cell><Data ss:Type="String">${esc(e.wasteType||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.category)}</Data></Cell><Cell><Data ss:Type="String">${esc(e.gps?.address||'')}</Data></Cell><Cell><Data ss:Type="${e.gps?.lat?'Number':'String'}">${e.gps?.lat||''}</Data></Cell><Cell><Data ss:Type="${e.gps?.lng?'Number':'String'}">${e.gps?.lng||''}</Data></Cell><Cell><Data ss:Type="String">${esc(e.barcode||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.driverName||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.licensePlate||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.district||'')}</Data></Cell><Cell><Data ss:Type="String">${esc(e.notes||'')}</Data></Cell><Cell><Data ss:Type="Number">${e.sentCount||0}</Data></Cell><Cell><Data ss:Type="String">${e.archived?'Archiv':'Aktiv'}</Data></Cell></Row>`).join('');
+  const HCOLS=['Datum/Zeit','Müllart','Kategorie','Adresse','Breitengrad','Längengrad','Strichcode','Fahrername','Kennzeichen','Landkreis','Anmerkungen','Gesendet','Status'];
+  const hrow=HCOLS.map(h=>`<Cell ss:StyleID="h"><Data ss:Type="String">${h}</Data></Cell>`).join('');
+  const xml=`<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1a5c1a" ss:Pattern="Solid"/></Style></Styles><Worksheet ss:Name="Meldungen"><Table><Row>${hrow}</Row>${xrows}</Table></Worksheet></Workbook>`;
+  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const fn=`Muell_${fmtISO(from)}_${fmtISO(to)}.xls`;
+  if(mode==='dl'){
+    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=fn; a.click();
+    closeExport(); toast('📥 Exportiert');
+  } else {
+    const subj=`Müll Export ${fmtD(from.toISOString())}–${fmtD(to.toISOString())}`, body=`Anbei der Export.\n\n© Michael Elvey`;
+    const file=new File([blob],fn,{type:'application/vnd.ms-excel'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({title:subj,text:body,files:[file]}).catch(()=>{ window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); });
+    } else { window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); }
+    closeExport();
+  }
+}
+
+function esc(s){ return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"'); }
+
+function applyTheme(theme) {
+  const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  if (isDark) document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (settings.theme === 'auto') applyTheme('auto');
+});
+
+async function loadSettingsUI() {
+  document.getElementById('sName').value=settings.driverName||'';
+  document.getElementById('sPlate').value=settings.licensePlate||'';
+  document.getElementById('sDist').value=settings.district||'';
+  document.getElementById('sEmail').value=settings.email||'';
+  document.getElementById('sWaste').value=settings.defaultWasteType||WASTE_TYPES[0];
+  document.getElementById('sTheme').value=settings.theme||'auto';
+  const all = await dbGetAll('entries');
+  document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
+  document.getElementById('stArchived').textContent=all.filter(e=>e.archived).length;
+  document.getElementById('stTotal').textContent=all.length;
 }
 
 async function saveSettings() {
-  settings = {
-    driverName: document.getElementById('sName').value,
-    licensePlate: document.getElementById('sPlate').value,
-    email: document.getElementById('sEmail').value,
-    defaultWasteType: document.getElementById('sWaste').value
-  };
-  const db = await openDB();
-  const tx = db.transaction('settings', 'readwrite');
-  tx.objectStore('settings').put(settings, 'config');
-  showToast('💾 Gespeichert');
-  cur.wasteType = settings.defaultWasteType;
-  renderWasteButtons();
-  showTab('m');
-}
-function showToast(m) {
-  const t = document.getElementById('toast');
-  t.textContent = m; t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 2500);
+  settings.driverName=document.getElementById('sName').value.trim();
+  settings.licensePlate=document.getElementById('sPlate').value.trim();
+  settings.district=document.getElementById('sDist').value.trim();
+  settings.email=document.getElementById('sEmail').value.trim();
+  settings.defaultWasteType=document.getElementById('sWaste').value;
+  settings.theme=document.getElementById('sTheme').value;
+  
+  applyTheme(settings.theme);
+  await dbPut('settings', settings, 'config');
+  if(cur){cur.driverName=settings.driverName;cur.licensePlate=settings.licensePlate;cur.district=settings.district;}
+  toast('✅ Gespeichert');
+  setTimeout(()=>showTab('m'),600);
 }
 
-async function startApp() {
-  // Kategorien Buttons
-  document.getElementById('catGrid').innerHTML = CATS.map(c => `
-    <button class="cbtn" onclick="selCat(this, '${c.k}')" data-k="${c.k}">
-      <span style="display:block;font-size:16px">${c.i}</span>${c.k}
-    </button>
-  `).join('');
+async function clearArchived() {
+  if(!confirm('Alle archivierten Meldungen löschen?')) return;
+  const all = await dbGetAll('entries');
+  for(let e of all) { if(e.archived) await dbDelete('entries', e.id); }
+  loadSettingsUI();
+  renderHistory();
+  toast('🗑️ Archiv gelöscht');
+}
 
-  const db = await openDB();
-  const tx = db.transaction('settings', 'readonly');
-  const req = tx.objectStore('settings').get('config');
-  req.onsuccess = () => {
-    if(req.result) {
-      settings = req.result;
-      document.getElementById('sName').value = settings.driverName || '';
-      document.getElementById('sPlate').value = settings.licensePlate || '';
-      document.getElementById('sEmail').value = settings.email || '';
-      document.getElementById('sWaste').value = settings.defaultWasteType || 'Restmüll (RM)';
-      cur.wasteType = settings.defaultWasteType;
-    }
-    renderWasteButtons();
+async function clearAll() {
+  if(!confirm('ALLES löschen?')) return;
+  const all = await dbGetAll('entries');
+  for(let e of all) { await dbDelete('entries', e.id); }
+  renderHistory(); loadSettingsUI(); toast('🗑️ Gelöscht');
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tb-'+name).classList.add('on');
+  document.getElementById('pane-'+name).classList.add('on');
+  document.getElementById('wrap').scrollTop=0;
+  if(name==='v') renderHistory();
+  if(name==='e') loadSettingsUI();
+}
+
+let toastTimer;
+function toast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+function fullscreen(img) {
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:300;cursor:zoom-out';
+  const im=document.createElement('img');
+  im.src=img.src; im.style.cssText='max-width:100%;max-height:100%;object-fit:contain';
+  ov.appendChild(im); ov.onclick=()=>document.body.removeChild(ov);
+  document.body.appendChild(ov);
+}
+
+function fmtDT(iso){
+  if(!iso) return '–';
+  const d=new Date(iso);
+  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtD(iso){ return iso ? new Date(iso).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '–'; }
+function fmtISO(d){ return new Date(d).toISOString().split('T')[0]; }
+
+function initPWA() {
+  const manifest={
+    name:'Mülltonnen-Meldung',short_name:'Mülltonnen',
+    start_url:location.href,display:'standalone',
+    orientation:'portrait-primary',
+    theme_color:'#1a5c1a',background_color:'#f0f2f0',
+    icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🗑️</text></svg>',sizes:'any',type:'image/svg+xml',purpose:'any maskable'}]
   };
+  try {
+    const mb=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+    document.getElementById('pwaManifest').href=URL.createObjectURL(mb);
+  } catch {}
 }
-function selCat(btn, val) {
-  cur.category = val;
-  document.querySelectorAll('#catGrid .cbtn').forEach(b => b.classList.remove('sel'));
-  btn.classList.add('sel');
+
+function buildUI() {
+  document.getElementById('catGrid').innerHTML=CATS.map(c=>`<button class="cbtn" data-k="${c.k}" onclick="selCat('${c.k.replace(/'/g,"\\'")}')"><span class="ci">${c.i}</span>${c.k}</button>`).join('');
+  document.getElementById('wasteGrid').innerHTML=WASTE_TYPES.map(w=>`<button class="cbtn" data-w="${w}" onclick="selWasteType('${w.replace(/'/g,"\\'")}')">${w}</button>`).join('');
+  const sc=document.getElementById('scat');
+  CATS.forEach(c=>{ const o=document.createElement('option');o.value=c.k;o.textContent=c.k;sc.appendChild(o); });
+  const ec=document.getElementById('edCat');
+  CATS.forEach(c=>{ const o=document.createElement('option');o.value=c.k;o.textContent=c.k;ec.appendChild(o); });
 }
-window.onload = startApp;
+
+async function init() {
+  await loadData();
+  initPWA();
+  buildUI();
+  newEntry();
+  await loadSettingsUI();
+  selWasteType(settings.defaultWasteType);
+  document.getElementById('exportModal').addEventListener('click',function(e){if(e.target===this)closeExport();});
+  document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeEdit();});
+}
+
+init();
 </script>
 </body>
 </html>
+
