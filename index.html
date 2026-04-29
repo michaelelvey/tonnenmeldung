@@ -2,26 +2,35 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mülltonnen">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a5c1a">
 <link rel="manifest" id="pwaManifest">
-<title>🗑️ Mülltonnen-Meldung</title>
+<title>🗑️ Mülltonnen-Meldung Pro</title>
 <style>
-/* KOMMENTAR: Grundlegende CSS-Reset & Variablen */
+:root{
+    --g:#1a5c1a;--g2:#2d7a2d;--g3:#e6f4e6;--g4:#c8e6c8;
+    --o:#d05a00;--r:#b91c1c;--y:#b45309;--yl:#fef3c7;
+    --gray:#6b7280;--gray2:#d1d5db;--gray3:#f3f4f6;--gray4:#9ca3af;
+    --text:#111827;--white:#fff;--blue:#1d4ed8;--blue-l:#eff6ff;
+    --radius:14px;--shadow:0 1px 8px rgba(0,0,0,.10),0 4px 16px rgba(0,0,0,.06);
+    --shadow-sm:0 1px 4px rgba(0,0,0,.08);--header-h:52px;--tab-h:58px;
+    --font:'DM Sans',system-ui,-apple-system,sans-serif
+}
+:root.dark{
+    --text:#f9fafb;--white:#1f2937;--gray:#9ca3af;--gray2:#374151;
+    --gray3:#111827;--gray4:#6b7280;--g3:#064e3b;--g4:#065f46;
+    --blue-l:#1e3a8a;--blue:#bfdbfe;--yl:#78350f;--y:#fcd34d;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--g:#1a5c1a;--g2:#2d7a2d;--g3:#e6f4e6;--g4:#c8e6c8;--o:#d05a00;--r:#b91c1c;--y:#b45309;--yl:#fef3c7;--gray:#6b7280;--gray2:#d1d5db;--gray3:#f3f4f6;--gray4:#9ca3af;--text:#111827;--white:#fff;--blue:#1d4ed8;--blue-l:#eff6ff;--radius:14px;--shadow:0 1px 8px rgba(0,0,0,.10),0 4px 16px rgba(0,0,0,.06);--shadow-sm:0 1px 4px rgba(0,0,0,.08);--header-h:52px;--tab-h:58px;--font:'DM Sans',system-ui,-apple-system,sans-serif}
-:root.dark{--text:#f9fafb;--white:#1f2937;--gray:#9ca3af;--gray2:#374151;--gray3:#111827;--gray4:#6b7280;--g3:#064e3b;--g4:#065f46;--blue-l:#1e3a8a;--blue:#bfdbfe;--yl:#78350f;--y:#fcd34d;}
-
 html,body{height:100%;overflow:hidden}
-body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column;transition:background 0.3s, color 0.3s}
+body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;flex-direction:column;transition:background 0.3s, color 0.3s;padding-bottom:env(safe-area-inset-bottom)}
 :root.dark body {background:#030712;}
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-
-#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);position:relative;z-index:10}
+#hdr{background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);color:#fff;height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;padding-top:env(safe-area-inset-top);flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2);position:relative;z-index:10}
 #hdr h1{font-size:16px;font-weight:700;letter-spacing:.2px;display:flex;align-items:center;gap:7px}
 #hdr .cr{font-size:10px;opacity:.65;font-weight:400}
 #tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray2);flex-shrink:0;box-shadow:0 1px 0 var(--gray2);transition:background 0.3s}
@@ -36,42 +45,12 @@ body{font-family:var(--font);background:#f0f2f0;color:var(--text);display:flex;f
 .card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;transition:background 0.3s}
 .clabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--gray4);margin-bottom:11px;display:flex;align-items:center;gap:5px}
 .req{color:var(--o);margin-left:2px}
-.catgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-/* NEU: Ein 3-Spalten Grid für die 3 Aktionen, damit es ordentlich aussieht */
-.actgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.catgrid {display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .cbtn{padding:10px 8px 9px;border:2px solid var(--gray2);background:var(--gray3);border-radius:11px;font-family:var(--font);font-size:12.5px;font-weight:500;cursor:pointer;text-align:center;line-height:1.3;color:var(--text);transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:3px}
 .cbtn .ci{font-size:18px}
 .cbtn:active{transform:scale(.96)}
 .cbtn.sel{border-color:var(--g2);background:var(--g3);color:var(--g);font-weight:700;box-shadow:0 0 0 3px var(--g4)}
 :root.dark .cbtn.sel{color:#ffffff;}
-
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pslot{aspect-ratio:4/3;border:2px dashed var(--gray2);border-radius:11px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--gray3);position:relative;transition:border-color .2s,background .2s}
-.pslot:active{background:var(--gray2)}
-.pslot.hp{border-style:solid;border-color:var(--g2);background:transparent}
-.pslot img{width:100%;height:100%;object-fit:cover;display:block}
-.plabel{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:600;text-align:center;padding:4px 4px 5px}
-.pico{font-size:24px;margin-bottom:3px}
-.psub{font-size:10.5px;color:var(--gray4);text-align:center;padding:0 4px}
-.pdel{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);font-weight:700;z-index:2}
-.prq{font-size:10px;color:var(--o);margin-top:3px;font-weight:500}
-.gpsbox{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;background:var(--gray3);border-radius:10px}
-.gpsico{font-size:20px;flex-shrink:0;line-height:1;margin-top:1px}
-.gpstxt{flex:1;font-size:13px;font-weight:500;word-break:break-word}
-.gpssmall{font-size:11px;color:var(--gray4);margin-top:2px;font-weight:400}
-.gpsbtn{font-size:12px;font-weight:700;padding:6px 11px;border:none;background:var(--g2);color:#fff;border-radius:7px;cursor:pointer;white-space:nowrap;flex-shrink:0}
-.gpsbtn:disabled{background:var(--gray2);color:var(--gray4);cursor:not-allowed}
-.bcbox{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#fefce8;border:1.5px solid #fcd34d;border-radius:9px;margin-top:10px}
-:root.dark .bcbox{background:#451a03;border-color:#78350f}
-.bcval{font-family:'Courier New',monospace;font-size:13px;font-weight:600;margin-top:2px;word-break:break-all}
-.bcclear{background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray4);padding:0 2px}
-textarea,input[type=text],input[type=email],input[type=date],select{width:100%;padding:11px 12px;border:1.5px solid var(--gray2);border-radius:9px;font-family:var(--font);font-size:14px;outline:none;background:var(--white);color:var(--text);-webkit-appearance:none;appearance:none;transition:border-color .2s,background .3s,color .3s}
-textarea:focus,input:focus,select:focus{border-color:var(--g2)}
-textarea{min-height:68px;resize:vertical}
-.field{margin-bottom:13px}
-.field label{display:block;font-size:12.5px;font-weight:600;color:var(--gray);margin-bottom:5px}
-
 .btn{display:block;width:100%;padding:14px;border:none;border-radius:11px;cursor:pointer;font-family:var(--font);font-size:15px;font-weight:700;text-align:center;transition:all .15s}
 .btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
@@ -79,60 +58,52 @@ textarea{min-height:68px;resize:vertical}
 .btn-s{background:var(--gray3);color:var(--text);border:1.5px solid var(--gray2)}
 .btn-d{background:var(--r);color:#fff}
 .sm{padding:7px 11px;font-size:12.5px;font-weight:600;border:none;border-radius:8px;cursor:pointer;font-family:var(--font)}
-.alert{padding:10px 13px;border-radius:9px;font-size:13px;margin-bottom:11px;line-height:1.45}
-.aw{background:var(--yl);color:var(--y);border:1.5px solid #fcd34d}
-:root.dark .aw{background:#451a03;color:#fcd34d;border-color:#92400e}
-.ai{background:var(--blue-l);color:var(--blue);border:1.5px solid #bfdbfe}
-.ag{background:var(--g3);color:var(--g);border:1.5px solid var(--g4)}
-.schinfo{background:var(--blue-l);border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--blue);display:flex;align-items:flex-start;gap:9px;margin-bottom:12px}
-:root.dark .schinfo{background:#1e3a8a;border-color:#1d4ed8;color:#bfdbfe}
-.hentry{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden}
-.hhead{padding:13px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none}
-.hhead:active{background:var(--gray3)}
-.hico{font-size:22px;flex-shrink:0;line-height:1;margin-top:1px}
-.hinfo{flex:1;min-width:0}
-.hcat{font-size:14px;font-weight:700;color:var(--g)}
-:root.dark .hcat{color:#34d399;}
-.hmeta{font-size:11.5px;color:var(--gray4);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.harch{font-size:10px;font-weight:700;padding:3px 7px;border-radius:9px;background:var(--yl);color:var(--y);flex-shrink:0;align-self:center}
-.hchev{color:var(--gray4);font-size:14px;flex-shrink:0;align-self:center;margin-left:4px;transition:transform .2s}
-.hchev.open{transform:rotate(180deg)}
-.hbody{display:none;padding:12px 14px 15px;border-top:1px solid var(--gray3)}
-.hbody.open{display:block}
-.ephotos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.ephotos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer}
-.erow{font-size:12.5px;margin-bottom:4px;display:flex;gap:6px}
-.erow .el{color:var(--gray4);flex-shrink:0;min-width:80px}
-.eacts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.dup-item{padding:5px 8px;background:var(--gray3);border-radius:6px;font-size:11.5px;margin-top:4px}
-.sbar{display:flex;gap:8px;margin-bottom:12px}
-.sbar input{flex:1}
-.sbar select{width:auto;flex-shrink:0;min-width:90px}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row .field { margin-bottom: 0; }
+textarea,input[type=text],input[type=email],input[type=date],select{width:100%;padding:11px 12px;border:1.5px solid var(--gray2);border-radius:9px;font-family:var(--font);font-size:14px;outline:none;background:var(--white);color:var(--text);-webkit-appearance:none;appearance:none;transition:border-color .2s,background .3s,color .3s}
+textarea:focus,input:focus,select:focus{border-color:var(--g2)}
+select.has-value{border-color:var(--g2);background:var(--g3);color:var(--g);font-weight:600}
+:root.dark select.has-value{color:#ffffff;}
+textarea{min-height:68px;resize:vertical}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--gray);margin-bottom:5px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pslot{aspect-ratio:4/3;border:2px dashed var(--gray2);border-radius:11px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--gray3);position:relative;transition:border-color .2s,background .2s}
+.pslot.hp{border-style:solid;border-color:var(--g2);background:transparent}
+.pslot img{width:100%;height:100%;object-fit:cover;display:block}
+.plabel{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:10px;font-weight:600;text-align:center;padding:3px 2px 4px}
+.pico{font-size:20px;margin-bottom:2px}
+.psub{font-size:9px;color:var(--gray4);text-align:center;padding:0 2px;line-height:1.1}
+.pdel{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--font);font-weight:700;z-index:2}
+.bcbox{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#fefce8;border:1.5px solid #fcd34d;border-radius:9px;margin-top:10px;color:#000}
+.gpsbox{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;background:var(--gray3);border-radius:10px}
+.gpsico{font-size:20px;flex-shrink:0;line-height:1;margin-top:1px}
+.gpstxt{flex:1;font-size:13px;font-weight:500;word-break:break-word}
+.gpssmall{font-size:11px;color:var(--gray4);margin-top:2px;font-weight:400}
+.gpsbtn{font-size:12px;font-weight:700;padding:6px 11px;border:none;background:var(--g2);color:#fff;border-radius:7px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.voice-wrapper{position:relative;display:flex;align-items:center;gap:8px}
+.voice-btn{background:var(--blue);color:#fff;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,0.2)}
+.voice-btn.listening{background:var(--r);animation:pulse 1.5s infinite}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(3px)}
 .overlay.h{display:none}
 .modal{background:var(--white);border-radius:var(--radius);padding:20px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
-.modal h3{font-size:16px;font-weight:700;margin-bottom:14px}
-.mbtn-row{display:flex;gap:8px;margin-top:4px}
-.mbtn-row .btn{flex:1;padding:12px;font-size:14px}
-.empty{text-align:center;padding:48px 20px;color:var(--gray4)}
-.empty .ei{font-size:48px;margin-bottom:10px}
-.empty p{font-size:14px;font-weight:500}
-.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:transparent;border-radius:50%;animation:sp .65s linear infinite;vertical-align:middle;margin-right:6px}
-@keyframes sp{to{transform:rotate(360deg)}}
 #toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2937;color:#fff;padding:10px 18px;border-radius:50px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .hidden{display:none!important}
-input[type=file].hidden{display:none!important}
-.divider{border:none;border-top:1px solid var(--gray2);margin:12px 0}
+.hbody.open { display: block !important; }
+.hchev.open { transform: rotate(180deg); }
+.hchev { transition: transform 0.2s; cursor: pointer; }
+.hentry.stehen-gelassen{border:2px solid var(--r);background:linear-gradient(135deg,#fef2f2 0%,var(--white) 100%)}
+:root.dark .hentry.stehen-gelassen{background:linear-gradient(135deg,#450a0a 0%,var(--white) 100%);}
 </style>
 </head>
-
-<body>
+<body onload="init()">
 <div id="hdr">
-  <h1>🗑️ Mülltonnen-Meldung</h1>
+  <h1 title="Zum Startbildschirm hinzufügen für Offline-Nutzung">🗑️ Mülltonnen-Meldung</h1>
   <div style="display:flex; flex-direction:column; align-items:flex-end; line-height:1.2">
     <span class="cr">© Michael Elvey</span>
-    <span class="cr">Version 2.0</span>
+    <span class="cr">Version 2.5 Pro</span>
   </div>
 </div>
 <div id="tabs">
@@ -148,34 +119,39 @@ input[type=file].hidden{display:none!important}
       <div class="catgrid" id="catGrid"></div>
     </div>
     <div class="card">
-      <div class="clabel">🗑️ Müllart <span class="req">*</span></div>
-      <div class="wgrid" id="wasteGrid"></div>
+      <div class="clabel">🗑️ Details <span class="req">*</span></div>
+      <div class="form-row">
+        <div class="field">
+          <label>Müllart</label>
+          <select id="wasteSelect" onchange="updateWaste(this.value); highlightSelect(this)"></select>
+        </div>
+        <div class="field" id="actionField">
+          <label>Aktion</label>
+          <select id="actionSelect" onchange="updateAction(this.value); highlightSelect(this)"></select>
+        </div>
+      </div>
     </div>
-    
-    <div class="card" id="actionCard">
-      <div class="clabel">✅ Aktion <span class="req">*</span></div>
-      <div class="actgrid" id="actionGrid"></div>
-    </div>
-
-<div class="schinfo hidden" id="schInfo">
+    <div class="schinfo hidden" id="schInfo" style="background:var(--blue-l);border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--blue);display:flex;align-items:flex-start;gap:9px;margin-bottom:12px">
       <span style="font-size:20px;flex-shrink:0">📍</span>
-      <div><strong>In Schüttung gefallen</strong><br>Kein Foto und keine Aktion erforderlich. GPS wird beim Senden erfasst.</div>
+      <div><strong>In Schüttung gefallen</strong><br>Kein Foto und keine Aktion erforderlich.</div>
     </div>
     <div class="card" id="photoCard">
       <div class="clabel">📷 Fotos</div>
       <div class="pgrid">
         <div>
-          <div class="pslot" id="slot0" onclick="triggerPhoto(0)"><span class="pico">📷</span><span class="psub">Tonne / Behälter</span></div>
-          <div class="prq">Optionales Foto</div>
+          <div class="pslot" id="slot0" onclick="triggerPhoto(0)"><span class="pico">📷</span><span class="psub">Tonne</span></div>
         </div>
         <div>
-          <div class="pslot" id="slot1" onclick="triggerPhoto(1)"><span class="pico">🔍</span><span class="psub">Strichcode (optional)</span></div>
+          <div class="pslot" id="slot1" onclick="triggerPhoto(1)"><span class="pico">📷</span><span class="psub">Zusatz</span></div>
+        </div>
+        <div>
+          <div class="pslot" id="slot2" onclick="triggerPhoto(2)"><span class="pico">🔍</span><span class="psub">Barcode</span></div>
         </div>
       </div>
       <div class="bcbox hidden" id="bcBox">
         <span style="font-size:20px">📊</span>
-        <div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--gray4)">STRICHCODE ERKANNT</div><div class="bcval" id="bcVal"></div></div>
-        <button class="bcclear" onclick="clearBarcode()">✕</button>
+        <div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--gray4)">BARCODE ERKANNT</div><div class="bcval" id="bcVal" style="font-family:monospace;font-weight:600"></div></div>
+        <button class="bcclear" onclick="clearBarcode()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray4)">✕</button>
       </div>
     </div>
     <div class="card">
@@ -188,33 +164,55 @@ input[type=file].hidden{display:none!important}
     </div>
     <div class="card">
       <div class="clabel">📝 Anmerkungen</div>
-      <textarea id="notesIn" placeholder="Optionale Hinweise..." rows="2"></textarea>
+      <div class="voice-wrapper">
+        <textarea id="notesIn" placeholder="Optionale Hinweise..." rows="2"></textarea>
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="Spracheingabe">🎤</button>
+      </div>
     </div>
-    <div class="alert aw hidden" id="dupWarn">
-      <strong>⚠️ Mögliche Duplikate gefunden!</strong>
-      <div id="dupList" style="margin-top:6px"></div>
+    <div class="alert aw hidden" id="dupWarn" style="padding:10px 13px;border-radius:9px;font-size:13px;margin-bottom:11px;line-height:1.45;background:var(--yl);color:var(--y);border:1.5px solid #fcd34d;display:flex;justify-content:space-between">
+      <div style="flex:1">
+        <strong>⚠️ Mögliche Duplikate gefunden!</strong>
+        <div id="dupList" style="margin-top:6px"></div>
+      </div>
+      <button onclick="document.getElementById('dupWarn').classList.add('hidden')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--y);margin-left:10px">✕</button>
     </div>
     <button class="btn btn-p" id="sendBtn" onclick="sendEntry()">📤 Meldung senden</button>
     <button class="btn btn-s" style="margin-top:8px" onclick="resetForm()">🔄 Formular zurücksetzen</button>
     <input type="file" id="fi0" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(0)">
     <input type="file" id="fi1" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(1)">
+    <input type="file" id="fi2" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(2)">
   </div>
+  <div class="pane" id="pane-v">
+    <div class="card">
+      <div class="clabel">📊 Datenbank</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:12.5px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between"><span>Aktive Einträge:</span><strong id="stActive">0</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Archiviert:</span><strong id="stArchived">0</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Gesamt:</span><strong id="stTotal">0</strong></div>
+      </div>
+    </div>
+    
+    <button class="btn btn-s" onclick="showExport()" style="margin-bottom:12px">📊 CSV-Export</button>
 
-<div class="pane" id="pane-v">
-    <div class="sbar">
-      <input type="text" id="stxt" placeholder="🔍 Suchen…" oninput="renderHistory()">
-      <select id="scat" onchange="renderHistory()"><option value="">Alle Kategorien</option></select>
+    <div class="sbar" style="display:flex;gap:8px;margin-bottom:12px">
+      <input type="text" id="stxt" placeholder="🔍 Suchen (inkl. Archiv)…" oninput="renderHistory()">
+      <select id="scat" onchange="renderHistory()" style="width:auto;flex-shrink:0;min-width:90px"><option value="">Alle Kategorien</option></select>
     </div>
     <div id="histList"></div>
-    <button class="btn btn-s" onclick="showExport()" style="margin-top:4px">📊 CSV-Export</button>
   </div>
-  
   <div class="pane" id="pane-e">
     <div class="card">
       <div class="clabel">👤 Fahrerinformationen</div>
       <div class="field"><label>Fahrername</label><input type="text" id="sName"></div>
       <div class="field"><label>Fahrzeugkennzeichen</label><input type="text" id="sPlate" oninput="this.value=this.value.toUpperCase()"></div>
-      <div class="field"><label>Landkreis / Gebiet</label><input type="text" id="sDist"></div>
+      <div class="field">
+        <label>Landkreis / Gebiet</label>
+        <select id="sDist">
+          <option value="Landkreis Wittmund">Landkreis Wittmund</option>
+          <option value="Landkreis Friesland">Landkreis Friesland</option>
+          <option value="Landkreis Wilhelmshaven">Landkreis Wilhelmshaven</option>
+        </select>
+      </div>
       <div class="field"><label>Standard Müllsorte</label>
         <select id="sWaste">
           <option value="Restmüll (RM)">Restmüll (RM)</option>
@@ -223,7 +221,7 @@ input[type=file].hidden{display:none!important}
           <option value="Gelbersack">Gelbersack</option>
         </select>
       </div>
-      <div class="field"><label>📧 E-Mail Dispo</label><input type="email" id="sEmail"></div>
+      <div class="field"><label>📧 E-Mail Dispo (CC)</label><input type="email" id="sEmail"></div>
       <div class="field" style="margin-bottom:0"><label>🎨 Erscheinungsbild</label>
         <select id="sTheme">
           <option value="auto">System (Automatisch)</option>
@@ -232,337 +230,24 @@ input[type=file].hidden{display:none!important}
         </select>
       </div>
     </div>
-    <div class="card">
-      <div class="clabel">📊 Datenbank</div>
-      <div class="erow"><span class="el">Aktive Einträge:</span><strong id="stActive">0</strong></div>
-      <div class="erow"><span class="el">Archiviert:</span><strong id="stArchived">0</strong></div>
-      <div class="erow"><span class="el">Gesamt:</span><strong id="stTotal">0</strong></div>
-      <button class="btn btn-s" style="margin-top:12px;padding:11px;font-size:13px" onclick="clearArchived()">🗑️ Archiv löschen (Platz schaffen)</button>
-      <button class="btn btn-d" style="margin-top:8px;padding:11px;font-size:13px" onclick="clearAll()">🗑️ Alle Daten löschen</button>
-    </div>
     <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
-    <div style="text-align:center;margin-top:24px;color:var(--gray4);font-size:12px;line-height:1.8">
-      Mülltonnen-Meldung · Version 2.0 (IndexedDB)<br>© Michael Elvey
-    </div>
   </div>
-
-<div class="pane" id="pane-h">
-
-  <!-- HERO BANNER -->
-  <div style="background:linear-gradient(135deg,var(--g) 0%,var(--g2) 100%);border-radius:var(--radius);padding:20px 18px 18px;margin-bottom:14px;color:#fff;box-shadow:0 4px 18px rgba(26,92,26,.3)">
-    <div style="font-size:30px;margin-bottom:6px">🗑️</div>
-    <div style="font-size:17px;font-weight:700;margin-bottom:4px">Mülltonnen-Meldung</div>
-    <div style="font-size:12px;opacity:.85;line-height:1.5">Version 2.0 · Digitale Schadensmeldung für Müllfahrer<br>© Michael Elvey</div>
+  <div class="pane" id="pane-h">
+    <div class="card"><div class="clabel">📖 Hilfe</div><p style="font-size:13px">Digitale Schadensmeldung für Müllfahrer. Alle Daten werden lokal gespeichert. Einträge werden nach 31 Tagen automatisch archiviert.</p></div>
   </div>
-
-  <!-- INHALTSVERZEICHNIS -->
-  <div class="card" style="padding:14px 16px">
-    <div class="clabel">📋 Inhaltsverzeichnis</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 10px">
-      <div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray2);color:var(--g);font-weight:600">① Erste Schritte</div>
-      <div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray2);color:var(--g);font-weight:600">② Meldung erfassen</div>
-      <div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray2);color:var(--g);font-weight:600">③ Fotos &amp; Barcode</div>
-      <div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray2);color:var(--g);font-weight:600">④ GPS-Standort</div>
-      <div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray2);color:var(--g);font-weight:600">⑤ Meldung senden</div>
-      <div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray2);color:var(--g);font-weight:600">⑥ Verlauf &amp; Suche</div>
-      <div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray2);color:var(--g);font-weight:600">⑦ CSV-Export</div>
-      <div style="font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--gray2);color:var(--g);font-weight:600">⑧ Sonderfälle</div>
-      <div style="font-size:12.5px;padding:5px 0;color:var(--g);font-weight:600">⑨ Einstellungen</div>
-      <div style="font-size:12.5px;padding:5px 0;color:var(--g);font-weight:600">⑩ Häufige Fragen</div>
-    </div>
-  </div>
-
-  <!-- ABSCHNITT 1: ERSTE SCHRITTE -->
-  <div class="card">
-    <div class="clabel">① Erste Schritte – Einstellungen einrichten</div>
-    <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1.5px solid #f59e0b;border-radius:10px;padding:12px 13px;margin-bottom:13px;display:flex;gap:10px;align-items:flex-start">
-      <span style="font-size:20px;flex-shrink:0">⚠️</span>
-      <div style="font-size:13px;font-weight:600;color:#92400e;line-height:1.5">Wichtig: Vor der ersten Nutzung müssen zwingend die persönlichen Daten im Reiter <strong>Einstellungen ⚙️</strong> ausgefüllt und gespeichert werden. Ohne diese Angaben können keine vollständigen Meldungen versendet werden.</div>
-    </div>
-    <div style="font-size:13px;line-height:1.6;color:var(--text)">
-      Tippen Sie auf den Reiter <strong>⚙️ Einstellungen</strong> und füllen Sie folgende Felder aus:
-    </div>
-    <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">👤</span>
-        <div><div style="font-size:13px;font-weight:700">Fahrername</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Ihr vollständiger Name – erscheint in jeder Meldung als Absender.</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">🚛</span>
-        <div><div style="font-size:13px;font-weight:700">Fahrzeugkennzeichen</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Das Nummernschild Ihres Fahrzeugs (wird automatisch in Großbuchstaben umgewandelt).</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">🗺️</span>
-        <div><div style="font-size:13px;font-weight:700">Landkreis / Gebiet</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Ihr Zuständigkeitsbereich (z. B. „Friesland Nord").</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">♻️</span>
-        <div><div style="font-size:13px;font-weight:700">Standard-Müllsorte</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Die Müllsorte, die beim Start einer neuen Meldung vorausgewählt wird.</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">📧</span>
-        <div><div style="font-size:13px;font-weight:700">E-Mail Dispo</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Die E-Mail-Adresse der Disposition – Empfänger aller Meldungen per E-Mail-Fallback.</div></div>
-      </div>
-    </div>
-    <div style="margin-top:12px;padding:10px 12px;background:var(--g3);border-radius:9px;border:1.5px solid var(--g4);font-size:12.5px;color:var(--g);font-weight:600;display:flex;gap:8px;align-items:center">
-      <span>💾</span> Tippen Sie nach dem Ausfüllen auf <strong>„Einstellungen speichern"</strong>, damit alle Daten übernommen werden.
-    </div>
-  </div>
-
-  <!-- ABSCHNITT 2: MELDUNG ERFASSEN -->
-  <div class="card">
-    <div class="clabel">② Meldung erfassen – Schritt für Schritt</div>
-    <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px">Wechseln Sie zum Reiter <strong>📋 Meldung</strong>. Eine neue Meldung besteht aus mehreren Pflicht- und optionalen Feldern.</div>
-
-    <!-- Schritt-für-Schritt -->
-    <div style="display:flex;flex-direction:column;gap:10px">
-
-      <div style="border-left:3px solid var(--g);padding-left:12px">
-        <div style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:3px">Schritt 1 · Kategorie wählen <span style="color:var(--o)">*</span></div>
-        <div style="font-size:12.5px;color:var(--text);line-height:1.55">Tippen Sie auf eine der Kategorie-Schaltflächen. Die gewählte Kategorie beschreibt den Problemtyp (z. B. „Überfüllt", „Chip defekt"). Die Auswahl ist zwingend erforderlich. Je nach Kategorie passen sich die folgenden Felder automatisch an.</div>
-      </div>
-
-      <div style="border-left:3px solid var(--g);padding-left:12px">
-        <div style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:3px">Schritt 2 · Müllart wählen <span style="color:var(--o)">*</span></div>
-        <div style="font-size:12.5px;color:var(--text);line-height:1.55">Wählen Sie die betroffene Müllsorte: <strong>Restmüll (RM)</strong>, <strong>Biomüll (BIO)</strong>, <strong>Papiermüll</strong> oder <strong>Gelber Sack</strong>. Die in den Einstellungen hinterlegte Standard-Müllsorte ist bereits vorausgewählt.</div>
-      </div>
-
-      <div style="border-left:3px solid var(--g);padding-left:12px">
-        <div style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:3px">Schritt 3 · Aktion wählen <span style="color:var(--o)">*</span></div>
-        <div style="font-size:12.5px;color:var(--text);line-height:1.55">Wählen Sie die durchgeführte Maßnahme: <strong>Geleert</strong>, <strong>Stehen gelassen</strong> oder <strong>Keine Tonne</strong>. Die Aktionsauswahl entfällt automatisch bei der Kategorie „in Schüttung gefallen" (siehe Abschnitt ⑧).</div>
-      </div>
-
-      <div style="border-left:3px solid var(--gray2);padding-left:12px">
-        <div style="font-size:13px;font-weight:700;margin-bottom:3px">Schritt 4 · Anmerkungen (optional)</div>
-        <div style="font-size:12.5px;color:var(--text);line-height:1.55">Im Textfeld können Sie zusätzliche Hinweise für die Disposition eingeben, z. B. Besonderheiten oder Ortsbeschreibungen, die GPS nicht erfassen kann.</div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ABSCHNITT 3: FOTOS & BARCODE -->
-  <div class="card">
-    <div class="clabel">③ Fotos &amp; Barcode</div>
-    <div style="font-size:13px;line-height:1.6;margin-bottom:10px;color:var(--text)">Der Foto-Bereich enthält zwei Kamera-Slots. Tippen Sie auf einen Slot, um direkt die Kamera zu öffnen.</div>
-
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:18px;flex-shrink:0">📷</span>
-        <div>
-          <div style="font-size:13px;font-weight:700">Foto 1 – Tonne / Behälter</div>
-          <div style="font-size:12px;color:var(--gray4);margin-top:2px;line-height:1.5">Fotografieren Sie die Mülltonne oder den Behälter. Dieses Foto ist optional, aber für die Dokumentation empfohlen. Das erste aufgenommene Foto löst automatisch die GPS-Erfassung aus.</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:18px;flex-shrink:0">🔍</span>
-        <div>
-          <div style="font-size:13px;font-weight:700">Foto 2 – Strichcode (optional)</div>
-          <div style="font-size:12px;color:var(--gray4);margin-top:2px;line-height:1.5">Fotografieren Sie den Barcode der Tonne. Unterstützt Ihr Gerät die Strichcode-Erkennung, wird der Code automatisch ausgelesen und als Text gespeichert. Ein erkannter Barcode erscheint in einer gelben Box unterhalb der Fotos.</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top:11px;padding:10px 12px;background:var(--blue-l);border:1.5px solid #bfdbfe;border-radius:9px;font-size:12.5px;color:var(--blue);line-height:1.5;display:flex;gap:8px">
-      <span style="flex-shrink:0">ℹ️</span>
-      <div>Fotos werden automatisch komprimiert (max. 1280 px) und lokal auf Ihrem Gerät gespeichert – kein Cloud-Upload. Ein Foto kann durch Tippen auf <strong>✕</strong> wieder gelöscht werden.</div>
-    </div>
-  </div>
-
-  <!-- ABSCHNITT 4: GPS -->
-  <div class="card">
-    <div class="clabel">④ GPS-Standort</div>
-    <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:10px">Der GPS-Standort wird automatisch ermittelt und in die Meldung integriert. Bei Kategorien mit Fotopflicht wird die Standortermittlung beim ersten Foto ausgelöst. Sie können den Standort jederzeit manuell aktualisieren.</div>
-    <div style="display:flex;flex-direction:column;gap:7px">
-      <div style="display:flex;gap:8px;align-items:center;padding:8px 11px;background:var(--gray3);border-radius:8px;font-size:12.5px">
-        <span>✅</span><span><strong>Grünes Häkchen</strong> – Standort erfolgreich ermittelt (Adresse + Koordinaten)</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;padding:8px 11px;background:var(--gray3);border-radius:8px;font-size:12.5px">
-        <span>📡</span><span><strong>Antenne blinkt</strong> – Ermittlung läuft oder noch kein Signal</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;padding:8px 11px;background:var(--gray3);border-radius:8px;font-size:12.5px">
-        <span>⚠️</span><span><strong>Warnung</strong> – GPS-Fehler (Berechtigung prüfen oder Button „Jetzt" tippen)</span>
-      </div>
-    </div>
-    <div style="margin-top:10px;font-size:12px;color:var(--gray4);line-height:1.5">Die Genauigkeit wird in Metern (±m) angezeigt. Für präzise Ergebnisse im Freien oder bei gutem Mobilfunkempfang sorgen.</div>
-  </div>
-
-  <!-- ABSCHNITT 5: MELDUNG SENDEN -->
-  <div class="card">
-    <div class="clabel">⑤ Meldung senden</div>
-    <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:12px">Sind alle Pflichtfelder ausgefüllt, tippen Sie auf <strong>📤 Meldung senden</strong>. Die App prüft automatisch folgendes:</div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px">
-      <div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:8px 11px;background:var(--gray3);border-radius:8px">
-        <span style="flex-shrink:0;color:var(--g);font-weight:700">✓</span><span>Kategorie und (falls erforderlich) Aktion sind ausgewählt</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:8px 11px;background:var(--gray3);border-radius:8px">
-        <span style="flex-shrink:0;color:var(--g);font-weight:700">✓</span><span>GPS-Standort wird ggf. noch während des Sendens automatisch ermittelt</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:8px 11px;background:var(--gray3);border-radius:8px">
-        <span style="flex-shrink:0;color:var(--g);font-weight:700">✓</span><span>Duplikat-Prüfung: Meldungen im Umkreis von 15 m mit gleichem Barcode werden erkannt und in der Meldung vermerkt</span>
-      </div>
-    </div>
-    <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:10px">Das Teilen-Menü öffnet sich automatisch. Sie können die Meldung per <strong>WhatsApp</strong>, <strong>E-Mail</strong> oder einer anderen App weiterleiten. Fotos werden direkt als Anhang mitgesendet.</div>
-    <div style="padding:10px 12px;background:var(--yl);border:1.5px solid #fcd34d;border-radius:9px;font-size:12.5px;color:var(--y);display:flex;gap:8px">
-      <span style="flex-shrink:0">💡</span>
-      <span>Steht kein Teilen-Menü zur Verfügung (z. B. auf Desktop), öffnet sich automatisch ein E-Mail-Link mit der Dispo-Adresse als Empfänger.</span>
-    </div>
-    <div style="margin-top:10px;font-size:12px;color:var(--gray4);line-height:1.5">Nach dem Senden wird das Formular automatisch zurückgesetzt, die Meldung bleibt jedoch im <strong>Verlauf</strong> gespeichert.</div>
-  </div>
-
-  <!-- ABSCHNITT 6: VERLAUF -->
-  <div class="card">
-    <div class="clabel">⑥ Verlauf &amp; Suche</div>
-    <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:10px">Unter <strong>🕐 Verlauf</strong> finden Sie alle gesendeten Meldungen, sortiert nach Datum (neueste zuerst).</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">🔍</span>
-        <div><div style="font-size:13px;font-weight:700">Suche</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Geben Sie einen Suchbegriff ein (Adresse, Fahrername, Barcode usw.) – die Liste filtert sich sofort.</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">📁</span>
-        <div><div style="font-size:13px;font-weight:700">Kategoriefilter</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Wählen Sie im Dropdown eine Kategorie, um nur Meldungen dieses Typs anzuzeigen.</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">▼</span>
-        <div><div style="font-size:13px;font-weight:700">Details aufklappen</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Tippen Sie auf einen Eintrag, um alle Detailinfos, Fotos und Aktionsschaltflächen einzublenden.</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">✏️</span>
-        <div><div style="font-size:13px;font-weight:700">Eintrag bearbeiten</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Kategorie und Anmerkungen können nachträglich korrigiert werden.</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">📤</span>
-        <div><div style="font-size:13px;font-weight:700">Erneut senden</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Eine bereits gespeicherte Meldung kann jederzeit erneut versendet werden.</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">📦</span>
-        <div><div style="font-size:13px;font-weight:700">Archiv-Badge</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Meldungen, die älter als 30 Tage sind, werden automatisch archiviert und mit einem Badge gekennzeichnet. Sie bleiben weiterhin einsehbar.</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ABSCHNITT 7: CSV-EXPORT -->
-  <div class="card">
-    <div class="clabel">⑦ CSV-Export für die Disposition</div>
-    <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:10px">Unter <strong>🕐 Verlauf</strong> finden Sie ganz unten den Button <strong>📊 CSV-Export</strong>.</div>
-    <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:10px">Wählen Sie einen Zeitraum (Von / Bis) und dann eine der zwei Optionen:</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">⬇️</span>
-        <div><div style="font-size:13px;font-weight:700">Download</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Speichert die CSV-Datei direkt auf Ihrem Gerät (funktioniert auf allen Geräten zuverlässig).</div></div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:var(--gray3);border-radius:9px">
-        <span style="font-size:16px;flex-shrink:0">📧</span>
-        <div><div style="font-size:13px;font-weight:700">Per Mail / Teilen</div><div style="font-size:12px;color:var(--gray4);margin-top:1px">Öffnet das Teilen-Menü mit der CSV als Anhang – z. B. direkt an die Disposition mailen. Nur auf Mobilgeräten verfügbar, die das Teilen von Dateien unterstützen.</div></div>
-      </div>
-    </div>
-    <div style="font-size:12px;color:var(--gray4);line-height:1.5">Die exportierte CSV-Datei enthält alle Felder: Datum, Müllart, Kategorie, Aktion, Adresse, GPS-Koordinaten, Barcode, Fahrername, Kennzeichen, Landkreis, Anmerkungen, Sendezähler und Archivstatus.</div>
-  </div>
-
-  <!-- ABSCHNITT 8: SONDERFÄLLE -->
-  <div class="card">
-    <div class="clabel">⑧ Sonderfälle &amp; besondere Kategorien</div>
-
-    <div style="border-left:4px solid #3b82f6;background:var(--blue-l);border-radius:0 9px 9px 0;padding:11px 13px;margin-bottom:11px">
-      <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:4px">⬇️ In Schüttung gefallen</div>
-      <div style="font-size:12.5px;color:var(--text);line-height:1.55">Diese Kategorie ist ein Sonderfall: Wählen Sie „in Schüttung gefallen", werden weder das <strong>Foto-Panel</strong> noch die <strong>Aktionsauswahl</strong> angezeigt – beides ist in diesem Fall nicht erforderlich. Ein Hinweisbanner erscheint automatisch. Der GPS-Standort wird beim Senden automatisch erfasst.</div>
-    </div>
-
-    <div style="border-left:4px solid var(--o);background:var(--yl);border-radius:0 9px 9px 0;padding:11px 13px;margin-bottom:11px">
-      <div style="font-size:13px;font-weight:700;color:var(--o);margin-bottom:4px">⚠️ Duplikat-Warnung</div>
-      <div style="font-size:12.5px;color:var(--text);line-height:1.55">Erkennt die App eine bereits vorhandene Meldung im Umkreis von 15 Metern oder mit identischem Barcode, erscheint eine orange Warnmeldung mit den betroffenen Einträgen. Die Meldung kann trotzdem abgesendet werden – die Duplikate werden automatisch in der gesendeten Nachricht aufgelistet.</div>
-    </div>
-
-    <div style="border-left:4px solid var(--g);background:var(--g3);border-radius:0 9px 9px 0;padding:11px 13px">
-      <div style="font-size:13px;font-weight:700;color:var(--g);margin-bottom:4px">🔄 Formular zurücksetzen</div>
-      <div style="font-size:12.5px;color:var(--text);line-height:1.55">Der Button <strong>„Formular zurücksetzen"</strong> setzt alle Felder auf den Ausgangszustand zurück – inklusive Fotos, Barcode, GPS und Notizen. Die Standard-Müllsorte aus den Einstellungen wird automatisch wieder vorausgewählt.</div>
-    </div>
-  </div>
-
-  <!-- ABSCHNITT 9: EINSTELLUNGEN -->
-  <div class="card">
-    <div class="clabel">⑨ Einstellungen &amp; Datenverwaltung</div>
-    <div style="font-size:13px;line-height:1.6;color:var(--text);margin-bottom:10px">Unter <strong>⚙️ Einstellungen</strong> verwalten Sie Ihre persönlichen Daten sowie die Datenbank.</div>
-
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:11px">
-      <div style="display:flex;gap:8px;padding:8px 11px;background:var(--gray3);border-radius:8px;font-size:12.5px;align-items:flex-start">
-        <span style="flex-shrink:0">🎨</span>
-        <span><strong>Erscheinungsbild:</strong> Wählen Sie zwischen Hell, Dunkel oder Systemautomatik. Bei „System" passt sich die App Ihren Geräteeinstellungen an.</span>
-      </div>
-      <div style="display:flex;gap:8px;padding:8px 11px;background:var(--gray3);border-radius:8px;font-size:12.5px;align-items:flex-start">
-        <span style="flex-shrink:0">📊</span>
-        <span><strong>Datenbankübersicht:</strong> Zeigt die Anzahl aktiver, archivierter und gesamter Einträge.</span>
-      </div>
-      <div style="display:flex;gap:8px;padding:8px 11px;background:var(--yl);border:1px solid #fcd34d;border-radius:8px;font-size:12.5px;align-items:flex-start">
-        <span style="flex-shrink:0">🗑️</span>
-        <span><strong>Archiv löschen:</strong> Entfernt alle archivierten Meldungen (älter als 30 Tage), um Speicherplatz freizugeben. Aktive Meldungen bleiben erhalten.</span>
-      </div>
-      <div style="display:flex;gap:8px;padding:8px 11px;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;font-size:12.5px;align-items:flex-start">
-        <span style="flex-shrink:0">⛔</span>
-        <span><strong>Alle Daten löschen:</strong> Löscht sämtliche gespeicherten Meldungen unwiderruflich. Diese Aktion kann nicht rückgängig gemacht werden.</span>
-      </div>
-    </div>
-
-    <div style="padding:10px 12px;background:var(--g3);border:1.5px solid var(--g4);border-radius:9px;font-size:12.5px;color:var(--g);line-height:1.5;display:flex;gap:8px">
-      <span style="flex-shrink:0">🔒</span>
-      <span>Alle Daten werden ausschließlich lokal auf Ihrem Gerät gespeichert (IndexedDB). Es findet keine automatische Cloud-Synchronisierung oder Datenübertragung statt.</span>
-    </div>
-  </div>
-
-  <!-- ABSCHNITT 10: FAQ -->
-  <div class="card">
-    <div class="clabel">⑩ Häufige Fragen (FAQ)</div>
-
-    <div style="display:flex;flex-direction:column;gap:1px">
-
-      <div style="padding:11px 0;border-bottom:1px solid var(--gray2)">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;gap:7px"><span>❓</span>Warum wird kein GPS-Signal gefunden?</div>
-        <div style="font-size:12.5px;color:var(--gray);line-height:1.5;padding-left:20px">Stellen Sie sicher, dass die <strong>Standortfreigabe</strong> für Ihren Browser in den Geräteeinstellungen aktiviert ist. Tippen Sie dann auf den <strong>„Jetzt"</strong>-Button, um die Ermittlung manuell zu starten. Im Gebäude oder bei schlechtem Empfang kann die Genauigkeit eingeschränkt sein.</div>
-      </div>
-
-      <div style="padding:11px 0;border-bottom:1px solid var(--gray2)">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;gap:7px"><span>❓</span>Der Barcode wird nicht erkannt – was tun?</div>
-        <div style="font-size:12.5px;color:var(--gray);line-height:1.5;padding-left:20px">Die automatische Barcode-Erkennung ist geräteabhängig (BarcodeDetector API). Nicht alle Browser unterstützen diese Funktion. Falls der Code nicht ausgelesen wird, können Sie ihn manuell in das Anmerkungsfeld eintippen.</div>
-      </div>
-
-      <div style="padding:11px 0;border-bottom:1px solid var(--gray2)">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;gap:7px"><span>❓</span>Was bedeutet „Mögliche Duplikate"?</div>
-        <div style="font-size:12.5px;color:var(--gray);line-height:1.5;padding-left:20px">Die App vergleicht GPS-Koordinaten und Barcodes aller gespeicherten Meldungen. Liegt eine frühere Meldung innerhalb von <strong>15 Metern</strong> oder hat denselben Barcode, wird eine Warnmeldung angezeigt. Die Duplikat-Informationen werden automatisch in die versendete Meldung integriert.</div>
-      </div>
-
-      <div style="padding:11px 0;border-bottom:1px solid var(--gray2)">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;gap:7px"><span>❓</span>Kann ich die App auf dem Homescreen speichern?</div>
-        <div style="font-size:12.5px;color:var(--gray);line-height:1.5;padding-left:20px">Ja. Die App unterstützt den PWA-Standard. Auf Safari (iOS): Tippen auf das Teilen-Symbol → <strong>„Zum Home-Bildschirm"</strong>. Auf Android/Chrome: Menü → <strong>„App installieren"</strong> oder <strong>„Zum Startbildschirm hinzufügen"</strong>.</div>
-      </div>
-
-      <div style="padding:11px 0;border-bottom:1px solid var(--gray2)">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;gap:7px"><span>❓</span>Werden Daten ins Internet übertragen?</div>
-        <div style="font-size:12.5px;color:var(--gray);line-height:1.5;padding-left:20px">Nein. Alle Daten bleiben lokal auf dem Gerät. Einzig die <strong>Adressermittlung</strong> (Reverse Geocoding) nutzt den Dienst Nominatim/OpenStreetMap, bei dem kurzzeitig GPS-Koordinaten übermittelt werden, um eine lesbare Adresse zurückzugeben.</div>
-      </div>
-
-      <div style="padding:11px 0;border-bottom:1px solid var(--gray2)">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;gap:7px"><span>❓</span>Wann werden Meldungen archiviert?</div>
-        <div style="font-size:12.5px;color:var(--gray);line-height:1.5;padding-left:20px">Meldungen werden <strong>automatisch nach 30 Tagen</strong> archiviert. Sie bleiben weiterhin im Verlauf sichtbar und können exportiert werden. Um archivierten Speicherplatz freizugeben, nutzen Sie in den Einstellungen <strong>„Archiv löschen"</strong>.</div>
-      </div>
-
-      <div style="padding:11px 0">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;gap:7px"><span>❓</span>Der Teilen-Button öffnet nicht das richtige Programm.</div>
-        <div style="font-size:12.5px;color:var(--gray);line-height:1.5;padding-left:20px">Das Teilen-Menü wird vom Betriebssystem gesteuert. Auf iOS und Android stehen alle installierten Apps zur Verfügung. Sollte das Teilen fehlschlagen, nutzen Sie den <strong>E-Mail-Fallback</strong> – die App öffnet dann automatisch einen E-Mail-Link mit der Dispo-Adresse.</div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- FOOTER -->
-  <div style="text-align:center;padding:10px 0 6px;color:var(--gray4);font-size:12px;line-height:1.8">
-    Mülltonnen-Meldung · Version 2.0<br>
-    © Michael Elvey · Alle Rechte vorbehalten
-  </div>
-
 </div>
-</div>
+
 <div id="toast"></div>
-
+<div class="overlay h" id="genericModal">
+  <div class="modal">
+    <h3 id="gmTitle">Bestätigung</h3>
+    <p id="gmText" style="font-size:14px;margin-bottom:20px;color:var(--text)"></p>
+    <div class="mbtn-row">
+      <button class="btn btn-s" onclick="closeGenericModal()">Abbrechen</button>
+      <button class="btn btn-p" id="gmConfirm">Bestätigen</button>
+    </div>
+  </div>
+</div>
 <div class="overlay h" id="exportModal">
   <div class="modal">
     <h3>📊 CSV-Export</h3>
@@ -572,10 +257,9 @@ input[type=file].hidden{display:none!important}
       <button class="btn btn-p" onclick="doExport('dl')">⬇️ Download</button>
       <button class="btn btn-s" onclick="doExport('mail')">📧 Per Mail/Teilen</button>
     </div>
-    <button class="btn btn-s" style="margin-top:8px;padding:11px;font-size:13.5px" onclick="closeExport()">Abbrechen</button>
+    <button class="btn btn-s" style="margin-top:8px" onclick="closeExport()">Abbrechen</button>
   </div>
 </div>
-
 <div class="overlay h" id="editModal">
   <div class="modal">
     <h3>✏️ Eintrag bearbeiten</h3>
@@ -587,39 +271,44 @@ input[type=file].hidden{display:none!important}
     </div>
   </div>
 </div>
-
 <script>
+// --- KONFIGURATION LANDKREIS-MAILS ---
+const DISTRICT_MAILS = {
+  'Landkreis Wittmund': 'Abfuhr@lk.wittmund.de',
+  'Landkreis Friesland': 'dispo-friesland@beispiel.de',
+  'Landkreis Wilhelmshaven': 'dispo-wilhelmshaven@beispiel.de'
+};
 
 const CATS = [
-  {k:'Chip defekt',i:'💾'},
-  {k:'nicht (korrekt) bereitgestellt',i:'❌'},
-  {k:'Überfüllt',i:'📦'},
-  {k:'Fehlbefüllung',i:'⚠️'},
-  {k:'in Schüttung gefallen',i:'⬇️'},
-  {k:'anfahren nicht möglich',i:'🚫'},
-  {k:'Beschädigt',i:'🔨'},
-  {k:'Kein Sack vom LK',i:'🛍️'},
-  {k:'Nachfahrt',i:'🚚'},
-  {k:'Sonstiges',i:'📌'}
+  {k:'Chip defekt',i:'💾'}, {k:'nicht (korrekt) bereitgestellt',i:'❌'},
+  {k:'Überfüllt',i:'📦'}, {k:'Fehlbefüllung',i:'⚠️'},
+  {k:'in Schüttung gefallen',i:'⬇️'}, 
+  {k:'beschädigt',i:'🔨'}, {k:'kein Sack vom LK',i:'🛍️'},
+  {k:'Nachfahrt',i:'🚚'}, {k:'Schwarze Liste',i:'📝'}, {k:'Sonstiges',i:'📌'}
 ];
-
 const WASTE_TYPES = ['Restmüll (RM)', 'Biomüll (BIO)', 'Papiermüll (Papier)', 'Gelbersack'];
-
-// KOMMENTAR ZU WUNSCH 2: "Keine Tonne" als dritte Aktion hinzugefügt
 const ACTIONS = ['Geleert', 'Stehen gelassen', 'Keine Tonne'];
-
 const NO_PHOTO = 'in Schüttung gefallen';
 const DUP_M = 15;
-const ARC_DAYS = 30; // Archivierungs-Tage
-const IMG_W = 1280;
-const IMG_Q = 0.72;
+const ARC_DAYS = 31;
+const IMG_W = 1024;
+const IMG_Q = 0.6;
 
-let entries = [], settings = {driverName:'',licensePlate:'',district:'',email:'', defaultWasteType: WASTE_TYPES[0], theme: 'auto'};
-let cur = null, editId = null, gpsLocked = false, firstPhoto = true;
+let entries = [], settings = {driverName:'',licensePlate:'',district:'Landkreis Wittmund',email:'Info-WTM@Augustin-Entsorgung.de', defaultWasteType: WASTE_TYPES[0], theme: 'auto'};
+let cur = null, editId = null, gpsLocked = false, firstPhoto = true, recognition = null;
+
+function vibe(ms = 50) { if(navigator.vibrate) navigator.vibrate(ms); }
+
+function confirmAction(text, callback) {
+  const m = document.getElementById('genericModal');
+  document.getElementById('gmText').textContent = text;
+  document.getElementById('gmConfirm').onclick = () => { vibe(30); callback(); closeGenericModal(); };
+  m.classList.remove('h');
+}
+function closeGenericModal() { document.getElementById('genericModal').classList.add('h'); }
 
 const DB_NAME = 'MuelltonnenDB';
 const DB_VERSION = 1;
-
 async function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -632,7 +321,6 @@ async function openDB() {
     request.onerror = () => reject(request.error);
   });
 }
-
 async function dbPut(storeName, data, key = null) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -673,43 +361,34 @@ async function dbDelete(storeName, key) {
     req.onerror = () => reject(req.error);
   });
 }
-
 async function loadData() {
   try {
     entries = await dbGetAll('entries');
     const s = await dbGet('settings', 'config');
     if (s) settings = {...settings, ...s};
     applyTheme(settings.theme || 'auto');
-    
-    const now = Date.now();
-    const thirtyDaysMs = ARC_DAYS * 24 * 60 * 60 * 1000;
+    const now = Date.now(), thirtyOneDaysMs = ARC_DAYS * 24 * 60 * 60 * 1000;
     let needsUpdate = false;
-    
     for (let e of entries) {
-      if (!e.archived) {
-        const createdTime = new Date(e.createdAt).getTime();
-        if (now - createdTime > thirtyDaysMs) {
-          e.archived = true;
-          await dbPut('entries', e); 
-          needsUpdate = true;
-        }
+      if (!e.archived && (now - new Date(e.createdAt).getTime() > thirtyOneDaysMs)) {
+        e.archived = true; await dbPut('entries', e); needsUpdate = true;
       }
     }
     if (needsUpdate) entries = await dbGetAll('entries');
-    
-  } catch (e) { console.error("DB Load Error", e); }
+  } catch (e) { console.error("DB Error", e); }
 }
 
 function newEntry() {
   cur = {
     id: Date.now().toString(36)+Math.random().toString(36).slice(2),
     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    category:'', wasteType: settings.defaultWasteType, actionTaken: '', photos:[null,null], barcode:null,
+    category:'', wasteType: settings.defaultWasteType, actionTaken: 'Geleert', 
+    photos:[null,null,null],
+    barcode:null,
     gps:null, notes:'', driverName:settings.driverName, licensePlate:settings.licensePlate,
     district:settings.district, archived:false, sentCount:0
   };
 }
-
 async function captureGPS(manual=false) {
   if(!navigator.geolocation){ setGPS(null,'GPS nicht verfügbar'); return; }
   setGPS(null,'📡 Standort wird ermittelt…');
@@ -743,87 +422,106 @@ async function revGeo(lat,lng) {
 function setGPS(gps, txt) {
   const tico = document.getElementById('gpsIco'), ttxt = document.getElementById('gpsTxt'), tsub = document.getElementById('gpsSub');
   if(gps) {
-    tico.textContent = '✅'; ttxt.textContent = gps.address||`${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`;
+    tico.textContent = '✅'; 
+    let color = 'var(--g)';
+    if(gps.accuracy > 50) color = 'var(--r)';
+    else if(gps.accuracy > 20) color = 'var(--o)';
+    ttxt.style.color = color;
+    ttxt.textContent = gps.address||`${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`;
     tsub.textContent = `±${gps.accuracy}m | ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}`;
   } else {
-    tico.textContent = '📡'; ttxt.textContent = txt||'Wird automatisch erfasst'; tsub.textContent = '';
+    tico.textContent = '📡'; ttxt.style.color = 'var(--text)'; ttxt.textContent = txt||'Wird automatisch erfasst'; tsub.textContent = '';
   }
 }
 
-function triggerPhoto(slot) { document.getElementById('fi'+slot).click(); }
+function triggerPhoto(slot) { vibe(20); document.getElementById('fi'+slot).click(); }
 
 async function handlePhoto(slot) {
   const input = document.getElementById('fi'+slot);
   const file = input.files[0]; if(!file) return;
+  if(file.size > 15 * 1024 * 1024) { toast('⚠️ Foto zu groß (>15MB)'); return; }
   try {
-    const comp = await compress(file);
-    cur.photos[slot] = comp; setSlot(slot, comp); input.value = '';
+    const blob = await compress(file);
+    cur.photos[slot] = blob; setSlot(slot, blob); input.value = '';
     if(firstPhoto && !gpsLocked) { firstPhoto=false; captureGPS(false); }
-    if(!cur.barcode) await tryBarcode(comp);
+    if(slot === 2 && !cur.barcode) await tryBarcode(blob);
     checkDups();
-  } catch(err) { alert('Foto-Fehler: '+err.message); }
+  } catch(err) { toast('Foto-Fehler: '+err.message); }
 }
 
 function compress(file) {
-  return new Promise((res,rej)=>{
+  return new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = e => {
       const img = new Image();
-      img.onload = ()=>{
+      img.onload = () => {
         const c = document.createElement('canvas');
-        let w=img.width,h=img.height;
-        if(w>IMG_W){h=Math.round(h*IMG_W/w);w=IMG_W;}
-        c.width=w;c.height=h;
-        c.getContext('2d').drawImage(img,0,0,w,h);
-        res(c.toDataURL('image/jpeg',IMG_Q));
+        let w = img.width, h = img.height;
+        if (w > IMG_W) { h = Math.round(h * IMG_W / w); w = IMG_W; }
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        c.toBlob((blob) => {
+          if (blob) res(blob);
+          else rej(new Error("Blob-Erstellung fehlgeschlagen"));
+        }, 'image/jpeg', IMG_Q);
       };
-      img.onerror=rej; img.src=e.target.result;
+      img.onerror = rej;
+      img.src = e.target.result;
     };
-    r.onerror=rej; r.readAsDataURL(file);
+    r.onerror = rej;
+    r.readAsDataURL(file);
   });
 }
 
-function setSlot(slot, dataUrl) {
-  const el = document.getElementById('slot'+slot);
-  const lbl = slot===0?'Tonne / Behälter':'Strichcode';
-  el.innerHTML = `<img src="${dataUrl}" onclick="event.stopPropagation();fullscreen(this)"><div class="plabel">${lbl}</div><button class="pdel" onclick="event.stopPropagation();delPhoto(${slot})">✕</button>`;
+function setSlot(slot, blob) {
+  const el = document.getElementById('slot' + slot);
+  const lbl = slot === 0 ? 'Tonne' : (slot === 1 ? 'Zusatz' : 'Barcode');
+  const imgUrl = URL.createObjectURL(blob);
+  el.innerHTML = `<img src="${imgUrl}" onclick="event.stopPropagation();fullscreen(this)"><div class="plabel">${lbl}</div><button class="pdel" onclick="event.stopPropagation();delPhoto(${slot})">✕</button>`;
   el.classList.add('hp');
   el.onclick = () => fullscreen(el.querySelector('img'));
 }
 
 function delPhoto(slot) {
+  vibe(30);
+  if (cur.photos[slot]) {
+    if (cur.photos[slot] instanceof Blob) {
+      const img = document.getElementById('slot' + slot).querySelector('img');
+      if (img) URL.revokeObjectURL(img.src);
+    }
+  }
   cur.photos[slot] = null;
-  const el = document.getElementById('slot'+slot);
-  el.innerHTML = `<span class="pico">${slot===0?'📷':'🔍'}</span><span class="psub">${slot===0?'Tonne / Behälter':'Strichcode (optional)'}</span>`;
+  const el = document.getElementById('slot' + slot);
+  const pico = slot === 2 ? '🔍' : '📷';
+  const psub = slot === 0 ? 'Tonne' : (slot === 1 ? 'Zusatz' : 'Barcode');
+  el.innerHTML = `<span class="pico">${pico}</span><span class="psub">${psub}</span>`;
   el.classList.remove('hp');
-  el.onclick = ()=>triggerPhoto(slot);
-  if(slot===1) clearBarcode();
+  el.onclick = () => triggerPhoto(slot);
+  if (slot === 2) clearBarcode();
 }
 
-async function tryBarcode(dataUrl) {
-  if(!window.BarcodeDetector) return;
+async function tryBarcode(blob) {
+  if (!window.BarcodeDetector) return;
   try {
     const detector = new BarcodeDetector();
-    const resp = await fetch(dataUrl); const blob = await resp.blob();
     const bmp = await createImageBitmap(blob);
     const codes = await detector.detect(bmp);
     bmp.close();
-    if(codes&&codes.length>0) {
+    if (codes && codes.length > 0) {
       cur.barcode = codes[0].rawValue;
       document.getElementById('bcBox').classList.remove('hidden');
       document.getElementById('bcVal').textContent = cur.barcode;
-      toast('📊 Strichcode erkannt: '+cur.barcode);
+      vibe([50, 30, 50]);
+      toast('📊 Barcode erkannt: ' + cur.barcode);
       captureGPS(false);
     }
-  } catch { }
+  } catch (e) { console.error("Barcode-Error:", e); }
 }
 
 function clearBarcode() {
   cur.barcode = null;
   document.getElementById('bcBox').classList.add('hidden');
-  document.getElementById('bcVal').textContent = '';
 }
-
 function haversine(a,b,c,d) {
   const R=6371000, dl=(c-a)*Math.PI/180, dk=(d-b)*Math.PI/180;
   const x=Math.sin(dl/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dk/2)**2;
@@ -848,275 +546,212 @@ function checkDups() {
   const w = document.getElementById('dupWarn'), l = document.getElementById('dupList');
   if(dups.length>0) {
     w.classList.remove('hidden');
-    // Die UI-Duplikat-Liste zeigt für eine bessere Info ebenfalls die genommene Aktion
-    l.innerHTML = dups.map(d=>`<div class="dup-item">📅 ${fmtDT(d.createdAt)} · ${d.category} (${d.actionTaken||'-'}) · ${d.gps?.address||'kein GPS'}</div>`).join('');
+    l.innerHTML = dups.map(d=>`<div class="dup-item" style="padding:4px;font-size:11px;border-bottom:1px solid var(--gray2)">📅 ${fmtDT(d.createdAt)} · ${d.category} ${d.archived?'(Archiv)':''}</div>`).join('');
   } else { w.classList.add('hidden'); }
 }
 
+function buildBody(e, dups=[]) {
+  const ln = [
+    `Datum: ${fmtDT(e.createdAt)}`,
+    '',
+    `Firma: Augustin Entsorgung Friesland GmbH & Co. KG`,
+    `Fahrer: ${e.driverName || '-'}`,
+    `Fahrzeug: ${e.licensePlate || '-'}`,
+    `Landkreis: ${e.district || '-'}`,
+    '',
+    `Müllart: ${e.wasteType || '-'}`,
+    `Kategorie: ${e.category}`,
+    `Aktion: ${e.actionTaken || '-'}`,
+    `Standort: ${e.gps?.address || '-'}`,
+    `GPS: ${e.gps ? `${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}` : '-'}`,
+    `Karte: ${e.gps ? `https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}` : '-'}`,
+    '',
+  ];
+  if (dups.length > 0) {
+    ln.push('⚠️ DUPLIKATE:');
+    dups.forEach((d, i) => { ln.push(`${i + 1}. ${fmtDT(d.createdAt)} | ${d.category} | ${d.actionTaken || 'Keine Aktion'}`); });
+  } else {
+    ln.push('Keine Duplikate gefunden.');
+  }
+  ln.push('', '---', '© Michael Elvey');
+  return ln.join('\n');
+}
+
 async function sendEntry() {
-  // KOMMENTAR: Aktion ist nicht erforderlich bei "in Schüttung gefallen"
   const requiresAction = cur.category !== NO_PHOTO;
-  if(!cur.category || (requiresAction && !cur.actionTaken)) { toast('⚠️ Bitte Kategorie und Aktion auswählen!'); return; }
+  if (!cur.category || (requiresAction && !cur.actionTaken)) { 
+    vibe(100); toast('⚠️ Bitte Kategorie und Aktion auswählen!'); return; 
+  }
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
-  
-  if(!cur.gps) {
+  if (!cur.gps) {
     btn.innerHTML = '<span class="spin"></span>GPS wird erfasst…';
-    await new Promise(res=>{
-      navigator.geolocation.getCurrentPosition(async pos=>{
-        const {latitude:lat,longitude:lng,accuracy:acc}=pos.coords;
-        const addr=await revGeo(lat,lng);
-        cur.gps={lat,lng,accuracy:Math.round(acc),address:addr};
+    await new Promise(res => {
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const {latitude: lat, longitude: lng, accuracy: acc} = pos.coords;
+        const addr = await revGeo(lat, lng);
+        cur.gps = {lat, lng, accuracy: Math.round(acc), address: addr};
         setGPS(cur.gps); res();
-      },()=>res(),{enableHighAccuracy:true,timeout:20000});
+      }, () => res(), {enableHighAccuracy: true, timeout: 20000});
     });
   }
-  
-  btn.innerHTML = '<span class="spin"></span>Wird gesendet…';
+  btn.innerHTML = '<span class="spin"></span>Wird vorbereitet…';
   cur.notes = document.getElementById('notesIn').value.trim();
   cur.updatedAt = new Date().toISOString();
   const dups = findDups(cur), subj = buildSubj(cur), body = buildBody(cur, dups), photos = cur.photos.filter(Boolean);
-  
   let sent = false;
-  if(navigator.share) {
+  if (navigator.share) {
     try {
       let shareData = { title: subj, text: body };
-      if(photos.length > 0) {
+      if (photos.length > 0) {
         const files = await toFiles(photos, cur.id);
-        if(navigator.canShare({files})) { shareData.files = files; }
+        if (navigator.canShare && navigator.canShare({ files })) { shareData.files = files; }
       }
       await navigator.share(shareData);
       sent = true;
-    } catch(err) { if(err.name!=='AbortError') { } }
+    } catch (err) { if (err.name !== 'AbortError') { } }
   }
-  
-  if(!sent) { 
-    toast('ℹ️ Teilen-Menü nicht verfügbar. Nutze E-Mail-Link.');
-    window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`,'_blank'); 
-    sent = true; 
+  if (!sent) {
+    const districtEmail = DISTRICT_MAILS[settings.district] || '';
+    const dispoEmail = settings.email || '';
+    
+    let recipients = '';
+    if (districtEmail) {
+        recipients = `mailto:${districtEmail}?cc=${dispoEmail}`;
+    } else {
+        recipients = `mailto:${dispoEmail}`;
+    }
+
+    const separator = recipients.includes('?') ? '&' : '?';
+    const mailLink = `${recipients}${separator}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+
+    if (photos.length > 0) toast('ℹ️ Fotos müssen bei Mail-Links manuell angehängt werden.');
+    window.open(mailLink, '_blank');
+    sent = true;
   }
-  
   cur.sentCount++; 
-  await dbPut('entries', {...cur});
-  entries.unshift({...cur});
-  toast('✅ Meldung gesendet!');
-  
-  // KOMMENTAR ZU WUNSCH 1: Bleibt nun nach dem Senden direkt auf dem Reiter "Meldung" ('m' statt 'v')
-  setTimeout(()=>{ resetForm(); showTab('m'); }, 800);
+  await dbPut('entries', { ...cur });
+  entries.unshift({ ...cur });
+  vibe([0, 50, 50]);
+  toast('✅ Meldung versendet!');
+  setTimeout(() => { resetForm(); showTab('m'); btn.innerHTML = '📤 Meldung senden'; btn.disabled = false; }, 800);
 }
 
 async function toFiles(photos, id) {
   const files=[];
   for(let i=0;i<photos.length;i++){
-    if(!photos[i]) continue;
-    try {
-      const r=await fetch(photos[i]); const b=await r.blob();
-      files.push(new File([b],`Muell_${id}_${i+1}.jpg`,{type:'image/jpeg'}));
-    } catch(e) { console.error("File conversion error", e); }
+    const photoBlob = photos[i];
+    if(!photoBlob) continue;
+    files.push(new File([photoBlob],`Muell_${id}_${i+1}.jpg`,{type:'image/jpeg'}));
   }
   return files;
 }
 
 function buildSubj(e) { return `Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`; }
-
-function buildBody(e, dups=[]) {
-  const ln=['=== MÜLLTONNEN-MELDUNG ===','',`Fahrer: ${e.driverName||'-'}`,`Fahrzeug: ${e.licensePlate||'-'}`,`Landkreis: ${e.district||'-'}`,`Datum: ${fmtDT(e.createdAt)}`,'',`Müllart: ${e.wasteType||'-'}`,`Aktion: ${e.actionTaken||'-'}`,`Kategorie: ${e.category}`,`Standort: ${e.gps?.address||'-'}`];
-  if(e.gps) {
-    ln.push(`GPS: ${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}`);
-    ln.push(`Karte: https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`);
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    toast('❌ Spracheingabe nicht unterstützt'); return;
   }
-  ln.push(`Strichcode: ${e.barcode||'-'}`);
-  if(e.notes) ln.push(`Anmerkungen: ${e.notes}`);
-  
-  // KOMMENTAR ZU WUNSCH 5: "d.actionTaken" wird nun in der Duplikate-Mail-Auflistung hinzugefügt
-  if(dups.length>0) { 
-    ln.push('','⚠️ DUPLIKATE:'); 
-    dups.forEach((d,i)=>ln.push(`${i+1}. ${fmtDT(d.createdAt)} | ${d.category} | ${d.actionTaken||'Keine Aktion'}`)); 
+  if (recognition && recognition.state === 'recording') { recognition.stop(); } 
+  else {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRec();
+    recognition.lang = 'de-DE';
+    recognition.onstart = () => { vibe(100); document.getElementById('voiceBtn').classList.add('listening'); toast('🎤 Ich höre zu...'); };
+    recognition.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      const area = document.getElementById('notesIn');
+      area.value += (area.value ? ' ' : '') + text;
+      vibe(50);
+    };
+    recognition.onend = () => { document.getElementById('voiceBtn').classList.remove('listening'); };
+    recognition.start();
   }
-  
-  ln.push('','---','© Michael Elvey');
-  return ln.join('\n');
 }
 
-async function resend(id) {
-  const e = entries.find(x=>x.id===id); if(!e) return;
-  const dups=findDups(e), subj=buildSubj(e), body=buildBody(e,dups), photos=e.photos?.filter(Boolean)||[];
-  let sent=false;
-  if(navigator.share) {
-    try {
-      let shareData = { title: subj, text: body };
-      if(photos.length > 0) {
-        const files = await toFiles(photos,e.id);
-        if(navigator.canShare({files})) { shareData.files = files; }
-      }
-      await navigator.share(shareData);
-      sent=true;
-    } catch(err){}
-  }
-  if(!sent) { 
-    toast('ℹ️ Teilen-Menü nicht verfügbar. Nutze E-Mail-Link.');
-    window.open(`mailto:${settings.email||''}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); 
-  }
-  e.sentCount++; e.updatedAt=new Date().toISOString(); 
-  await dbPut('entries', e);
-  renderHistory(); toast('📤 Erneut gesendet');
+function updateWaste(val) { vibe(20); cur.wasteType = val; }
+function updateAction(val) { vibe(20); cur.actionTaken = val; }
+
+function highlightSelect(select) {
+  if(select.value) { select.classList.add('has-value'); } 
+  else { select.classList.remove('has-value'); }
 }
 
 function resetForm() {
-  newEntry(); gpsLocked=false; firstPhoto=true;
-  document.querySelectorAll('.catgrid .cbtn').forEach(b=>b.classList.remove('sel'));
-  // Entfernt die visuelle Auswahl der Müllart und Aktion
-  document.querySelectorAll('.wgrid .cbtn').forEach(b=>b.classList.remove('sel'));
-  document.querySelectorAll('.actgrid .cbtn').forEach(b=>b.classList.remove('sel'));
-  for(let i=0;i<2;i++) delPhoto(i);
+  newEntry(); gpsLocked = false; firstPhoto = true;
+  document.querySelectorAll('.catgrid .cbtn').forEach(b => b.classList.remove('sel'));
+  const wSel = document.getElementById('wasteSelect'), aSel = document.getElementById('actionSelect');
+  wSel.value = settings.defaultWasteType; cur.wasteType = settings.defaultWasteType;
+  aSel.value = 'Geleert'; cur.actionTaken = 'Geleert';
+  highlightSelect(wSel);
+  highlightSelect(aSel);
+  for(let i=0; i<3; i++) delPhoto(i);
   setGPS(null); clearBarcode();
-  document.getElementById('notesIn').value='';
+  document.getElementById('notesIn').value = '';
   document.getElementById('schInfo').classList.add('hidden');
   document.getElementById('photoCard').classList.remove('hidden');
-  document.getElementById('actionCard').classList.remove('hidden');
+  document.getElementById('actionField').style.visibility = 'visible';
   document.getElementById('dupWarn').classList.add('hidden');
-  document.getElementById('sendBtn').innerHTML='📤 Meldung senden';
-  document.getElementById('sendBtn').disabled=false;
-  selWasteType(settings.defaultWasteType);
-  selAction('');
 }
 
 function selCat(cat) {
-  cur.category = cat;
-  document.querySelectorAll('#catGrid .cbtn').forEach(b=>b.classList.toggle('sel',b.dataset.k===cat));
-  const isSch = cat===NO_PHOTO;
-  document.getElementById('schInfo').classList.toggle('hidden',!isSch);
-  document.getElementById('photoCard').classList.toggle('hidden',isSch);
-  document.getElementById('actionCard').classList.toggle('hidden',isSch);
-  if(isSch) { selAction(''); }
+  vibe(20); cur.category = cat;
+  document.querySelectorAll('#catGrid .cbtn').forEach(b => b.classList.toggle('sel', b.dataset.k === cat));
+  const isSch = (cat === NO_PHOTO);
+  document.getElementById('schInfo').classList.toggle('hidden', !isSch);
+  document.getElementById('photoCard').classList.toggle('hidden', isSch);
+  document.getElementById('actionField').style.visibility = isSch ? 'hidden' : 'visible';
+  if(isSch) { cur.actionTaken = ''; }
   checkDups();
 }
-
-function selWasteType(type) {
-  cur.wasteType = type;
-  document.querySelectorAll('#wasteGrid .cbtn').forEach(b=>b.classList.toggle('sel', b.dataset.w === type));
+function buildUI() {
+  document.getElementById('catGrid').innerHTML = CATS.map(c => `<button class="cbtn" data-k="${c.k}" onclick="selCat('${c.k.replace(/'/g,"\\'")}')"><span class="ci">${c.i}</span>${c.k}</button>`).join('');
+  document.getElementById('wasteSelect').innerHTML = WASTE_TYPES.map(w => `<option value="${w}">${w}</option>`).join('');
+  document.getElementById('actionSelect').innerHTML = ACTIONS.map(a => `<option value="${a}">${a}</option>`).join('');
+  const sc = document.getElementById('scat');
+  CATS.forEach(c => { const o = document.createElement('option'); o.value = c.k; o.textContent = c.k; sc.appendChild(o); });
+  const ec = document.getElementById('edCat');
+  CATS.forEach(c => { const o = document.createElement('option'); o.value = c.k; o.textContent = c.k; ec.appendChild(o); });
 }
 
-function selAction(act) {
-  cur.actionTaken = act;
-  document.querySelectorAll('#actionGrid .cbtn').forEach(b=>b.classList.toggle('sel', b.dataset.a === act));
-}
-
-async function renderHistory() {
-  const txt=(document.getElementById('stxt').value||'').toLowerCase(), cat=document.getElementById('scat').value, list=document.getElementById('histList');
-  entries = await dbGetAll('entries');
-  let filtered=entries.filter(e=>{
-    if(cat&&e.category!==cat) return false;
-    if(txt){
-      const s=[e.category,e.wasteType,e.actionTaken,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();
-      if(!s.includes(txt)) return false;
-    }
-    return true;
-  });
-  filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  if(!filtered.length){ list.innerHTML=`<div class="empty"><div class="ei">📭</div><p>Keine Einträge</p></div>`; return; }
-  list.innerHTML=filtered.map(e=>renderHE(e)).join('');
-}
-
-function renderHE(e) {
-  const cat=CATS.find(c=>c.k===e.category)||{i:'🗑️'}, photos=(e.photos||[]).filter(Boolean);
-  return `<div class="hentry"><div class="hhead" onclick="toggleHE('${e.id}')"><span class="hico">${cat.i}</span><div class="hinfo"><div class="hcat">${e.category} <span style="font-weight:400;color:var(--gray);font-size:12px">(${e.wasteType||'–'})</span></div><div class="hmeta">${fmtDT(e.createdAt)} · ${e.driverName||'–'}</div></div>${e.archived?'<span class="harch">Archiv</span>':''}<span class="hchev" id="chev-${e.id}">▼</span></div><div class="hbody" id="hb-${e.id}">${photos.length?`<div class="ephotos">${photos.map(p=>`<img src="${p}" onclick="fullscreen(this)">`).join('')}</div>`:''}<div class="erow"><span class="el">Müllart:</span><strong style="color:var(--g)">${e.wasteType||'–'}</strong></div><div class="erow"><span class="el">Aktion:</span><strong>${e.actionTaken||'–'}</strong></div><div class="erow"><span class="el">Fahrzeug:</span><strong>${e.licensePlate||'–'}</strong></div><div class="erow"><span class="el">Landkreis:</span><strong>${e.district||'–'}</strong></div><div class="erow"><span class="el">Gesendet:</span>${e.sentCount}×</div><div class="eacts"><button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button><button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button><button class="sm btn-d" style="background:var(--r);color:#fff" onclick="delEntry('${e.id}')">🗑️ Löschen</button></div></div></div>`;
-}
-
-function toggleHE(id) {
-  const b=document.getElementById('hb-'+id), c=document.getElementById('chev-'+id);
-  if(b) { b.classList.toggle('open'); if(c) c.classList.toggle('open'); }
-}
-
-function editEntry(id) {
-  editId=id; const e=entries.find(x=>x.id===id); if(!e) return;
-  document.getElementById('edCat').innerHTML=CATS.map(c=>`<option value="${c.k}"${c.k===e.category?' selected':''}>${c.k}</option>`).join('');
-  document.getElementById('edNotes').value=e.notes||'';
-  document.getElementById('editModal').classList.remove('h');
-}
-async function saveEdit() {
-  const e=entries.find(x=>x.id===editId); if(!e) return;
-  e.category=document.getElementById('edCat').value;
-  e.notes=document.getElementById('edNotes').value.trim();
-  e.updatedAt=new Date().toISOString(); 
-  await dbPut('entries', e);
-  closeEdit(); renderHistory(); toast('✅ Gespeichert');
-}
-function closeEdit() { editId=null; document.getElementById('editModal').classList.add('h'); }
-function closeT() { closeEdit(); }
-
-async function delEntry(id) {
-  if(!confirm('Löschen?')) return;
-  await dbDelete('entries', id);
-  renderHistory(); toast('🗑️ Gelöscht');
-}
-
-function showExport() {
-  const today=new Date(), from=new Date(today); from.setDate(from.getDate()-30);
-  document.getElementById('exFrom').value=fmtISO(from); document.getElementById('exTo').value=fmtISO(today);
-  document.getElementById('exportModal').classList.remove('h');
-}
-function closeExport() { document.getElementById('exportModal').classList.add('h'); }
-
-async function doExport(mode) {
-  const from=new Date(document.getElementById('exFrom').value), to=new Date(document.getElementById('exTo').value);
-  to.setHours(23,59,59,999);
-  const allEntries = await dbGetAll('entries');
-  const rows=allEntries.filter(e=>{ const d=new Date(e.createdAt); return d>=from&&d<=to; }).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
-  if(!rows.length){ alert('Keine Daten.'); return; }
-
-  const HCOLS=['Datum/Zeit','Müllart','Kategorie','Aktion','Adresse','Breitengrad','Längengrad','Strichcode','Fahrername','Kennzeichen','Landkreis','Anmerkungen','Gesendet','Status'];
-  let csvContent = "\uFEFF"; 
-  csvContent += HCOLS.map(h => `"${h}"`).join(";") + "\n";
-
-  rows.forEach(e => {
-    const rowData = [
-      fmtDT(e.createdAt), e.wasteType||'', e.category||'', e.actionTaken||'',
-      e.gps?.address||'', e.gps?.lat||'', e.gps?.lng||'', e.barcode||'',
-      e.driverName||'', e.licensePlate||'', e.district||'',
-      (e.notes||'').replace(/\r?\n/g, ' '), 
-      e.sentCount||0, e.archived?'Archiv':'Aktiv'
-    ];
-    csvContent += rowData.map(val => `"${String(val).replace(/"/g, '""')}"`).join(";") + "\n";
-  });
-
-  const blob = new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
-  const fn = `Muell_${fmtISO(from)}_${fmtISO(to)}.csv`;
-
-  if(mode==='dl'){
-    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=fn; a.click();
-    closeExport(); toast('📥 CSV Exportiert');
-  } else {
-    const subj=`Müll Export ${fmtD(from.toISOString())}–${fmtD(to.toISOString())}`;
-    const body=`Anbei der Export als CSV-Datei.\n\n© Michael Elvey`;
-    const file=new File([blob], fn, {type:'text/csv'});
-
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      navigator.share({title:subj, text:body, files:[file]}).catch((err)=>{
-         if(err.name!=='AbortError') alert('Teilen fehlgeschlagen. Bitte Download-Button nutzen.');
-      });
-    } else { 
-      alert('Dein Gerät/Browser unterstützt das direkte Anhängen von Dateien nicht. Bitte nutze "Download" und sende die Datei manuell.'); 
-    }
-    closeExport();
+async function init() {
+  await loadData();
+  initPWA();
+  buildUI();
+  newEntry();
+  await loadSettingsUI();
+  
+  if (!('BarcodeDetector' in window)) {
+      const slot2 = document.getElementById('slot2');
+      slot2.style.opacity = '0.5';
+      slot2.style.pointerEvents = 'none';
+      slot2.querySelector('.psub').textContent = "Nicht unterstützt";
   }
+
+  document.getElementById('wasteSelect').value = settings.defaultWasteType;
+  document.getElementById('actionSelect').value = 'Geleert';
+  highlightSelect(document.getElementById('wasteSelect'));
+  highlightSelect(document.getElementById('actionSelect'));
+}
+
+function initPWA() {
+  const manifest={name:'Mülltonnen-Meldung',short_name:'Mülltonnen',start_url:location.href,display:'standalone',theme_color:'#1a5c1a',background_color:'#f0f2f0',icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🗑️</text></svg>',sizes:'any',type:'image/svg+xml',purpose:'any maskable'}]};
+  try {
+    const mb=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+    document.getElementById('pwaManifest').href=URL.createObjectURL(mb);
+    if('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(e=>{}); }
+  } catch {}
 }
 
 function applyTheme(theme) {
   const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  if (isDark) document.documentElement.classList.add('dark');
-  else document.documentElement.classList.remove('dark');
+  document.documentElement.classList.toggle('dark', isDark);
 }
-
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  if (settings.theme === 'auto') applyTheme('auto');
-});
-
 async function loadSettingsUI() {
   document.getElementById('sName').value=settings.driverName||'';
   document.getElementById('sPlate').value=settings.licensePlate||'';
-  document.getElementById('sDist').value=settings.district||'';
-  document.getElementById('sEmail').value=settings.email||'';
+  document.getElementById('sDist').value=settings.district||'Landkreis Wittmund';
+  document.getElementById('sEmail').value=settings.email||'Info-WTM@Augustin-Entsorgung.de';
   document.getElementById('sWaste').value=settings.defaultWasteType||WASTE_TYPES[0];
   document.getElementById('sTheme').value=settings.theme||'auto';
   const all = await dbGetAll('entries');
@@ -1126,49 +761,25 @@ async function loadSettingsUI() {
 }
 
 async function saveSettings() {
+  vibe(50); 
   settings.driverName=document.getElementById('sName').value.trim();
   settings.licensePlate=document.getElementById('sPlate').value.trim();
-  settings.district=document.getElementById('sDist').value.trim();
+  settings.district=document.getElementById('sDist').value;
   settings.email=document.getElementById('sEmail').value.trim();
   settings.defaultWasteType=document.getElementById('sWaste').value;
   settings.theme=document.getElementById('sTheme').value;
-  
   applyTheme(settings.theme);
   await dbPut('settings', settings, 'config');
-  
-  if(cur){
-    cur.driverName=settings.driverName;
-    cur.licensePlate=settings.licensePlate;
-    cur.district=settings.district;
-    // KOMMENTAR ZU WUNSCH 4: Müllsorte wird sofort im Hintergrund (UI & Objekt) aktualisiert!
-    selWasteType(settings.defaultWasteType);
-  }
-  
   toast('✅ Gespeichert');
   setTimeout(()=>showTab('m'),600);
 }
 
-async function clearArchived() {
-  if(!confirm('Alle archivierten Meldungen löschen?')) return;
-  const all = await dbGetAll('entries');
-  for(let e of all) { if(e.archived) await dbDelete('entries', e.id); }
-  loadSettingsUI(); renderHistory(); toast('🗑️ Archiv gelöscht');
-}
-
-async function clearAll() {
-  if(!confirm('ALLES löschen?')) return;
-  const all = await dbGetAll('entries');
-  for(let e of all) { await dbDelete('entries', e.id); }
-  renderHistory(); loadSettingsUI(); toast('🗑️ Gelöscht');
-}
-
 function showTab(name) {
-  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  vibe(20); document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
   document.getElementById('tb-'+name).classList.add('on');
   document.getElementById('pane-'+name).classList.add('on');
-  document.getElementById('wrap').scrollTop=0;
-  if(name==='v') renderHistory();
+  if(name==='v') { renderHistory(); loadSettingsUI(); }
   if(name==='e') loadSettingsUI();
 }
 
@@ -1189,66 +800,150 @@ function fullscreen(img) {
   document.body.appendChild(ov);
 }
 
-function fmtDT(iso){
-  if(!iso) return '–';
-  const d=new Date(iso);
-  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
-}
+function fmtDT(iso){ return iso ? new Date(iso).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date(iso).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '–'; }
 function fmtD(iso){ return iso ? new Date(iso).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '–'; }
 function fmtISO(d){ return new Date(d).toISOString().split('T')[0]; }
 
-function initPWA() {
-  const manifest={
-    name:'Mülltonnen-Meldung',short_name:'Mülltonnen',
-    start_url:location.href,display:'standalone',
-    orientation:'portrait-primary',
-    theme_color:'#1a5c1a',background_color:'#f0f2f0',
-    icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🗑️</text></svg>',sizes:'any',type:'image/svg+xml',purpose:'any maskable'}]
-  };
-  try {
-    const mb=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-    document.getElementById('pwaManifest').href=URL.createObjectURL(mb);
-  } catch {}
+async function renderHistory() {
+  const txt=(document.getElementById('stxt').value||'').toLowerCase(), cat=document.getElementById('scat').value, list=document.getElementById('histList');
+  entries = await dbGetAll('entries');
+  let filtered=entries.filter(e=>{
+    if(cat&&e.category!==cat) return false;
+    if(txt){
+      const s=[e.category,e.wasteType,e.actionTaken,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();
+      if(!s.includes(txt)) return false;
+    }
+    return true;
+  });
+  filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(!filtered.length){ list.innerHTML=`<div style="text-align:center;padding:40px;color:var(--gray4)">📭 Keine Einträge gefunden</div>`; return; }
+  list.innerHTML=filtered.map(e=>renderHE(e)).join('');
 }
 
-function buildUI() {
-  document.getElementById('catGrid').innerHTML=CATS.map(c=>`<button class="cbtn" data-k="${c.k}" onclick="selCat('${c.k.replace(/'/g,"\\'")}')"><span class="ci">${c.i}</span>${c.k}</button>`).join('');
-  document.getElementById('wasteGrid').innerHTML=WASTE_TYPES.map(w=>`<button class="cbtn" data-w="${w}" onclick="selWasteType('${w.replace(/'/g,"\\'")}')">${w}</button>`).join('');
-  document.getElementById('actionGrid').innerHTML=ACTIONS.map(a=>`<button class="cbtn" data-a="${a}" onclick="selAction('${a}')">${a}</button>`).join('');
+function renderHE(e) {
+  const cat=CATS.find(c=>c.k===e.category)||{i:'🗑️'}, photos=(e.photos||[]).filter(Boolean);
+  const stehenClass = (e.actionTaken === 'Stehen gelassen') ? 'stehen-gelassen' : '';
   
-  const sc=document.getElementById('scat');
-  CATS.forEach(c=>{ const o=document.createElement('option');o.value=c.k;o.textContent=c.k;sc.appendChild(o); });
-  const ec=document.getElementById('edCat');
-  CATS.forEach(c=>{ const o=document.createElement('option');o.value=c.k;o.textContent=c.k;ec.appendChild(o); });
+  const photoHtml = photos.length 
+    ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+         ${photos.map(p => {
+           const url = p instanceof Blob ? URL.createObjectURL(p) : p;
+           return `<img src="${url}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;cursor:pointer" onclick="fullscreen(this)">`;
+         }).join('')}
+       </div>` 
+    : '';
+  
+  return `<div class="hentry ${stehenClass}" style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden">
+    <div class="hhead" onclick="toggleHE('${e.id}')" style="padding:13px 14px;display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+      <span class="hico">${cat.i}</span>
+      <div class="hinfo" style="flex:1">
+        <div class="hcat" style="font-size:14px;font-weight:700;color:var(--g)">${e.category} <span style="font-weight:400;color:var(--gray);font-size:12px">(${e.wasteType||'–'})</span></div>
+        <div class="hmeta" style="font-size:11.5px;color:var(--gray4);margin-top:2px">${fmtDT(e.createdAt)} · ${e.driverName||'–'}</div>
+        ${e.actionTaken === 'Stehen gelassen' ? '<div style="font-size:10px;color:var(--r);font-weight:700;margin-top:2px">⚠️ STEHEN GELASSEN</div>' : ''}
+      </div>
+      ${e.archived?'<span class="harch" style="font-size:10px;background:var(--yl);color:var(--y);padding:3px 7px;border-radius:9px">Archiv</span>':''}
+      <span class="hchev" id="chev-${e.id}" style="color:var(--gray4);font-size:14px">▼</span>
+    </div>
+    <div class="hbody" id="hb-${e.id}" style="display:none;padding:12px 14px 15px;border-top:1px solid var(--gray3)">
+      ${photoHtml}
+      <div style="font-size:12.5px;margin-bottom:4px;display:flex;gap:6px"><span style="color:var(--gray4);min-width:80px">Aktion:</span><strong style="color:var(--g)">${e.actionTaken||'–'}</strong></div>
+      <div style="font-size:12.5px;margin-bottom:4px;display:flex;gap:6px"><span style="color:var(--gray4);min-width:80px">Standort:</span><span>${e.gps?.address || 'Kein GPS'}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+        <button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button>
+        <button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button>
+        <button class="sm btn-d" style="background:var(--r);color:#fff" onclick="confirmAction('Löschen?', ()=>delEntry('${e.id}'))">🗑️ Löschen</button>
+      </div>
+    </div>
+  </div>`;
 }
 
-let wakeLock = null;
-async function requestWakeLock() {
-  if ('wakeLock' in navigator) {
-    try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => { /* Lock verloren (z.B. App im Hintergrund) */ });
-    } catch (err) { /* Wake Lock nicht verfügbar – wird still ignoriert */ }
+function toggleHE(id) {
+  const b = document.getElementById('hb-' + id), c = document.getElementById('chev-' + id);
+  if (b) { b.classList.toggle('open'); if (c) c.classList.toggle('open'); }
+}
+
+function editEntry(id) {
+  vibe(20); editId=id; const e=entries.find(x=>x.id===id); if(!e) return;
+  document.getElementById('edCat').innerHTML=CATS.map(c=>`<option value="${c.k}"${c.k===e.category?' selected':''}>${c.k}</option>`).join('');
+  document.getElementById('edNotes').value=e.notes||'';
+  document.getElementById('editModal').classList.remove('h');
+}
+async function saveEdit() {
+  const e=entries.find(x=>x.id===editId); if(!e) return;
+  e.category=document.getElementById('edCat').value;
+  e.notes=document.getElementById('edNotes').value.trim();
+  e.updatedAt=new Date().toISOString(); 
+  await dbPut('entries', e);
+  closeEdit(); renderHistory(); toast('✅ Gespeichert');
+}
+function closeEdit() { editId=null; document.getElementById('editModal').classList.add('h'); }
+function closeT() { closeEdit(); }
+
+async function delEntry(id) {
+  await dbDelete('entries', id);
+  renderHistory(); toast('🗑️ Gelöscht');
+}
+
+function showExport() {
+  const today=new Date(), from=new Date(today); from.setDate(from.getDate()-30);
+  document.getElementById('exFrom').value=fmtISO(from); document.getElementById('exTo').value=fmtISO(today);
+  document.getElementById('exportModal').classList.remove('h');
+}
+function closeExport() { document.getElementById('exportModal').classList.add('h'); }
+
+async function doExport(mode) {
+  const from=new Date(document.getElementById('exFrom').value), to=new Date(document.getElementById('exTo').value);
+  to.setHours(23,59,59,999);
+  const allEntries = await dbGetAll('entries');
+  const rows=allEntries.filter(e=>{ const d=new Date(e.createdAt); return d>=from&&d<=to; }).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  if(!rows.length){ alert('Keine Daten.'); return; }
+  const HCOLS=['Datum/Zeit','Müllart','Kategorie','Aktion','Adresse','Breitengrad','Längengrad','Strichcode','Fahrername','Kennzeichen','Landkreis','Anmerkungen','Gesendet','Status'];
+  let csvContent = "\uFEFF"; 
+  csvContent += HCOLS.map(h => `"${h}"`).join(";") + "\n";
+  rows.forEach(e => {
+    const rowData = [fmtDT(e.createdAt), e.wasteType||'', e.category||'', e.actionTaken||'', e.gps?.address||'', e.gps?.lat||'', e.gps?.lng||'', e.barcode||'', e.driverName||'', e.licensePlate||'', e.district||'', (e.notes||'').replace(/\r?\n/g, ' '), e.sentCount||0, e.archived?'Archiv':'Aktiv'];
+    csvContent += rowData.map(val => `"${String(val).replace(/"/g, '""')}"`).join(";") + "\n";
+  });
+  const blob = new Blob([csvContent],{type:'text/csv;charset=utf-8;'});
+  const fn = `Muell_${fmtISO(from)}_${fmtISO(to)}.csv`;
+  if(mode==='dl'){
+    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=fn; a.click();
+    closeExport(); toast('📥 CSV Exportiert');
+  } else {
+    const file=new File([blob], fn, {type:'text/csv'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({title:`Müll Export ${fmtD(from.toISOString())}`, text:'Anbei der Export', files:[file]}).catch(()=>{});
+    } else { alert('Nicht unterstützt. Bitte Download nutzen.'); }
+    closeExport();
   }
 }
-document.addEventListener('visibilitychange', async () => {
-  if (wakeLock !== null && document.visibilityState === 'visible') { await requestWakeLock(); }
-});
 
-async function init() {
-  await loadData();
-  initPWA();
-  buildUI();
-  newEntry();
-  await loadSettingsUI();
-  selWasteType(settings.defaultWasteType);
-  document.getElementById('exportModal').addEventListener('click',function(e){if(e.target===this)closeExport();});
-  document.getElementById('editModal').addEventListener('click',function(e){if(e.target===this)closeEdit();});
-  
-  requestWakeLock();
+async function resend(id) {
+  const e = entries.find(x=>x.id===id); if(!e) return;
+  const dups=findDups(e), subj=buildSubj(e), body=buildBody(e,dups), photos=e.photos?.filter(Boolean)||[];
+  let sent=false;
+  if(navigator.share) {
+    try {
+      let shareData = { title: subj, text: body };
+      if(photos.length > 0) {
+        const files = await toFiles(photos,e.id);
+        if(navigator.canShare && navigator.canShare({files})) { shareData.files = files; }
+      }
+      await navigator.share(shareData);
+      sent=true;
+    } catch(err){}
+  }
+  if(!sent) {
+      const districtEmail = DISTRICT_MAILS[settings.district] || '';
+      const dispoEmail = settings.email || '';
+      let recipients = districtEmail ? `mailto:${districtEmail}?cc=${dispoEmail}` : `mailto:${dispoEmail}`;
+      const separator = recipients.includes('?') ? '&' : '?';
+      window.open(`${recipients}${separator}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`); 
+  }
+  e.sentCount++; e.updatedAt=new Date().toISOString(); 
+  await dbPut('entries', e);
+  renderHistory(); toast('📤 Erneut gesendet');
 }
-
-init();
 </script>
 </body>
 </html>
