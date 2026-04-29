@@ -133,7 +133,7 @@ textarea{min-height:68px;resize:vertical}
     </div>
     <div class="schinfo hidden" id="schInfo" style="background:var(--blue-l);border:1.5px solid #93c5fd;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--blue);display:flex;align-items:flex-start;gap:9px;margin-bottom:12px">
       <span style="font-size:20px;flex-shrink:0">📍</span>
-      <div><strong>In Schüttung gefallen</strong><br>Kein Foto und keine Aktion erforderlich.</div>
+      <div><strong style="color:var(--blue)">In Schüttung gefallen</strong><br>Kein Foto und keine Aktion erforderlich.</div>
     </div>
     <div class="card" id="photoCard">
       <div class="clabel">📷 Fotos</div>
@@ -233,7 +233,42 @@ textarea{min-height:68px;resize:vertical}
     <button class="btn btn-p" onclick="saveSettings()">💾 Einstellungen speichern</button>
   </div>
   <div class="pane" id="pane-h">
-    <div class="card"><div class="clabel">📖 Hilfe</div><p style="font-size:13px">Digitale Schadensmeldung für Müllfahrer. Alle Daten werden lokal gespeichert. Einträge werden nach 31 Tagen automatisch archiviert.</p></div>
+    <div class="card">
+      <div class="clabel">📖 Willkommen</div>
+      <p style="font-size:13px; line-height:1.5">Digitale Schadensmeldung für Müllfahrer. Alle Daten werden lokal gespeichert. Einträge werden nach 31 Tagen automatisch archiviert.</p>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--o);">
+      <div class="clabel" style="color:var(--o)">⚠️ Wichtige Erst-Einrichtung</div>
+      <p style="font-size:13px; line-height:1.5; margin-bottom:8px"><strong>Bevor Sie die erste Meldung senden:</strong></p>
+      <p style="font-size:13px; line-height:1.5">Bitte wechseln Sie zuerst in den Reiter <strong>⚙️ Einstellungen</strong> und füllen Sie alle Fahrer- und Fahrzeugdaten aus. Ohne diese Informationen können die Meldungen nicht korrekt zugeordnet werden.</p>
+    </div>
+
+    <div class="card">
+      <div class="clabel">📋 Meldung erstellen</div>
+      <ul style="font-size:13px; line-height:1.6; padding-left:15px; color:var(--gray)">
+        <li><strong>Kategorie:</strong> Wählen Sie den entsprechenden Fehler aus.</li>
+        <li><strong>Details:</strong> Legen Sie Müllart und die getroffene Aktion fest.</li>
+        <li><strong>Fotos:</strong> Nutzen Sie die Kamera-Slots für Tonne, Zusatz-Ansicht oder den Barcode.</li>
+        <li><strong>GPS:</strong> Der Standort wird automatisch erfasst. Prüfen Sie das grüne Häkchen.</li>
+        <li><strong>Anmerkungen:</strong> Nutzen Sie das Textfeld oder das 🎤-Symbol für Spracheingaben.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="clabel">🕐 Verlauf & Export</div>
+      <p style="font-size:13px; line-height:1.5; margin-bottom:8px">Im Reiter <strong>Verlauf</strong> können Sie:</p>
+      <ul style="font-size:13px; line-height:1.6; padding-left:15px; color:var(--gray)">
+        <li>Bestehende Meldungen bearbeiten oder löschen.</li>
+        <li>Meldungen erneut versenden, falls ein Fehler auftrat.</li>
+        <li>Über den <strong>CSV-Export</strong> Berichte für einen Zeitraum erstellen.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="clabel">⚙️ Tipps</div>
+      <p style="font-size:13px; line-height:1.5; color:var(--gray)">Nutzen Sie die Funktion <strong>"Zum Home-Bildschirm hinzufügen"</strong> in Ihrem Browser, um die App als Vollbild-App zu nutzen und offline-fähig zu machen.</p>
+    </div>
   </div>
 </div>
 
