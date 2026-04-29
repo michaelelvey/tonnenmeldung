@@ -1,43 +1,56 @@
-# 🗑️ Mülltonnen-Meldung V2.1
+🗑️ Mülltonnen-Meldung Pro
+Eine professionelle Progressive Web App (PWA) zur digitalen Erfassung und Meldung von Unregelmäßigkeiten bei der Müllabfuhr. Die Anwendung ermöglicht es Fahrern, Mängel (z.B. beschädigte Tonnen, Fehlbefüllungen oder nicht bereitgestellte Behälter) schnell, präzise und mit GPS-Koordinaten sowie Fotos zu dokumentieren.
 
-Eine spezialisierte Progressive Web App (PWA) für Entsorgungsfachkräfte zur schnellen Dokumentation von Problemfällen während der Tour.
+🚀 Features
+📍 Automatische GPS-Erfassung: Präzise Standortbestimmung inklusive Reverse-Geocoding (Adressumwandlung).
+📷 Foto-Dokumentation: Schnelle Aufnahme von Tonnen- und Detailfotos sowie Barcode-Erkennung.
+🎙️ Spracheingabe: Komfortable Anmerkungen per Diktierfunktion.
+💾 Lokale Datenbank: Alle Daten werden sicher im Browser (IndexedDB) gespeichert.
+📧 Flexibler Versand: Meldungen können via Web-Share-API oder per E-Mail an die Disposition und den Landkreis gesendet werden.
+📊 Export-Funktion: Kompletter Verlauf als CSV-Datei für die Abrechnung oder Dokumentation exportierbar.
+🔌 Offline-fähig: Dank Service Worker funktioniert die App auch in Gebieten mit schlechtem Empfang.
+🛠️ Installation
+Die Dateien index.html und sw.js auf einen HTTPS-fähigen Webserver hochladen.
+Die URL im Browser des Smartphones öffnen.
+Wichtig: Über das Browser-Menü die Option "Zum Home-Bildschirm hinzufügen" wählen, um die App als PWA zu installieren. Dadurch wird der Vollbildmodus aktiviert und die Offline-Funktionalität optimiert.
+❓ Hilfe & Bedienungsanleitung
+Willkommen bei der Mülltonnen-Meldung Pro. Diese Anleitung führt Sie Schritt für Schritt durch die Nutzung der App.
 
-## 📋 Funktionsübersicht
+⚠️ WICHTIG: Erstmalige Einrichtung
+Bevor Sie die erste Meldung erstellen, MÜSSEN zwingend die persönlichen Daten hinterlegt werden. Andernfalls können die Meldungen nicht korrekt zugeordnet werden.
 
-- **Offline-First:** Alle Daten werden lokal in einer IndexedDB gespeichert.
-- **GPS-Tracking:** Automatische Standorterfassung mit Adress-Rücklösung (Reverse Geocoding).
-- **Barcode-Scanner:** Automatische Erkennung von Behälter-Barcodes via Kamera.
-- **Foto-Dokumentation:** Komprimierte Fotos (JPEG) zur Beweissicherung.
-- **Duplikat-Prüfung:** Warnt den Fahrer, wenn am selben Standort oder für denselben Behälter bereits kürzlich eine Meldung erstellt wurde.
-- **Export:** CSV-Export für die Abrechnung oder Weiterverarbeitung in der Disposition.
-- **Sonderlogik:** Vereinfachter Workflow für den Fall "in Schüttung gefallen".
+Klicken Sie oben im Menü auf den Reiter ⚙️ Einstellungen.
+Füllen Sie alle Felder vollständig aus:
+Fahrername: Ihr vollständiger Name.
+Fahrzeugkennzeichen: Das Kennzeichen Ihres Fahrzeugs.
+Landkreis / Gebiet: Wählen Sie den zuständigen Landkreis aus.
+Standard Müllsorte: Legen Sie fest, welche Müllart Sie primär befördern.
+E-Mail Dispo (CC): Geben Sie die E-Mail-Adresse Ihrer Disposition ein.
+Klicken Sie auf 💾 Einstellungen speichern.
+📋 Eine Meldung erstellen (Reiter "Meldung")
+Um eine Störung zu melden, gehen Sie bitte wie folgt vor:
 
-## 🛠️ Technische Details
+Kategorie wählen: Tippen Sie auf die entsprechende Kachel (z.B. "Chip defekt" oder "Überfüllt").
+Details ergänzen:
+Wählen Sie die Müllart (z.B. Restmüll).
+Wählen Sie die Aktion (z.B. "Geleert" oder "Stehen gelassen").
+Hinweis: Bei der Kategorie "in Schüttung gefallen" entfallen Foto und Aktion automatisch.
+Fotos aufnehmen:
+Tippen Sie auf die Kamera-Symbole, um ein Foto der Tonne, ein Zusatzfoto oder den Barcode aufzunehmen.
+Der Barcode wird bei unterstützten Geräten automatisch erkannt.
+Standort prüfen: Die App erfasst den Standort automatisch. Falls dies nicht geschieht, klicken Sie auf den Button "Jetzt" im GPS-Bereich.
+Anmerkungen: Nutzen Sie das Textfeld für zusätzliche Infos. Tipp: Klicken Sie auf das Mikrofon-Symbol 🎤, um die Anmerkung einzusprechen.
+Senden: Klicken Sie auf 📤 Meldung senden. Sie können nun wählen, ob die Meldung per E-Mail oder über die Teilen-Funktion Ihres Handys versendet werden soll.
+🕐 Verlauf und Verwaltung (Reiter "Verlauf")
+Im Verlauf finden Sie alle Ihre bisherigen Meldungen:
 
-### Stack
-- **Sprache:** HTML5, CSS3, JavaScript (Vanilla ES6+).
-- **Datenbank:** IndexedDB (Browser-interne Datenbank für hohe Datenmengen und Fotos).
-- **APIs:** - `Geolocation API`: Erfassung der Koordinaten.
-  - `Web Share API`: Versand der Meldung inkl. Fotos über System-Dialoge (WhatsApp, E-Mail, etc.).
-  - `Barcode Detection API`: (Native Browser-Erkennung) zum Auslesen von Barcodes.
-  - `Nominatim (OpenStreetMap)`: Umwandlung von Koordinaten in menschlich lesbare Adressen.
-
-### Datenstruktur (Entry-Objekt)
-```json
-{
-  "id": "string",
-  "createdAt": "ISO-Date",
-  "category": "string",
-  "wasteType": "string",
-  "actionTaken": "string",
-  "photos": [ "DataURL", "DataURL" ],
-  "barcode": "string",
-  "gps": {
-    "lat": 0.0,
-    "lng": 0.0,
-    "address": "string",
-    "accuracy": 0
-  },
-  "notes": "string",
-  "sentCount": 0
-}
+Ansicht: Klicken Sie auf einen Eintrag, um die Details und Fotos einzusehen.
+Bearbeiten: Über den Button ✏️ Bearbeiten können Sie die Kategorie oder den Text nachträglich ändern.
+Erneut senden: Falls eine Meldung nicht erfolgreich versendet wurde, nutzen Sie den Button 📤 Senden.
+Löschen: Einträge können über den roten Papierkorb dauerhaft entfernt werden.
+CSV-Export: Über den Button 📊 CSV-Export können Sie einen Zeitraum wählen und alle Daten als Tabelle herunterladen (ideal für die Büro-Übergabe).
+⚙️ Zusätzliche Einstellungen
+Erscheinungsbild: Unter Einstellungen können Sie zwischen "Hell", "Dunkel" oder "System (Automatisch)" wählen, um die App optimal an Ihre Lichtverhältnisse anzupassen.
+Archivierung: Die App archiviert Einträge automatisch nach 31 Tagen, um die Performance zu erhalten. Archivierte Einträge bleiben jedoch in der Datenbank und im Export sichtbar.
+Entwickelt von: Michael Elvey
+Version: 2.5 Pro
