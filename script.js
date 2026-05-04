@@ -1,8 +1,9 @@
 'use strict';
 
-/* ---------- Konfiguration ---------- */
-// Landkreis-Mailadressen werden jetzt in den Einstellungen gepflegt.
-// Diese Defaults gelten nur beim allerersten App-Start.
+/* ============================================================
+   KONFIGURATION
+   ============================================================ */
+
 /* ---------- Admin-Passwort (nur hier ändern) ---------- */
 const ADMIN_PASSWORD = '31512';
 
@@ -33,7 +34,7 @@ let entries=[], settings={
   email:'Info-WTM@Augustin-Entsorgung.de',
   defaultWasteType:WASTE_TYPES[0], theme:'auto'
 };
-let cur=null, editId=null, gpsLocked=false, firstPhoto=true, recognition=null, exportPeriod=null;
+let cur=null, editId=null, gpsLocked=false, firstPhoto=true, recognition=null, isListening=false, exportPeriod=null;
 
 /* ============================================================
    UTILITY
@@ -538,11 +539,19 @@ function haversine(a,b,c,d){
 
 function findDups(entry){
   const seen=new Set(),res=[];
+  // Prüfen ob aktuelle Meldung einen eindeutigen Identifier hat
+  const hasIdentifier=!!(entry.barcode||entry.binNumber);
   entries.forEach(e=>{
     if(e.id===entry.id||seen.has(e.id))return;
     let dup=false;
+    // 1. Barcode-Übereinstimmung (eindeutige Tonne)
     if(entry.barcode&&e.barcode&&entry.barcode===e.barcode)dup=true;
-    if(!dup&&entry.gps&&e.gps&&haversine(entry.gps.lat,entry.gps.lng,e.gps.lat,e.gps.lng)<=DUP_M)dup=true;
+    // 2. Tonnennummer-Übereinstimmung (eindeutige Tonne)
+    /* OCR-TONNENNUMMER START */
+    if(!dup&&entry.binNumber&&e.binNumber&&entry.binNumber===e.binNumber)dup=true;
+    /* OCR-TONNENNUMMER END */
+    // 3. GPS-Nähe – NUR wenn KEIN Identifier vorhanden (verhindert Sammelplatz-Fehlalarme)
+    if(!dup&&!hasIdentifier&&entry.gps&&e.gps&&haversine(entry.gps.lat,entry.gps.lng,e.gps.lat,e.gps.lng)<=DUP_M)dup=true;
     if(dup){seen.add(e.id);res.push(e)}
   });
   return res.sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
@@ -698,12 +707,12 @@ async function dataUrlsToFiles(dataUrls,id){
 
 function toggleVoice(){
   if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){toast('❌ Spracheingabe nicht unterstützt');return}
-  if(recognition&&recognition.state==='recording'){recognition.stop();return}
+  if(isListening&&recognition){recognition.stop();return}
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   recognition=new SR();recognition.lang='de-DE';
-  recognition.onstart=()=>{vibe(100);document.getElementById('voiceBtn').classList.add('listening');toast('🎤 Ich höre zu...')};
+  recognition.onstart=()=>{isListening=true;vibe(100);document.getElementById('voiceBtn').classList.add('listening');toast('🎤 Ich höre zu...')};
   recognition.onresult=e=>{const t=e.results[0][0].transcript,a=document.getElementById('notesIn');a.value+=(a.value?' ':'')+t;vibe(50)};
-  recognition.onend=()=>document.getElementById('voiceBtn').classList.remove('listening');
+  recognition.onend=()=>{isListening=false;document.getElementById('voiceBtn').classList.remove('listening')};
   recognition.start();
 }
 
@@ -1142,7 +1151,7 @@ function checkSetupLink(){
   try{
     const decoded=JSON.parse(atob(decodeURIComponent(setup)));
     // Admin-Felder übernehmen – Fahrername & Kennzeichen bewusst NICHT (muss Fahrer selbst eintragen)
-    const allowed=['district','districtMails','email','defaultWasteType','theme'];
+    const allowed=['driverName','licensePlate','district','districtMails','email','defaultWasteType','theme'];
     allowed.forEach(k=>{if(decoded[k]!==undefined)settings[k]=decoded[k]});
     settings.districtMails={...DISTRICT_MAIL_DEFAULTS,...(decoded.districtMails||{})};
     applyTheme(settings.theme||'auto');
@@ -1159,11 +1168,8 @@ function checkSetupLink(){
 }
 
 /**
- * Generiert einen Setup-Link aus den aktuellen Einstellungen
- * und öffnet den Teilen-Dialog (WhatsApp, SMS, E-Mail …).
- *
- * Fahrername + Kennzeichen werden MIT übertragen wenn ausgefüllt,
- * damit der Disponent auch fahrerspezifische Links erzeugen kann.
+ * Generiert einen Setup-Link mit allen Einstellungsfeldern
+ * und öffnet den Teilen-Dialog oder kopiert in die Zwischenablage.
  */
 function generateSetupLink(){
   if(!ADMIN_PASSWORD){
@@ -1194,8 +1200,10 @@ function closeAdminPassModal(){
 }
 
 function _doGenerateSetupLink(){
-  // Nur Admin-Felder – kein Fahrername, kein Kennzeichen
+  // Alle Einstellungsfelder übertragen
   const payload={
+    driverName:       document.getElementById('sName').value.trim(),
+    licensePlate:     document.getElementById('sPlate').value.trim(),
     district:         document.getElementById('sDist').value,
     districtMails:    {...(settings.districtMails||{})},
     email:            document.getElementById('sEmail').value.trim(),

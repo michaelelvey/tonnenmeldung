@@ -180,7 +180,7 @@
       <div class="card" style="border-left:4px solid var(--g)">
         <div class="clabel" style="color:var(--g)">📱 Mülltonnen-Meldung 2.7 Pro</div>
         <p style="font-size:13px;line-height:1.6;color:var(--text)">
-          Digitales Schadensmeldungssystem für Müllfahrer der <strong>Augustin Entsorgung Friesland GmbH &amp; Co. KG</strong>.
+          Digitales Tonnenmeldesystem für Müllfahrer der <strong>Augustin Entsorgung Friesland GmbH &amp; Co. KG</strong>.
           Meldungen werden per E-Mail an die Disposition gesendet. Alle Daten werden <strong>ausschließlich lokal</strong> auf Ihrem Gerät gespeichert – kein Server, kein Cloud-Zugriff.
         </p>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
@@ -216,6 +216,9 @@
         </div>
         <p style="font-size:12px;margin-top:10px;color:var(--o)">
           💡 Tipp: Sie können auch einen <strong>Setup-Link</strong> von Ihrer Disposition erhalten – dann werden alle Grundeinstellungen automatisch übernommen.
+        </p>
+        <p style="font-size:12px;margin-top:6px;color:var(--gray4)">
+          📅 Bei jedem ersten Start des Tages werden Ihre Angaben zur Bestätigung angezeigt. Bei fehlenden Daten öffnet die App automatisch die Einstellungen.
         </p>
       </div>
 
@@ -283,14 +286,27 @@
       <!-- DUPLIKATE -->
       <div class="card">
         <div class="clabel">⚠️ Duplikaterkennung</div>
-        <p style="font-size:13px;line-height:1.6;color:var(--gray)">
-          Die App erkennt automatisch mögliche Doppelmeldungen. Ein Duplikat wird angezeigt, wenn:
+        <p style="font-size:13px;line-height:1.6;color:var(--gray);margin-bottom:8px">
+          Die App prüft automatisch in folgender Reihenfolge, ob eine Tonne bereits gemeldet wurde:
         </p>
-        <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
-          <div style="font-size:12.5px;padding:7px 10px;background:var(--yl);border-radius:7px;color:var(--y)">📊 Gleicher Barcode bereits gemeldet</div>
-          <div style="font-size:12.5px;padding:7px 10px;background:var(--yl);border-radius:7px;color:var(--y)">📍 Standort weniger als 15 Meter entfernt</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+          <div style="font-size:12.5px;padding:8px 10px;background:var(--gray3);border-radius:8px;display:flex;gap:8px;align-items:flex-start">
+            <span style="font-weight:700;color:var(--g);min-width:20px">1.</span>
+            <div><strong>Barcode-Nummer</strong><br><span style="color:var(--gray)">Gleicher Barcode = selbe Tonne → Duplikat</span></div>
+          </div>
+          <div style="font-size:12.5px;padding:8px 10px;background:var(--gray3);border-radius:8px;display:flex;gap:8px;align-items:flex-start">
+            <span style="font-weight:700;color:var(--g);min-width:20px">2.</span>
+            <div><strong>Tonnennummer (OCR)</strong><br><span style="color:var(--gray)">Gleiche Tonnennummer = selbe Tonne → Duplikat (nur Landkreis Wittmund)</span></div>
+          </div>
+          <div style="font-size:12.5px;padding:8px 10px;background:var(--gray3);border-radius:8px;display:flex;gap:8px;align-items:flex-start">
+            <span style="font-weight:700;color:var(--g);min-width:20px">3.</span>
+            <div><strong>GPS-Standort</strong><br><span style="color:var(--gray)">Standort ≤ 15 m entfernt → Duplikat. <strong>Wichtig:</strong> Diese Prüfung findet nur statt, wenn weder Barcode noch Tonnennummer vorhanden sind.</span></div>
+          </div>
         </div>
-        <p style="font-size:12px;color:var(--gray4);margin-top:8px">Duplikate sind nur Hinweise – die Meldung kann trotzdem gesendet werden.</p>
+        <div style="padding:9px 11px;background:var(--blue-l);border:1.5px solid #93c5fd;border-radius:8px;font-size:12.5px;color:var(--blue)">
+          💡 <strong>Sammelplatz:</strong> Stehen mehrere Tonnen an derselben Stelle, werden sie durch Barcode oder Tonnennummer eindeutig unterschieden – es entstehen keine Fehlalarme.
+        </div>
+        <p style="font-size:12px;color:var(--gray4);margin-top:8px">Duplikat-Hinweise sind nur Warnungen – die Meldung kann trotzdem gesendet werden.</p>
       </div>
 
       <!-- VERLAUF & EXPORT -->
