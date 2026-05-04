@@ -213,8 +213,9 @@ function newEntry(){
 
 async function init(){
   await loadData();
-  checkSetupLink(); // Setup-Link aus URL verarbeiten (vor UI-Aufbau)
+  checkSetupLink();
   initPWA();buildUI();newEntry();await loadSettingsUI();
+  initWakeLock();
   if(!('BarcodeDetector' in window)){
     const s2=document.getElementById('slot2');
     s2.style.opacity='0.5';s2.style.pointerEvents='none';
@@ -223,6 +224,18 @@ async function init(){
   const wSel=document.getElementById('wasteSelect'),aSel=document.getElementById('actionSelect');
   wSel.value=settings.defaultWasteType;aSel.value='Geleert';
   highlightSelect(wSel);highlightSelect(aSel);
+}
+
+/* ============================================================
+   WAKE LOCK
+   ============================================================ */
+
+let wakeLock=null;
+async function initWakeLock(){
+  if(!('wakeLock' in navigator))return;
+  const acquire=async()=>{try{wakeLock=await navigator.wakeLock.request('screen')}catch{}};
+  await acquire();
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')acquire()});
 }
 
 function initPWA(){
@@ -770,10 +783,32 @@ async function doExport(){
 
   const zipName=getZipFilename(from,to);
   const content=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
-  const url=URL.createObjectURL(content);
-  const a=document.createElement('a');a.href=url;a.download=zipName;a.click();
-  URL.revokeObjectURL(url);
   closeExport();
+
+  const zipFile=new File([content],zipName,{type:'application/zip'});
+  let shared=false;
+
+  // Teilen-Dialog: funktioniert auf Android & iOS wenn ZIP unterstützt wird
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[zipFile]})){
+    try{
+      await navigator.share({files:[zipFile],title:zipName});
+      shared=true;
+    }catch(err){
+      // Nutzer hat abgebrochen → kein Download, kein Fehler
+      if(err?.name==='AbortError'||err?.name==='NotAllowedError'){
+        toast('📦 Teilen abgebrochen');return;
+      }
+      // Alle anderen Fehler (inkl. iOS-Inkompatibilität) → still zum Download
+    }
+  }
+
+  // Fallback: direkter Download (Desktop + iOS ohne ZIP-Share-Support)
+  if(!shared){
+    const url=URL.createObjectURL(content);
+    const a=document.createElement('a');a.href=url;a.download=zipName;a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }
+
   toast(`📦 ${rows.length} Meldung${rows.length!==1?'en':''} exportiert`);
 }
 
