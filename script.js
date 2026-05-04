@@ -785,27 +785,9 @@ async function doExport(){
   const content=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
   closeExport();
 
-  const zipFile=new File([content],zipName,{type:'application/zip'});
-  let shared=false;
-
-  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[zipFile]})){
-    try{
-      await navigator.share({files:[zipFile],title:zipName});
-      shared=true;
-    }catch(err){
-      if(err?.name==='AbortError'){
-        // Nutzer hat den Dialog bewusst geschlossen → kein Download
-        toast('📦 Teilen abgebrochen');return;
-      }
-      // NotAllowedError (Geste abgelaufen) oder anderes → still zum Download
-    }
-  }
-
-  if(!shared){
-    const url=URL.createObjectURL(content);
-    const a=document.createElement('a');a.href=url;a.download=zipName;a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),5000);
-  }
+  const url=URL.createObjectURL(content);
+  const a=document.createElement('a');a.href=url;a.download=zipName;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
 
   toast(`📦 ${rows.length} Meldung${rows.length!==1?'en':''} exportiert`);
 }
