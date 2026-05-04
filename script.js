@@ -1064,14 +1064,14 @@ function buildHtmlReport(rows,photoMap,from,to){
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f0;color:#1a1a1a}
 /* ── HEADER ── */
-.ae-header{background:#fff;border-bottom:4px solid #1a5c1a;padding:0}
+.ae-header{background:#fff;border-bottom:4px solid #009FE3;padding:0}
 .ae-header-inner{max-width:1400px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .ae-logo{height:52px;object-fit:contain}
-.ae-logo-fallback{font-size:15px;font-weight:700;color:#1a5c1a;letter-spacing:.3px}
+.ae-logo-fallback{font-size:15px;font-weight:700;color:#009FE3;letter-spacing:.3px}
 .ae-header-right{text-align:right;font-size:11.5px;color:#555;line-height:1.7}
 .ae-header-right strong{color:#1a1a1a}
 /* ── TITLE BAR ── */
-.ae-titlebar{background:linear-gradient(135deg,#1a5c1a 0%,#2d7a2d 100%);color:#fff;padding:14px 24px}
+.ae-titlebar{background:linear-gradient(135deg,#009FE3 0%,#0080BF 100%);color:#fff;padding:14px 24px}
 .ae-titlebar-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .ae-titlebar h1{font-size:18px;font-weight:700;letter-spacing:.3px}
 .ae-titlebar .ae-period{font-size:13px;opacity:.85;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:20px}
@@ -1084,22 +1084,22 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f0;color:#1a1a1a}
 .ae-meta-item strong{color:#1a1a1a;font-size:13px}
 /* ── STATS ── */
 .stats{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.stat{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 16px;font-size:12px;color:#555;border-top:3px solid #1a5c1a}
-.stat b{display:block;font-size:22px;color:#1a5c1a;font-weight:700;line-height:1.2}
+.stat{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 16px;font-size:12px;color:#555;border-top:3px solid #009FE3}
+.stat b{display:block;font-size:22px;color:#009FE3;font-weight:700;line-height:1.2}
 .stat.warn-stat{border-top-color:#b91c1c}
 .stat.warn-stat b{color:#b91c1c}
 /* ── TABLE ── */
 .wrap{overflow-x:auto;border-radius:8px;box-shadow:0 1px 5px rgba(0,0,0,.08)}
 table{width:100%;border-collapse:collapse;background:#fff;font-size:12px;min-width:700px}
-th{background:#1a5c1a;color:#fff;padding:10px 11px;text-align:left;font-weight:600;white-space:nowrap;user-select:none}
+th{background:#009FE3;color:#fff;padding:10px 11px;text-align:left;font-weight:600;white-space:nowrap;user-select:none}
 th[data-col]{cursor:pointer;transition:background .15s}
-th[data-col]:hover{background:#226b22}
+th[data-col]:hover{background:#0080BF}
 th[data-col]::after{content:' ⇅';opacity:.45;font-size:10px}
 th[data-col].asc::after{content:' ▲';opacity:1}
 th[data-col].desc::after{content:' ▼';opacity:1}
 td{padding:9px 11px;border-bottom:1px solid #f0f0f0;vertical-align:top}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#f9fdf9}
+tr:hover td{background:#f0f8fd}
 tr.stehen td{background:#fff5f5}
 tr.stehen:hover td{background:#fee2e2}
 .warn{color:#b91c1c;font-weight:700}
@@ -1109,12 +1109,12 @@ tr.stehen:hover td{background:#fee2e2}
 .photos{display:flex;gap:6px;flex-wrap:wrap}
 .photos a{display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none}
 .photos img{width:90px;height:68px;object-fit:cover;border-radius:5px;border:2px solid #e5e7eb;transition:all .15s;cursor:zoom-in}
-.photos img:hover{border-color:#1a5c1a;transform:scale(1.06)}
+.photos img:hover{border-color:#009FE3;transform:scale(1.06)}
 .photos span{font-size:10px;color:#888}
 code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:3px}
 /* ── SEARCH ── */
 .search-bar{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #d1d5db;border-radius:9px;padding:8px 12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.search-bar:focus-within{border-color:#1a5c1a;box-shadow:0 0 0 3px rgba(26,92,26,.1)}
+.search-bar:focus-within{border-color:#009FE3;box-shadow:0 0 0 3px rgba(0,159,227,.12)}
 .search-icon{font-size:15px;color:#6b7280}
 .search-bar input{flex:1;border:none;outline:none;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#111;background:transparent}
 .search-bar input::placeholder{color:#9ca3af}
@@ -1122,7 +1122,7 @@ code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:
 #searchClear:hover{background:#d1d5db}
 #searchInfo{font-size:12px;color:#6b7280;margin-bottom:8px;display:none}
 /* ── FOOTER ── */
-.ae-footer{background:#1a5c1a;color:rgba(255,255,255,.7);font-size:11px;text-align:center;padding:14px 24px;margin-top:24px}
+.ae-footer{background:#009FE3;color:rgba(255,255,255,.7);font-size:11px;text-align:center;padding:14px 24px;margin-top:24px}
 .ae-footer a{color:rgba(255,255,255,.85);text-decoration:none}
 </style></head><body>
 
@@ -1137,7 +1137,7 @@ code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:
     <div class="ae-header-right">
       <strong>Augustin Entsorgung Friesland GmbH &amp; Co. KG</strong><br>
       JadeWeserPark 12 · 26419 Schortens<br>
-      Tel: (04421) 500 49 500 · <a href="mailto:friesland@augustin-entsorgung.de" style="color:#1a5c1a">friesland@augustin-entsorgung.de</a>
+      Tel: (04421) 500 49 500 · <a href="mailto:friesland@augustin-entsorgung.de" style="color:#009FE3">friesland@augustin-entsorgung.de</a>
     </div>
   </div>
 </div>
