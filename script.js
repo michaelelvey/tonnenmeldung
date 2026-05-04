@@ -149,11 +149,24 @@ async function photoToBase64(photo){
   return null;
 }
 
+// Verfolgt alle via createObjectURL erzeugten URLs für spätere Freigabe
+const _blobUrls=new Set();
+
 function photoToDisplayUrl(photo){
   if(!photo)return null;
   if(typeof photo==='string')return photo;
-  if(photo instanceof Blob)return URL.createObjectURL(photo);
+  if(photo instanceof Blob){
+    const url=URL.createObjectURL(photo);
+    _blobUrls.add(url);
+    return url;
+  }
   return null;
+}
+
+// Gibt alle gespeicherten Blob-URLs frei (aufrufen vor Re-Render oder Löschung)
+function revokeBlobUrls(){
+  _blobUrls.forEach(url=>URL.revokeObjectURL(url));
+  _blobUrls.clear();
 }
 
 /* ============================================================
@@ -767,6 +780,7 @@ function toggleVoice(){
 async function renderHistory(forceReload=false){
   // DB nur neu laden wenn explizit angefordert (Tab-Wechsel, nach Mutationen)
   if(forceReload||!entries.length){
+    revokeBlobUrls(); // Alte Blob-URLs freigeben vor dem Neu-Laden
     entries=await dbGetAll('entries');
   }
   const txt=(document.getElementById('stxt').value||'').toLowerCase();
