@@ -66,6 +66,9 @@
           <div style="flex:1">
             <div style="font-size:12px;font-weight:700;color:var(--gray4)">BARCODE ERKANNT</div>
             <div id="bcVal" style="font-family:monospace;font-weight:600"></div>
+            <!-- OCR-TONNENNUMMER START -->
+            <div id="binNumRow" class="hidden" style="font-size:11px;color:var(--gray4);margin-top:2px">🗑️ Tonne: <span id="binNumVal" style="font-family:monospace;font-weight:600;color:var(--text)"></span></div>
+            <!-- OCR-TONNENNUMMER END -->
           </div>
           <button onclick="clearBarcode()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray4)">✕</button>
         </div>
@@ -280,6 +283,9 @@
     </div>
   </div>
 
+  <!-- OCR-TONNENNUMMER START -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- OCR-TONNENNUMMER END -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="script.js"></script>
 </body>

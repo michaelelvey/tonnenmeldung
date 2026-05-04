@@ -208,7 +208,7 @@ function newEntry(){
     id:Date.now().toString(36)+Math.random().toString(36).slice(2),
     createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
     category:'',wasteType:settings.defaultWasteType,actionTaken:'Geleert',
-    photos:[null,null,null],barcode:null,gps:null,notes:'',
+    photos:[null,null,null],barcode:null,/* OCR-TONNENNUMMER START */binNumber:null,/* OCR-TONNENNUMMER END */gps:null,notes:'',
     driverName:settings.driverName,licensePlate:settings.licensePlate,
     district:settings.district,archived:false,sentCount:0
   };
@@ -307,6 +307,11 @@ async function saveSettings(){
   applyTheme(settings.theme);
   await dbPut('settings',settings,'config');
   toast('✅ Gespeichert');
+  // Müllart-Auswahl im Formular sofort aktualisieren
+  const wSel=document.getElementById('wasteSelect');
+  wSel.value=settings.defaultWasteType;
+  cur.wasteType=settings.defaultWasteType;
+  highlightSelect(wSel);
   setTimeout(()=>showTab('m'),600);
 }
 
@@ -402,6 +407,9 @@ async function handlePhoto(slot){
     cur.photos[slot]=dataUrl;setSlot(slot,dataUrl);input.value='';
     if(firstPhoto&&!gpsLocked){firstPhoto=false;captureGPS(false)}
     if(slot===2&&!cur.barcode){const blob=await compressToBlob(file);await tryBarcode(blob)}
+    /* OCR-TONNENNUMMER START */
+    if(slot===2){tryOCR(dataUrl)}
+    /* OCR-TONNENNUMMER END */
     checkDups();
   }catch(err){toast('Foto-Fehler: '+err.message)}
 }
@@ -438,11 +446,57 @@ async function tryBarcode(blob){
   }catch(e){console.error('Barcode-Error:',e)}
 }
 
-function clearBarcode(){cur.barcode=null;document.getElementById('bcBox').classList.add('hidden')}
+function clearBarcode(){
+  cur.barcode=null;
+  document.getElementById('bcBox').classList.add('hidden');
+  /* OCR-TONNENNUMMER START */
+  cur.binNumber=null;
+  document.getElementById('binNumRow').classList.add('hidden');
+  document.getElementById('binNumVal').textContent='';
+  /* OCR-TONNENNUMMER END */
+}
 
 /* ============================================================
-   DUPLICATES
+   OCR-TONNENNUMMER START
+   Tesseract.js – Tonnennummer aus Barcode-Foto extrahieren.
+   Zum Rückgängigmachen: diesen Block + alle anderen
+   OCR-TONNENNUMMER START/END Blöcke entfernen,
+   sowie den <script>-Tag in index.html.
    ============================================================ */
+
+let ocrWorker=null;
+
+async function getOcrWorker(){
+  if(ocrWorker)return ocrWorker;
+  if(!window.Tesseract){console.warn('Tesseract nicht geladen');return null}
+  try{
+    ocrWorker=await Tesseract.createWorker('eng',1,{logger:()=>{}});
+    await ocrWorker.setParameters({'tessedit_char_whitelist':'0123456789.'});
+    return ocrWorker;
+  }catch(e){console.warn('Tesseract Worker Fehler:',e);return null}
+}
+
+async function tryOCR(dataUrl){
+  try{
+    const worker=await getOcrWorker();
+    if(!worker)return;
+    toast('🔍 Tonnennummer wird erkannt…');
+    const result=await worker.recognize(dataUrl);
+    const text=result.data.text||'';
+    // Tonnennummer-Muster: z.B. 112.943.2 oder 302.681.7
+    const match=text.match(/\b\d{1,3}\.\d{3}\.\d{1,2}\b/);
+    if(match){
+      cur.binNumber=match[0];
+      document.getElementById('binNumVal').textContent=cur.binNumber;
+      document.getElementById('binNumRow').classList.remove('hidden');
+      toast('🗑️ Tonnennummer erkannt: '+cur.binNumber);
+    }else{
+      toast('ℹ️ Tonnennummer nicht erkannt');
+    }
+  }catch(e){console.warn('OCR Fehler:',e)}
+}
+
+/* OCR-TONNENNUMMER END */
 
 function haversine(a,b,c,d){
   const R=6371000,dl=(c-a)*Math.PI/180,dk=(d-b)*Math.PI/180;
@@ -605,7 +659,7 @@ async function renderHistory(){
   entries=await dbGetAll('entries');
   let filtered=entries.filter(e=>{
     if(cat&&e.category!==cat)return false;
-    if(txt){const s=[e.category,e.wasteType,e.actionTaken,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();if(!s.includes(txt))return false}
+    if(txt){const s=[e.category,e.wasteType,e.actionTaken,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,/* OCR-TONNENNUMMER START */e.binNumber,/* OCR-TONNENNUMMER END */e.notes].join(' ').toLowerCase();if(!s.includes(txt))return false}
     return true;
   });
   filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
@@ -755,7 +809,7 @@ async function doExport(){
     photoMap[e.id]=fnames;
   }
 
-  const HCOLS=['ID','Datum/Zeit','Barcode','Müllart','Kategorie','Aktion','Adresse','PLZ','Ort',
+  const HCOLS=['ID','Datum/Zeit','Barcode',/* OCR-TONNENNUMMER START */'Tonnennummer',/* OCR-TONNENNUMMER END */'Müllart','Kategorie','Aktion','Adresse','PLZ','Ort',
                'Breitengrad','Längengrad','Google Maps',
                'Fahrername','Kennzeichen','Landkreis','Anmerkungen',
                'Foto Tonne','Foto Zusatz','Foto Barcode','Gesendet','Status'];
@@ -764,7 +818,7 @@ async function doExport(){
   for(const e of rows){
     const fn=photoMap[e.id]||[null,null,null];
     const cols=[
-      e.id,fmtDT(e.createdAt),e.barcode||'',e.wasteType||'',e.category||'',e.actionTaken||'',
+      e.id,fmtDT(e.createdAt),e.barcode||'',/* OCR-TONNENNUMMER START */e.binNumber||'',/* OCR-TONNENNUMMER END */e.wasteType||'',e.category||'',e.actionTaken||'',
       e.gps?.street||e.gps?.address||'',
       e.gps?.plz||'',
       e.gps?.ort||'',
@@ -820,6 +874,7 @@ function buildHtmlReport(rows,photoMap,from,to){
       data-id="${e.id.slice(-8)}"
       data-dt="${e.createdAt}"
       data-barcode="${(e.barcode||'').toLowerCase()}"
+      data-binnum="${(e.binNumber||'').toLowerCase()}"
       data-waste="${(e.wasteType||'').toLowerCase()}"
       data-cat="${(e.category||'').toLowerCase()}"
       data-action="${(e.actionTaken||'').toLowerCase()}"
@@ -830,6 +885,9 @@ function buildHtmlReport(rows,photoMap,from,to){
       <td><code>${e.id.slice(-8)}</code></td>
       <td>${fmtDT(e.createdAt)}</td>
       <td>${e.barcode?`<code style="font-size:11px">${e.barcode}</code>`:'–'}</td>
+      <!-- OCR-TONNENNUMMER START -->
+      <td>${e.binNumber?`<code style="font-size:11px">${e.binNumber}</code>`:'–'}</td>
+      <!-- OCR-TONNENNUMMER END -->
       <td>${e.wasteType||'–'}</td>
       <td>${e.category||'–'}</td>
       <td${isSt?' class="warn"':''}>${e.actionTaken||'–'}</td>
@@ -909,6 +967,9 @@ footer{margin-top:14px;font-size:11px;color:#aaa;text-align:right}
   <th data-col="id">ID</th>
   <th data-col="dt">Datum/Zeit</th>
   <th data-col="barcode">Barcode</th>
+  <!-- OCR-TONNENNUMMER START -->
+  <th data-col="binnum">Tonnennummer</th>
+  <!-- OCR-TONNENNUMMER END -->
   <th data-col="waste">Müllart</th>
   <th data-col="cat">Kategorie</th>
   <th data-col="action">Aktion</th>
