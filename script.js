@@ -542,7 +542,7 @@ function clearBarcode(){
   /* OCR-TONNENNUMMER START */
   cur.binNumber=null;
   document.getElementById('binNumRow').classList.add('hidden');
-  document.getElementById('binNumVal').textContent='';
+  document.getElementById('binNumVal').value='';
   /* OCR-TONNENNUMMER END */
 }
 
@@ -577,7 +577,7 @@ async function tryOCR(dataUrl){
     const match=text.match(/\b\d{1,3}\.\d{3}\.\d{1,2}\b/);
     if(match){
       cur.binNumber=match[0];
-      document.getElementById('binNumVal').textContent=cur.binNumber;
+      document.getElementById('binNumVal').value=cur.binNumber;
       document.getElementById('binNumRow').classList.remove('hidden');
       toast('Tonnennummer erkannt: '+cur.binNumber);
     }else{
@@ -818,7 +818,7 @@ function renderHE(e){
     <div class="hbody" id="hb-${e.id}" style="display:none;padding:12px 14px 15px;border-top:1px solid var(--gray3)">
       ${photoHtml}
       <div style="font-size:12.5px;margin-bottom:4px;display:flex;gap:6px"><span style="color:var(--gray4);min-width:80px">Aktion:</span><strong style="color:var(--g)">${e.actionTaken||'–'}</strong></div>
-      <div style="font-size:12.5px;margin-bottom:4px;display:flex;gap:6px"><span style="color:var(--gray4);min-width:80px">Standort:</span><span>${e.gps?.address||'Kein GPS'}</span></div>
+      <div style="font-size:12.5px;margin-bottom:4px;display:flex;gap:6px"><span style="color:var(--gray4);min-width:80px">Standort:</span><span>${e.gps?`${e.gps.address||`${e.gps.lat.toFixed(5)}, ${e.gps.lng.toFixed(5)}`} <a href="https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;white-space:nowrap">📍 Karte</a>`:'Kein GPS'}</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
         <button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button>
         <button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button>
@@ -915,16 +915,32 @@ function getZipFilename(from,to){
   }
 }
 
+function showZipProgress(txt,pct){
+  document.getElementById('zipProgress').classList.remove('h');
+  document.getElementById('zipProgressTxt').textContent=txt;
+  document.getElementById('zipProgressBar').style.width=pct+'%';
+}
+function hideZipProgress(){
+  document.getElementById('zipProgress').classList.add('h');
+  document.getElementById('zipProgressBar').style.width='0%';
+}
+
 async function doExport(){
   if(!window.JSZip){toast('⚠️ JSZip nicht geladen – Internetverbindung prüfen');return}
   const{from,to}=getExportDateRange();
   const allEntries=await dbGetAll('entries');
   const rows=allEntries.filter(e=>{const d=new Date(e.createdAt);return d>=from&&d<=to}).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
   if(!rows.length){toast('⚠️ Keine Daten im gewählten Zeitraum.');return}
-  toast('⏳ ZIP wird erstellt…');
+
+  // Fortschrittsanzeige starten
+  closeExport();
+  showZipProgress('Fotos werden verarbeitet…',5);
 
   const zip=new JSZip(),imgFolder=zip.folder('images');
   const photoMap={};
+  const totalPhotos=rows.reduce((n,e)=>(e.photos||[]).filter(Boolean).length+n,0);
+  let processedPhotos=0;
+
   for(const e of rows){
     const photos=e.photos||[null,null,null],fnames=[null,null,null];
     for(let i=0;i<3;i++){
@@ -933,10 +949,14 @@ async function doExport(){
       const fname=`${e.id}-${PHOTO_NAMES[i]}.jpg`;
       imgFolder.file(fname,b64,{base64:true});
       fnames[i]=fname;
+      processedPhotos++;
+      const pct=totalPhotos>0?Math.round(5+processedPhotos/totalPhotos*55):60;
+      showZipProgress(`Fotos werden verarbeitet… (${processedPhotos}/${totalPhotos})`,pct);
     }
     photoMap[e.id]=fnames;
   }
 
+  showZipProgress('CSV und Bericht werden erstellt…',65);
   const HCOLS=['ID','Datum/Zeit','Barcode',/* OCR-TONNENNUMMER START */'Tonnennummer',/* OCR-TONNENNUMMER END */'Müllart','Kategorie','Aktion','Adresse','PLZ','Ort',
                'Breitengrad','Längengrad','Google Maps',
                'Fahrername','Kennzeichen','Landkreis','Anmerkungen',
@@ -962,11 +982,17 @@ async function doExport(){
   }
   zip.file('Meldungen.csv',csv);
   zip.file('Bericht.html',buildHtmlReport(rows,photoMap,from,to));
-  zip.file('HINWEIS.txt',['MÜLLTONNEN-BERICHT – ANLEITUNG','================================','','INHALT:','  Bericht.html  → Im Browser öffnen (Fotos direkt sichtbar)','  Meldungen.csv → Für Excel-Import','  images/       → Alle Fotos','','FOTOS ANZEIGEN:','  1. ZIP vollständig entpacken','  2. Bericht.html doppelklicken → Browser öffnet sich','  3. Fotos erscheinen direkt als klickbare Thumbnails','','© Michael Elvey · Mülltonnen-Meldung 2.7 Pro'].join('\n'));
+  zip.file('HINWEIS.txt',['MÜLLTONNEN-BERICHT – ANLEITUNG','================================','','INHALT:','  Bericht.html  → Im Browser öffnen (Fotos direkt sichtbar)','  Meldungen.csv → Für Excel-Import','  images/       → Alle Fotos','','FOTOS ANZEIGEN:','  1. ZIP vollständig entpacken','  2. Bericht.html doppelklicken → Browser öffnet sich','  3. Fotos erscheinen direkt als klickbare Thumbnails','','© Michael Elvey · Mülltonnen-Meldung 2.75 Pro'].join('\n'));
 
+  showZipProgress('ZIP wird komprimiert…',80);
   const zipName=getZipFilename(from,to);
-  const content=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
-  closeExport();
+  const content=await zip.generateAsync(
+    {type:'blob',compression:'DEFLATE',compressionOptions:{level:6}},
+    meta=>showZipProgress(`ZIP wird komprimiert… ${meta.percent.toFixed(0)}%`, 80+meta.percent*0.19)
+  );
+
+  showZipProgress('Fertig!',100);
+  setTimeout(()=>hideZipProgress(),400);
 
   const url=URL.createObjectURL(content);
   const a=document.createElement('a');a.href=url;a.download=zipName;a.click();
