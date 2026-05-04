@@ -3,6 +3,9 @@
 /* ---------- Konfiguration ---------- */
 // Landkreis-Mailadressen werden jetzt in den Einstellungen gepflegt.
 // Diese Defaults gelten nur beim allerersten App-Start.
+/* ---------- Admin-Passwort (nur hier ändern) ---------- */
+const ADMIN_PASSWORD = '31512';
+
 const DISTRICT_MAIL_DEFAULTS = {
   'Landkreis Wittmund':      'Abfuhr@lk.wittmund.de',
   'Landkreis Friesland':     '',
@@ -281,7 +284,6 @@ async function loadSettingsUI(){
   document.getElementById('sEmail').value=settings.email||'';
   document.getElementById('sWaste').value=settings.defaultWasteType||WASTE_TYPES[0];
   document.getElementById('sTheme').value=settings.theme||'auto';
-  // Landkreis-Mail-Feld initialisieren
   updateDistMailField();
 
   const all=await dbGetAll('entries');
@@ -299,7 +301,6 @@ async function saveSettings(){
   settings.defaultWasteType=document.getElementById('sWaste').value;
   settings.theme=document.getElementById('sTheme').value;
 
-  // E-Mail für den aktuell gewählten Landkreis speichern
   if(!settings.districtMails)settings.districtMails={...DISTRICT_MAIL_DEFAULTS};
   settings.districtMails[settings.district]=document.getElementById('sDistMail').value.trim();
 
@@ -1022,19 +1023,15 @@ function checkSetupLink(){
   if(!setup)return;
   try{
     const decoded=JSON.parse(atob(decodeURIComponent(setup)));
-    // Nur bekannte Felder übernehmen
-    const allowed=['driverName','licensePlate','district','districtMails','email','defaultWasteType','theme'];
+    // Admin-Felder übernehmen – Fahrername & Kennzeichen bewusst NICHT (muss Fahrer selbst eintragen)
+    const allowed=['district','districtMails','email','defaultWasteType','theme'];
     allowed.forEach(k=>{if(decoded[k]!==undefined)settings[k]=decoded[k]});
-    // districtMails mit Defaults zusammenführen
     settings.districtMails={...DISTRICT_MAIL_DEFAULTS,...(decoded.districtMails||{})};
     applyTheme(settings.theme||'auto');
-    // In DB speichern
     dbPut('settings',settings,'config');
-    // URL bereinigen ohne Seiten-Reload
     window.history.replaceState({},'',window.location.pathname+window.location.hash);
-    // Fahrer informieren und direkt in Einstellungen springen
     setTimeout(()=>{
-      toast('✅ Einstellungen erfolgreich importiert!');
+      toast('✅ App erfolgreich eingerichtet!');
       showTab('e');
     },600);
   }catch(e){
@@ -1051,25 +1048,50 @@ function checkSetupLink(){
  * damit der Disponent auch fahrerspezifische Links erzeugen kann.
  */
 function generateSetupLink(){
-  // Aktuelle Feldwerte lesen (inkl. noch nicht gespeicherter Änderungen)
+  if(!ADMIN_PASSWORD){
+    toast('⚠️ Kein Admin-Passwort hinterlegt.');
+    return;
+  }
+  const modal=document.getElementById('adminPassModal');
+  document.getElementById('adminPassInput').value='';
+  document.getElementById('adminPassError').classList.add('hidden');
+  modal.classList.remove('h');
+  setTimeout(()=>document.getElementById('adminPassInput').focus(),100);
+}
+
+function confirmAdminPass(){
+  const entered=document.getElementById('adminPassInput').value;
+  if(entered!==ADMIN_PASSWORD){
+    document.getElementById('adminPassError').classList.remove('hidden');
+    document.getElementById('adminPassInput').value='';
+    document.getElementById('adminPassInput').focus();
+    return;
+  }
+  closeAdminPassModal();
+  _doGenerateSetupLink();
+}
+
+function closeAdminPassModal(){
+  document.getElementById('adminPassModal').classList.add('h');
+}
+
+function _doGenerateSetupLink(){
+  // Nur Admin-Felder – kein Fahrername, kein Kennzeichen
   const payload={
-    driverName:       document.getElementById('sName').value.trim(),
-    licensePlate:     document.getElementById('sPlate').value.trim(),
     district:         document.getElementById('sDist').value,
-    districtMails:    settings.districtMails||{},
+    districtMails:    {...(settings.districtMails||{})},
     email:            document.getElementById('sEmail').value.trim(),
     defaultWasteType: document.getElementById('sWaste').value,
     theme:            document.getElementById('sTheme').value
   };
-  // Leere Felder entfernen (kleinerer Link)
-  Object.keys(payload).forEach(k=>{if(payload[k]===''||payload[k]===null)delete payload[k]});
+
   // Aktuellen districtMail-Wert des gewählten Landkreises eintragen
   const currentDist=document.getElementById('sDist').value;
   const currentDistMail=document.getElementById('sDistMail').value.trim();
-  if(currentDistMail){
-    payload.districtMails=payload.districtMails||{};
-    payload.districtMails[currentDist]=currentDistMail;
-  }
+  if(currentDistMail) payload.districtMails[currentDist]=currentDistMail;
+
+  // Leere Felder entfernen
+  Object.keys(payload).forEach(k=>{if(payload[k]===''||payload[k]===null)delete payload[k]});
 
   const base64=encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
   const appUrl='https://michaelelvey.github.io/tonnenmeldung/';
@@ -1078,17 +1100,14 @@ function generateSetupLink(){
   const msg=`🗑️ Mülltonnen-Meldung – Einrichtungslink\n\n`
     +`Tippe auf den Link – die App öffnet sich und alle Einstellungen werden automatisch geladen:\n\n`
     +`${fullUrl}\n\n`
-    +`Danach einmal „Zum Homescreen hinzufügen" tippen für die Vollbild-App.`;
+    +`Danach nur noch deinen Namen und dein Kennzeichen in den Einstellungen eintragen.\n\n`
+    +`„Zum Homescreen hinzufügen" für die Vollbild-App.`;
 
   if(navigator.share){
     navigator.share({title:'Mülltonnen-App Einrichtung',text:msg}).catch(()=>{});
   }else{
-    // Fallback: Zwischenablage
     navigator.clipboard.writeText(fullUrl)
       .then(()=>toast('🔗 Link in Zwischenablage kopiert!'))
-      .catch(()=>{
-        // Letzter Fallback: WhatsApp Web
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
-      });
+      .catch(()=>{window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank')});
   }
 }
