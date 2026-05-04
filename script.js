@@ -679,10 +679,13 @@ function buildBody(e,dups=[]){
   const plzOrt=[plz,ort].filter(Boolean).join(' ');
   const standort=e.gps?(plzOrt?`${street} in ${plzOrt}`:street)||'-':'-';
   const ln=[
+    `════════════════════════════════════`,
+    `AUGUSTIN ENTSORGUNG FRIESLAND`,
+    `Tonnenmeldesystem – Meldungsbericht`,
+    `════════════════════════════════════`,'',
     `Datum: ${fmtDT(e.createdAt)}`,'',
-    `Firma: Augustin Entsorgung Friesland GmbH & Co. KG`,
-    `Fahrer: ${e.driverName||'-'}`,
-    `Fahrzeug: ${e.licensePlate||'-'}`,
+    `Fahrer:    ${e.driverName||'-'}`,
+    `Fahrzeug:  ${e.licensePlate||'-'}`,
     `Landkreis: ${e.district||'-'}`,'',
     `Standort: ${standort}`,
     `Barcode: ${e.barcode||'-'}`,
@@ -1056,18 +1059,39 @@ function buildHtmlReport(rows,photoMap,from,to){
   return`<!DOCTYPE html>
 <html lang="de"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mülltonnen-Bericht – ${period}</title>
+<title>Tonnenmeldesystem – Bericht ${period}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f5f7f5;color:#1a1a1a;padding:20px}
-h1{font-size:20px;color:#1a5c1a;margin-bottom:4px}
-.meta{font-size:12px;color:#555;margin-bottom:16px;line-height:1.7}
-.stats{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-.stat{background:#fff;border:1px solid #d1d5db;border-radius:8px;padding:10px 14px;font-size:12px;color:#555}
-.stat b{display:block;font-size:20px;color:#1a5c1a;font-weight:700}
-.wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.1);font-size:12px;min-width:700px}
-th{background:#1a5c1a;color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap;user-select:none}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f0;color:#1a1a1a}
+/* ── HEADER ── */
+.ae-header{background:#fff;border-bottom:4px solid #1a5c1a;padding:0}
+.ae-header-inner{max-width:1400px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.ae-logo{height:52px;object-fit:contain}
+.ae-logo-fallback{font-size:15px;font-weight:700;color:#1a5c1a;letter-spacing:.3px}
+.ae-header-right{text-align:right;font-size:11.5px;color:#555;line-height:1.7}
+.ae-header-right strong{color:#1a1a1a}
+/* ── TITLE BAR ── */
+.ae-titlebar{background:linear-gradient(135deg,#1a5c1a 0%,#2d7a2d 100%);color:#fff;padding:14px 24px}
+.ae-titlebar-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.ae-titlebar h1{font-size:18px;font-weight:700;letter-spacing:.3px}
+.ae-titlebar .ae-period{font-size:13px;opacity:.85;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:20px}
+/* ── CONTENT ── */
+.ae-content{max-width:1400px;margin:0 auto;padding:20px 24px}
+/* ── META CARDS ── */
+.ae-meta{background:#fff;border-radius:8px;box-shadow:0 1px 5px rgba(0,0,0,.08);padding:14px 20px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:20px;font-size:12.5px}
+.ae-meta-item{display:flex;flex-direction:column;gap:2px}
+.ae-meta-item span{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:#888;font-weight:600}
+.ae-meta-item strong{color:#1a1a1a;font-size:13px}
+/* ── STATS ── */
+.stats{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.stat{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 16px;font-size:12px;color:#555;border-top:3px solid #1a5c1a}
+.stat b{display:block;font-size:22px;color:#1a5c1a;font-weight:700;line-height:1.2}
+.stat.warn-stat{border-top-color:#b91c1c}
+.stat.warn-stat b{color:#b91c1c}
+/* ── TABLE ── */
+.wrap{overflow-x:auto;border-radius:8px;box-shadow:0 1px 5px rgba(0,0,0,.08)}
+table{width:100%;border-collapse:collapse;background:#fff;font-size:12px;min-width:700px}
+th{background:#1a5c1a;color:#fff;padding:10px 11px;text-align:left;font-weight:600;white-space:nowrap;user-select:none}
 th[data-col]{cursor:pointer;transition:background .15s}
 th[data-col]:hover{background:#226b22}
 th[data-col]::after{content:' ⇅';opacity:.45;font-size:10px}
@@ -1075,7 +1099,9 @@ th[data-col].asc::after{content:' ▲';opacity:1}
 th[data-col].desc::after{content:' ▼';opacity:1}
 td{padding:9px 11px;border-bottom:1px solid #f0f0f0;vertical-align:top}
 tr:last-child td{border-bottom:none}
+tr:hover td{background:#f9fdf9}
 tr.stehen td{background:#fff5f5}
+tr.stehen:hover td{background:#fee2e2}
 .warn{color:#b91c1c;font-weight:700}
 .ml{font-size:11px;color:#1d4ed8;text-decoration:none}
 .ml:hover{text-decoration:underline}
@@ -1086,29 +1112,63 @@ tr.stehen td{background:#fff5f5}
 .photos img:hover{border-color:#1a5c1a;transform:scale(1.06)}
 .photos span{font-size:10px;color:#888}
 code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:3px}
-footer{margin-top:14px;font-size:11px;color:#aaa;text-align:right}
-.search-bar{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #d1d5db;border-radius:9px;padding:8px 12px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.search-bar:focus-within{border-color:#1a5c1a;box-shadow:0 0 0 3px rgba(26,92,26,.12)}
-.search-icon{font-size:15px;flex-shrink:0;color:#6b7280}
+/* ── SEARCH ── */
+.search-bar{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #d1d5db;border-radius:9px;padding:8px 12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.search-bar:focus-within{border-color:#1a5c1a;box-shadow:0 0 0 3px rgba(26,92,26,.1)}
+.search-icon{font-size:15px;color:#6b7280}
 .search-bar input{flex:1;border:none;outline:none;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#111;background:transparent}
 .search-bar input::placeholder{color:#9ca3af}
-#searchClear{display:none;align-items:center;justify-content:center;background:#e5e7eb;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;color:#374151;flex-shrink:0;font-weight:700}
+#searchClear{display:none;align-items:center;justify-content:center;background:#e5e7eb;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;color:#374151;font-weight:700}
 #searchClear:hover{background:#d1d5db}
 #searchInfo{font-size:12px;color:#6b7280;margin-bottom:8px;display:none}
+/* ── FOOTER ── */
+.ae-footer{background:#1a5c1a;color:rgba(255,255,255,.7);font-size:11px;text-align:center;padding:14px 24px;margin-top:24px}
+.ae-footer a{color:rgba(255,255,255,.85);text-decoration:none}
 </style></head><body>
-<h1><img src="data:image/png;base64,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" style="width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px"> Mülltonnen-Bericht</h1>
-<div class="meta">
-  <strong>Fahrer:</strong> ${settings.driverName||'–'} &nbsp;|&nbsp;
-  <strong>Fahrzeug:</strong> ${settings.licensePlate||'–'} &nbsp;|&nbsp;
-  <strong>Landkreis:</strong> ${settings.district||'–'} &nbsp;|&nbsp;
-  <strong>Zeitraum:</strong> ${period}
+
+<!-- HEADER mit Logo -->
+<div class="ae-header">
+  <div class="ae-header-inner">
+    <img class="ae-logo"
+      src="https://augustin-entsorgung.de/wp-content/uploads/2018/07/cropped-AE-Logo_transparenter_HG_500px-e1552993813616-1.png"
+      alt="Augustin Entsorgung"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span class="ae-logo-fallback" style="display:none">AUGUSTIN ENTSORGUNG</span>
+    <div class="ae-header-right">
+      <strong>Augustin Entsorgung Friesland GmbH &amp; Co. KG</strong><br>
+      JadeWeserPark 12 · 26419 Schortens<br>
+      Tel: (04421) 500 49 500 · <a href="mailto:friesland@augustin-entsorgung.de" style="color:#1a5c1a">friesland@augustin-entsorgung.de</a>
+    </div>
+  </div>
 </div>
+
+<!-- TITEL-LEISTE -->
+<div class="ae-titlebar">
+  <div class="ae-titlebar-inner">
+    <h1>Tonnenmeldesystem – Meldungsbericht</h1>
+    <span class="ae-period">📅 ${period}</span>
+  </div>
+</div>
+
+<!-- INHALT -->
+<div class="ae-content">
+
+<!-- META -->
+<div class="ae-meta">
+  <div class="ae-meta-item"><span>Fahrer</span><strong>${settings.driverName||'–'}</strong></div>
+  <div class="ae-meta-item"><span>Fahrzeug</span><strong>${settings.licensePlate||'–'}</strong></div>
+  <div class="ae-meta-item"><span>Landkreis</span><strong>${settings.district||'–'}</strong></div>
+  <div class="ae-meta-item"><span>Erstellt am</span><strong>${fmtDT(new Date().toISOString())}</strong></div>
+</div>
+
+<!-- STATISTIKEN -->
 <div class="stats">
   <div class="stat"><b>${rows.length}</b>Meldungen gesamt</div>
-  <div class="stat"><b>${stCount}</b>Stehen gelassen</div>
+  <div class="stat warn-stat"><b>${stCount}</b>Stehen gelassen</div>
   <div class="stat"><b>${phCount}</b>Mit Fotos</div>
   <div class="stat"><b>${gpCount}</b>Mit GPS</div>
 </div>
+
 <div class="search-bar">
   <span class="search-icon">🔍</span>
   <input type="text" id="searchInput" placeholder="Suche in allen Spalten … (ID, Ort, Kategorie, Barcode …)" oninput="applySearch()">
@@ -1136,7 +1196,12 @@ footer{margin-top:14px;font-size:11px;color:#aaa;text-align:right}
 <tbody>${rowsHtml}</tbody>
 </table>
 </div>
-<footer>© Michael Elvey · Mülltonnen-Meldung 2.7 Pro · Erstellt: ${fmtDT(new Date().toISOString())}</footer>
+</div><!-- /.ae-content -->
+<div class="ae-footer">
+  Augustin Entsorgung Friesland GmbH &amp; Co. KG &nbsp;·&nbsp; JadeWeserPark 12, 26419 Schortens &nbsp;·&nbsp;
+  <a href="https://augustin-entsorgung.de" style="color:rgba(255,255,255,.85)">augustin-entsorgung.de</a>
+  &nbsp;·&nbsp; Erstellt: ${fmtDT(new Date().toISOString())} &nbsp;·&nbsp; Mülltonnen-Meldung 2.75 Pro
+</div>
 <script>
 (function(){
   /* ---------- SORT ---------- */
