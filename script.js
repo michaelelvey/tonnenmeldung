@@ -157,12 +157,14 @@ function photoToDisplayUrl(photo){
 }
 
 /* ============================================================
-   INDEXEDDB
+   INDEXEDDB – Singleton-Verbindung
    ============================================================ */
 
 const DB_NAME='MuelltonnenDB', DB_VERSION=1;
+let _dbConn=null; // Singleton-Verbindung
 
-async function openDB(){
+function getDB(){
+  if(_dbConn)return Promise.resolve(_dbConn);
   return new Promise((res,rej)=>{
     const req=indexedDB.open(DB_NAME,DB_VERSION);
     req.onupgradeneeded=e=>{
@@ -170,11 +172,12 @@ async function openDB(){
       if(!db.objectStoreNames.contains('entries')) db.createObjectStore('entries',{keyPath:'id'});
       if(!db.objectStoreNames.contains('settings')) db.createObjectStore('settings');
     };
-    req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);
+    req.onsuccess=()=>{_dbConn=req.result;res(_dbConn)};
+    req.onerror=()=>rej(req.error);
   });
 }
 async function dbPut(store,data,key=null){
-  const db=await openDB();
+  const db=await getDB();
   return new Promise((res,rej)=>{
     const tx=db.transaction(store,'readwrite'),s=tx.objectStore(store);
     const r=key?s.put(data,key):s.put(data);
@@ -182,21 +185,21 @@ async function dbPut(store,data,key=null){
   });
 }
 async function dbGet(store,key){
-  const db=await openDB();
+  const db=await getDB();
   return new Promise((res,rej)=>{
     const tx=db.transaction(store,'readonly'),s=tx.objectStore(store),r=s.get(key);
     r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
   });
 }
 async function dbGetAll(store){
-  const db=await openDB();
+  const db=await getDB();
   return new Promise((res,rej)=>{
     const tx=db.transaction(store,'readonly'),s=tx.objectStore(store),r=s.getAll();
     r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
   });
 }
 async function dbDelete(store,key){
-  const db=await openDB();
+  const db=await getDB();
   return new Promise((res,rej)=>{
     const tx=db.transaction(store,'readwrite'),s=tx.objectStore(store),r=s.delete(key);
     r.onsuccess=()=>res();r.onerror=()=>rej(r.error);
@@ -358,20 +361,28 @@ async function loadSettingsUI(){
 
 async function saveSettings(){
   vibe(50);
+  const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailDispo=document.getElementById('sEmail').value.trim();
+  const emailDist=document.getElementById('sDistMail').value.trim();
+  if(emailDispo&&!emailRe.test(emailDispo)){
+    toast('⚠️ Ungültige E-Mail-Adresse (Dispo)');return;
+  }
+  if(emailDist&&!emailRe.test(emailDist)){
+    toast('⚠️ Ungültige E-Mail-Adresse (Landkreis)');return;
+  }
   settings.driverName=document.getElementById('sName').value.trim();
   settings.licensePlate=document.getElementById('sPlate').value.trim();
   settings.district=document.getElementById('sDist').value;
-  settings.email=document.getElementById('sEmail').value.trim();
+  settings.email=emailDispo;
   settings.defaultWasteType=document.getElementById('sWaste').value;
   settings.theme=document.getElementById('sTheme').value;
 
   if(!settings.districtMails)settings.districtMails={...DISTRICT_MAIL_DEFAULTS};
-  settings.districtMails[settings.district]=document.getElementById('sDistMail').value.trim();
+  settings.districtMails[settings.district]=emailDist;
 
   applyTheme(settings.theme);
   await dbPut('settings',settings,'config');
   toast('✅ Gespeichert');
-  // Müllart-Auswahl im Formular sofort aktualisieren
   const wSel=document.getElementById('wasteSelect');
   wSel.value=settings.defaultWasteType;
   cur.wasteType=settings.defaultWasteType;
@@ -400,7 +411,7 @@ function showTab(name){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
   document.getElementById('tb-'+name).classList.add('on');
   document.getElementById('pane-'+name).classList.add('on');
-  if(name==='v'){renderHistory();loadSettingsUI()}
+  if(name==='v'){renderHistory(true);loadSettingsUI()}
   if(name==='e')loadSettingsUI();
 }
 
@@ -438,6 +449,8 @@ async function revGeo(lat,lng){
     const address=ort?`${street} in ${ort}`:street;
     return{street,plz,ort,address};
   }catch{
+    // Kein Internet oder Nominatim nicht erreichbar
+    toast('⚠️ Adresse nicht verfügbar – nur GPS-Koordinaten gespeichert');
     const address=`${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     return{street:address,plz:'',ort:'',address};
   }
@@ -751,9 +764,13 @@ function toggleVoice(){
    HISTORY
    ============================================================ */
 
-async function renderHistory(){
-  const txt=(document.getElementById('stxt').value||'').toLowerCase(),cat=document.getElementById('scat').value;
-  entries=await dbGetAll('entries');
+async function renderHistory(forceReload=false){
+  // DB nur neu laden wenn explizit angefordert (Tab-Wechsel, nach Mutationen)
+  if(forceReload||!entries.length){
+    entries=await dbGetAll('entries');
+  }
+  const txt=(document.getElementById('stxt').value||'').toLowerCase();
+  const cat=document.getElementById('scat').value;
   let filtered=entries.filter(e=>{
     if(cat&&e.category!==cat)return false;
     if(txt){const s=[e.category,e.wasteType,e.actionTaken,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,/* OCR-TONNENNUMMER START */e.binNumber,/* OCR-TONNENNUMMER END */e.notes].join(' ').toLowerCase();if(!s.includes(txt))return false}
@@ -817,11 +834,11 @@ async function saveEdit(){
   e.category=document.getElementById('edCat').value;
   e.notes=document.getElementById('edNotes').value.trim();
   e.updatedAt=new Date().toISOString();
-  await dbPut('entries',e);closeEdit();renderHistory();toast('✅ Gespeichert');
+  await dbPut('entries',e);closeEdit();renderHistory(true);toast('✅ Gespeichert');
 }
 function closeEdit(){editId=null;document.getElementById('editModal').classList.add('h')}
 function closeT(){closeEdit()}
-async function delEntry(id){await dbDelete('entries',id);renderHistory();toast('Gelöscht')}
+async function delEntry(id){await dbDelete('entries',id);renderHistory(true);toast('Gelöscht')}
 function confirmAction(text,cb){
   document.getElementById('gmText').textContent=text;
   document.getElementById('gmConfirm').onclick=()=>{vibe(30);cb();closeGenericModal()};
@@ -931,7 +948,7 @@ async function doExport(){
   }
   zip.file('Meldungen.csv',csv);
   zip.file('Bericht.html',buildHtmlReport(rows,photoMap,from,to));
-  zip.file('HINWEIS.txt',['MÜLLTONNEN-BERICHT – ANLEITUNG','================================','','INHALT:','  Bericht.html  → Im Browser öffnen (Fotos direkt sichtbar)','  Meldungen.csv → Für Excel-Import','  images/       → Alle Fotos','','FOTOS ANZEIGEN:','  1. ZIP vollständig entpacken','  2. Bericht.html doppelklicken → Browser öffnet sich','  3. Fotos erscheinen direkt als klickbare Thumbnails','','© Michael Elvey · Mülltonnen-Meldung 2.75 Pro'].join('\n'));
+  zip.file('HINWEIS.txt',['MÜLLTONNEN-BERICHT – ANLEITUNG','================================','','INHALT:','  Bericht.html  → Im Browser öffnen (Fotos direkt sichtbar)','  Meldungen.csv → Für Excel-Import','  images/       → Alle Fotos','','FOTOS ANZEIGEN:','  1. ZIP vollständig entpacken','  2. Bericht.html doppelklicken → Browser öffnet sich','  3. Fotos erscheinen direkt als klickbare Thumbnails','','© Michael Elvey · Mülltonnen-Meldung 2.7 Pro'].join('\n'));
 
   const zipName=getZipFilename(from,to);
   const content=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
@@ -1079,7 +1096,7 @@ footer{margin-top:14px;font-size:11px;color:#aaa;text-align:right}
 <tbody>${rowsHtml}</tbody>
 </table>
 </div>
-<footer>© Michael Elvey · Mülltonnen-Meldung 2.75 Pro · Erstellt: ${fmtDT(new Date().toISOString())}</footer>
+<footer>© Michael Elvey · Mülltonnen-Meldung 2.7 Pro · Erstellt: ${fmtDT(new Date().toISOString())}</footer>
 <script>
 (function(){
   /* ---------- SORT ---------- */
@@ -1164,7 +1181,7 @@ async function resend(id){
     window.open(`${rec}${sep}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`);
   }
   e.sentCount++;e.updatedAt=new Date().toISOString();
-  await dbPut('entries',e);renderHistory();toast('📤 Erneut gesendet');
+  await dbPut('entries',e);renderHistory(true);toast('📤 Erneut gesendet');
 }
 
 /* ============================================================
