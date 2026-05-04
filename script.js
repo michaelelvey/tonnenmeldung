@@ -701,7 +701,7 @@ function buildBody(e,dups=[]){
   }else{
     ln.push('Keine Duplikate gefunden.');
   }
-  ln.push('','---','© Michael Elvey');
+  ln.push('','---',`Gesendet im Auftrag von: ${e.driverName||'Fahrer'}@Augustin-Entsorgung.de`,'(Bitte nicht auf diese E-Mail antworten – Antworten an die Disposition richten)','© Michael Elvey');
   return ln.join('\n');
 }
 
