@@ -1,4 +1,3 @@
-
 'use strict';
 
 /* ---------- Konfiguration ---------- */
@@ -333,8 +332,8 @@ async function captureGPS(manual=false){
   navigator.geolocation.getCurrentPosition(
     async pos=>{
       const{latitude:lat,longitude:lng,accuracy:acc}=pos.coords;
-      const addr=await revGeo(lat,lng);
-      cur.gps={lat,lng,accuracy:Math.round(acc),address:addr};
+      const geo=await revGeo(lat,lng);
+      cur.gps={lat,lng,accuracy:Math.round(acc),...geo};
       gpsLocked=true;setGPS(cur.gps);
       document.getElementById('gpsBtn').disabled=false;
       if(!manual)checkDups();
@@ -349,9 +348,16 @@ async function revGeo(lat,lng){
     const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,{headers:{'Accept-Language':'de'}});
     const d=await r.json(),a=d.address||{};
     const road=a.road||a.pedestrian||a.path||a.street||'Unbekannte Straße';
-    const hn=a.house_number||'',city=a.city||a.town||a.village||a.suburb||a.municipality||'';
-    return hn?`${road} in Höhe der Hausnr. ${hn} in ${city}`:`${road} in ${city}`;
-  }catch{return`${lat.toFixed(6)}, ${lng.toFixed(6)}`}
+    const hn=a.house_number||'';
+    const plz=a.postcode||'';
+    const ort=a.city||a.town||a.village||a.suburb||a.municipality||'';
+    const street=hn?`${road} in Höhe der Hausnr. ${hn}`:`${road}`;
+    const address=ort?`${street} in ${ort}`:street;
+    return{street,plz,ort,address};
+  }catch{
+    const address=`${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    return{street:address,plz:'',ort:'',address};
+  }
 }
 
 function setGPS(gps,txt){
@@ -516,7 +522,7 @@ async function sendEntry(){
     btn.innerHTML='GPS wird erfasst…';
     await new Promise(res=>{
       navigator.geolocation.getCurrentPosition(
-        async pos=>{const{latitude:lat,longitude:lng,accuracy:acc}=pos.coords;const addr=await revGeo(lat,lng);cur.gps={lat,lng,accuracy:Math.round(acc),address:addr};setGPS(cur.gps);res()},
+        async pos=>{const{latitude:lat,longitude:lng,accuracy:acc}=pos.coords;const geo=await revGeo(lat,lng);cur.gps={lat,lng,accuracy:Math.round(acc),...geo};setGPS(cur.gps);res()},
         ()=>res(),{enableHighAccuracy:true,timeout:20000,maximumAge:0}
       );
     });
@@ -735,7 +741,7 @@ async function doExport(){
     photoMap[e.id]=fnames;
   }
 
-  const HCOLS=['ID','Datum/Zeit','Barcode','Müllart','Kategorie','Aktion','Adresse',
+  const HCOLS=['ID','Datum/Zeit','Barcode','Müllart','Kategorie','Aktion','Adresse','PLZ','Ort',
                'Breitengrad','Längengrad','Google Maps',
                'Fahrername','Kennzeichen','Landkreis','Anmerkungen',
                'Foto Tonne','Foto Zusatz','Foto Barcode','Gesendet','Status'];
@@ -745,7 +751,9 @@ async function doExport(){
     const fn=photoMap[e.id]||[null,null,null];
     const cols=[
       e.id,fmtDT(e.createdAt),e.barcode||'',e.wasteType||'',e.category||'',e.actionTaken||'',
-      e.gps?.address||'',
+      e.gps?.street||e.gps?.address||'',
+      e.gps?.plz||'',
+      e.gps?.ort||'',
       e.gps?.lat!=null?e.gps.lat.toFixed(6):'',
       e.gps?.lng!=null?e.gps.lng.toFixed(6):'',
       e.gps?`https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`:'',
@@ -787,15 +795,32 @@ function buildHtmlReport(rows,photoMap,from,to){
       ?`<div class="photos">${fn.map((f,i)=>f?`<a href="images/${f}" target="_blank" title="Foto ${labels[i]} öffnen"><img src="images/${f}" alt="${labels[i]}" loading="lazy"><span>${labels[i]}</span></a>`:'').join('')}</div>`
       :'<span class="nophoto">Keine Fotos</span>';
     const isSt=e.actionTaken==='Stehen gelassen';
-    return`<tr${isSt?' class="stehen"':''}>
+    const street=e.gps?(e.gps.street||e.gps.address||'–'):'–';
+    const plz=e.gps?.plz||'–';
+    const ort=e.gps?.ort||'–';
+    const mapsLink=e.gps?`https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`:'';
+    const notes=(e.notes||'').replace(/\n/g,'<br>')||'–';
+    return`<tr${isSt?' class="stehen"':''}
+      data-id="${e.id.slice(-8)}"
+      data-dt="${e.createdAt}"
+      data-barcode="${(e.barcode||'').toLowerCase()}"
+      data-waste="${(e.wasteType||'').toLowerCase()}"
+      data-cat="${(e.category||'').toLowerCase()}"
+      data-action="${(e.actionTaken||'').toLowerCase()}"
+      data-street="${street.toLowerCase()}"
+      data-plz="${plz.toLowerCase()}"
+      data-ort="${ort.toLowerCase()}"
+      data-notes="${(e.notes||'').toLowerCase()}">
       <td><code>${e.id.slice(-8)}</code></td>
       <td>${fmtDT(e.createdAt)}</td>
       <td>${e.barcode?`<code style="font-size:11px">${e.barcode}</code>`:'–'}</td>
       <td>${e.wasteType||'–'}</td>
       <td>${e.category||'–'}</td>
       <td${isSt?' class="warn"':''}>${e.actionTaken||'–'}</td>
-      <td>${e.gps?`${e.gps.address||'–'}<br><a class="ml" href="https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}" target="_blank">📍 Karte</a>`:'–'}</td>
-      <td>${(e.notes||'').replace(/\n/g,'<br>')||'–'}</td>
+      <td>${e.gps?`${street}<br><a class="ml" href="${mapsLink}" target="_blank">📍 Karte</a>`:'–'}</td>
+      <td>${plz}</td>
+      <td>${ort}</td>
+      <td>${notes}</td>
       <td>${photosHtml}</td>
     </tr>`;
   }).join('');
@@ -814,7 +839,12 @@ h1{font-size:20px;color:#1a5c1a;margin-bottom:4px}
 .stat b{display:block;font-size:20px;color:#1a5c1a;font-weight:700}
 .wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.1);font-size:12px;min-width:700px}
-th{background:#1a5c1a;color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap}
+th{background:#1a5c1a;color:#fff;padding:9px 11px;text-align:left;font-weight:600;white-space:nowrap;user-select:none}
+th[data-col]{cursor:pointer;transition:background .15s}
+th[data-col]:hover{background:#226b22}
+th[data-col]::after{content:' ⇅';opacity:.45;font-size:10px}
+th[data-col].asc::after{content:' ▲';opacity:1}
+th[data-col].desc::after{content:' ▼';opacity:1}
 td{padding:9px 11px;border-bottom:1px solid #f0f0f0;vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr.stehen td{background:#fff5f5}
@@ -829,6 +859,14 @@ tr.stehen td{background:#fff5f5}
 .photos span{font-size:10px;color:#888}
 code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:3px}
 footer{margin-top:14px;font-size:11px;color:#aaa;text-align:right}
+.search-bar{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #d1d5db;border-radius:9px;padding:8px 12px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.search-bar:focus-within{border-color:#1a5c1a;box-shadow:0 0 0 3px rgba(26,92,26,.12)}
+.search-icon{font-size:15px;flex-shrink:0;color:#6b7280}
+.search-bar input{flex:1;border:none;outline:none;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#111;background:transparent}
+.search-bar input::placeholder{color:#9ca3af}
+#searchClear{display:none;align-items:center;justify-content:center;background:#e5e7eb;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;color:#374151;flex-shrink:0;font-weight:700}
+#searchClear:hover{background:#d1d5db}
+#searchInfo{font-size:12px;color:#6b7280;margin-bottom:8px;display:none}
 </style></head><body>
 <h1>🗑️ Mülltonnen-Bericht</h1>
 <div class="meta">
@@ -843,13 +881,87 @@ footer{margin-top:14px;font-size:11px;color:#aaa;text-align:right}
   <div class="stat"><b>${phCount}</b>Mit Fotos</div>
   <div class="stat"><b>${gpCount}</b>Mit GPS</div>
 </div>
+<div class="search-bar">
+  <span class="search-icon">🔍</span>
+  <input type="text" id="searchInput" placeholder="Suche in allen Spalten … (ID, Ort, Kategorie, Barcode …)" oninput="applySearch()">
+  <button id="searchClear" onclick="clearSearch()" title="Suche zurücksetzen">✕</button>
+</div>
+<div id="searchInfo"></div>
 <div class="wrap">
-<table>
-<thead><tr><th>ID</th><th>Datum/Zeit</th><th>Barcode</th><th>Müllart</th><th>Kategorie</th><th>Aktion</th><th>Standort</th><th>Anmerkungen</th><th>Fotos</th></tr></thead>
+<table id="reportTable">
+<thead><tr>
+  <th data-col="id">ID</th>
+  <th data-col="dt">Datum/Zeit</th>
+  <th data-col="barcode">Barcode</th>
+  <th data-col="waste">Müllart</th>
+  <th data-col="cat">Kategorie</th>
+  <th data-col="action">Aktion</th>
+  <th data-col="street">Adresse</th>
+  <th data-col="plz">PLZ</th>
+  <th data-col="ort">Ort</th>
+  <th>Anmerkungen</th>
+  <th>Fotos</th>
+</tr></thead>
 <tbody>${rowsHtml}</tbody>
 </table>
 </div>
 <footer>© Michael Elvey · Mülltonnen-Meldung 2.7 Pro · Erstellt: ${fmtDT(new Date().toISOString())}</footer>
+<script>
+(function(){
+  /* ---------- SORT ---------- */
+  var sortCol=null,sortAsc=true;
+  var thead=document.querySelector('#reportTable thead');
+  thead.querySelectorAll('th[data-col]').forEach(function(th){
+    th.addEventListener('click',function(){
+      var col=th.dataset.col;
+      if(sortCol===col){sortAsc=!sortAsc}else{sortCol=col;sortAsc=true}
+      thead.querySelectorAll('th[data-col]').forEach(function(h){h.classList.remove('asc','desc')});
+      th.classList.add(sortAsc?'asc':'desc');
+      var tbody=document.querySelector('#reportTable tbody');
+      var rows=Array.from(tbody.querySelectorAll('tr'));
+      rows.sort(function(a,b){
+        var av=a.dataset[col]||'',bv=b.dataset[col]||'';
+        if(col==='dt') return sortAsc?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0);
+        if(col==='plz'){var an=parseFloat(av),bn=parseFloat(bv);if(!isNaN(an)&&!isNaN(bn))return sortAsc?an-bn:bn-an}
+        return sortAsc?av.localeCompare(bv,'de'):bv.localeCompare(av,'de');
+      });
+      rows.forEach(function(r){tbody.appendChild(r)});
+    });
+  });
+
+  /* ---------- SEARCH ---------- */
+  var totalRows=document.querySelectorAll('#reportTable tbody tr').length;
+
+  window.applySearch=function(){
+    var q=document.getElementById('searchInput').value.trim().toLowerCase();
+    var rows=document.querySelectorAll('#reportTable tbody tr');
+    var visible=0;
+    rows.forEach(function(tr){
+      /* Durchsuche alle data-* Attribute (lowercase) */
+      var hay=Object.values(tr.dataset).join(' ');
+      var match=!q||hay.includes(q);
+      tr.style.display=match?'':'none';
+      if(match)visible++;
+    });
+    /* Clear-Button ein-/ausblenden */
+    document.getElementById('searchClear').style.display=q?'flex':'none';
+    /* Treffer-Info */
+    var info=document.getElementById('searchInfo');
+    if(q){
+      info.textContent=visible+' von '+totalRows+' Einträgen gefunden';
+      info.style.display='block';
+    }else{
+      info.style.display='none';
+    }
+  };
+
+  window.clearSearch=function(){
+    document.getElementById('searchInput').value='';
+    applySearch();
+    document.getElementById('searchInput').focus();
+  };
+})();
+</script>
 </body></html>`;
 }
 
