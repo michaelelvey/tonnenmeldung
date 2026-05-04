@@ -564,7 +564,7 @@ async function sendEntry(){
   }
   cur.sentCount++;await dbPut('entries',{...cur});entries.unshift({...cur});vibe([0,50,50]);
   toast('✅ Meldung versendet!');
-  setTimeout(()=>{resetForm();showTab('m');btn.innerHTML='📤 Meldung senden';btn.disabled=false},800);
+  setTimeout(()=>{resetForm();showTab('m');btn.innerHTML='📤 Meldung senden';btn.disabled=false;document.getElementById('wrap').scrollTo({top:0})},800);
 }
 
 async function dataUrlsToFiles(dataUrls,id){
