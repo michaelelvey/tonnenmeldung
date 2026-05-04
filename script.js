@@ -25,6 +25,7 @@ const ACTIONS     = ['Geleert','Stehen gelassen','Keine Tonne'];
 const NO_PHOTO    = 'in Schüttung gefallen';
 const PHOTO_NAMES = ['Foto_Tonne','Foto_Zusatz','Barcode'];
 const DUP_M=15, ARC_DAYS=31, IMG_W=1024, IMG_Q=0.6;
+const THUMB_W=200, THUMB_Q=0.4; // Thumbnail-Größe für archivierte Einträge
 
 /* ---------- State ---------- */
 let entries=[], settings={
@@ -91,6 +92,29 @@ function compressToDataUrl(file){
       img.onerror=rej;img.src=e.target.result;
     };
     reader.onerror=rej;reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Komprimiert ein Base64-Foto auf Thumbnail-Größe (THUMB_W / THUMB_Q).
+ * Wird beim Archivieren (>31 Tage) aufgerufen um DB-Speicher zu sparen.
+ * Gibt null zurück wenn das Foto bereits ein Thumbnail ist oder fehlt.
+ */
+function compressToThumbnail(dataUrl){
+  return new Promise(res=>{
+    if(!dataUrl||typeof dataUrl!=='string'){res(null);return}
+    const img=new Image();
+    img.onload=()=>{
+      // Nicht erneut komprimieren wenn bereits klein genug
+      if(img.width<=THUMB_W){res(dataUrl);return}
+      const canvas=document.createElement('canvas');
+      const ratio=THUMB_W/img.width;
+      canvas.width=THUMB_W;canvas.height=Math.round(img.height*ratio);
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      res(canvas.toDataURL('image/jpeg',THUMB_Q));
+    };
+    img.onerror=()=>res(dataUrl); // Im Fehlerfall Original behalten
+    img.src=dataUrl;
   });
 }
 
@@ -197,7 +221,14 @@ async function loadData(){
     let upd=false;
     for(const e of entries){
       if(!e.archived&&(now-new Date(e.createdAt).getTime()>archMs)){
-        e.archived=true;await dbPut('entries',e);upd=true;
+        e.archived=true;
+        // Fotos auf Thumbnail-Größe reduzieren um DB-Speicher zu sparen
+        if(e.photos){
+          e.photos=await Promise.all(
+            e.photos.map(p=>p?compressToThumbnail(p):Promise.resolve(null))
+          );
+        }
+        await dbPut('entries',e);upd=true;
       }
     }
     if(upd)entries=await dbGetAll('entries');
@@ -900,7 +931,7 @@ async function doExport(){
   }
   zip.file('Meldungen.csv',csv);
   zip.file('Bericht.html',buildHtmlReport(rows,photoMap,from,to));
-  zip.file('HINWEIS.txt',['MÜLLTONNEN-BERICHT – ANLEITUNG','================================','','INHALT:','  Bericht.html  → Im Browser öffnen (Fotos direkt sichtbar)','  Meldungen.csv → Für Excel-Import','  images/       → Alle Fotos','','FOTOS ANZEIGEN:','  1. ZIP vollständig entpacken','  2. Bericht.html doppelklicken → Browser öffnet sich','  3. Fotos erscheinen direkt als klickbare Thumbnails','','© Michael Elvey · Mülltonnen-Meldung 2.7 Pro'].join('\n'));
+  zip.file('HINWEIS.txt',['MÜLLTONNEN-BERICHT – ANLEITUNG','================================','','INHALT:','  Bericht.html  → Im Browser öffnen (Fotos direkt sichtbar)','  Meldungen.csv → Für Excel-Import','  images/       → Alle Fotos','','FOTOS ANZEIGEN:','  1. ZIP vollständig entpacken','  2. Bericht.html doppelklicken → Browser öffnet sich','  3. Fotos erscheinen direkt als klickbare Thumbnails','','© Michael Elvey · Mülltonnen-Meldung 2.75 Pro'].join('\n'));
 
   const zipName=getZipFilename(from,to);
   const content=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
@@ -1048,7 +1079,7 @@ footer{margin-top:14px;font-size:11px;color:#aaa;text-align:right}
 <tbody>${rowsHtml}</tbody>
 </table>
 </div>
-<footer>© Michael Elvey · Mülltonnen-Meldung 2.7 Pro · Erstellt: ${fmtDT(new Date().toISOString())}</footer>
+<footer>© Michael Elvey · Mülltonnen-Meldung 2.75 Pro · Erstellt: ${fmtDT(new Date().toISOString())}</footer>
 <script>
 (function(){
   /* ---------- SORT ---------- */

@@ -1,9 +1,9 @@
 /**
- * sw.js – Service Worker für Mülltonnen-Meldung 2.7 Pro
+ * sw.js – Service Worker für Mülltonnen-Meldung 2.75 Pro
  * Strategie: Cache-First für App-Shell, Network-First für externe APIs
  */
 
-const CACHE_NAME = 'tms-v2.7';
+const CACHE_NAME = 'tms-v2.75';
 
 // App-Shell: diese Dateien werden beim Install sofort gecacht
 const PRECACHE = [
