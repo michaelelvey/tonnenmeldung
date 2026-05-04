@@ -213,6 +213,36 @@
 
   <div id="toast"></div>
 
+  <!-- MODAL: Startup-Bestätigung -->
+  <div class="overlay h" id="startupModal">
+    <div class="modal">
+      <h3>👋 Guten Tag!</h3>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:16px;line-height:1.5">Bitte prüfen Sie Ihre Angaben vor dem Start:</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--gray3);border-radius:9px">
+          <span style="font-size:12px;color:var(--gray)">👤 Fahrername</span>
+          <strong id="suName" style="font-size:14px"></strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--gray3);border-radius:9px">
+          <span style="font-size:12px;color:var(--gray)">🚛 Kennzeichen</span>
+          <strong id="suPlate" style="font-size:14px"></strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--gray3);border-radius:9px">
+          <span style="font-size:12px;color:var(--gray)">📍 Landkreis</span>
+          <strong id="suDist" style="font-size:14px"></strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--gray3);border-radius:9px">
+          <span style="font-size:12px;color:var(--gray)">🗑️ Müllsorte</span>
+          <strong id="suWaste" style="font-size:14px"></strong>
+        </div>
+      </div>
+      <div class="mbtn-row">
+        <button class="btn btn-s" onclick="startupGoSettings()">✏️ Ändern</button>
+        <button class="btn btn-p" onclick="startupConfirm()">✅ Alles korrekt</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Bestätigung -->
   <div class="overlay h" id="genericModal">
     <div class="modal">

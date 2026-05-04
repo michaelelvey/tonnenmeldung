@@ -227,6 +227,7 @@ async function init(){
   const wSel=document.getElementById('wasteSelect'),aSel=document.getElementById('actionSelect');
   wSel.value=settings.defaultWasteType;aSel.value='Geleert';
   highlightSelect(wSel);highlightSelect(aSel);
+  showStartupCheck();
 }
 
 /* ============================================================
@@ -239,6 +240,37 @@ async function initWakeLock(){
   const acquire=async()=>{try{wakeLock=await navigator.wakeLock.request('screen')}catch{}};
   await acquire();
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')acquire()});
+}
+
+/* ============================================================
+   STARTUP-BESTÄTIGUNG
+   ============================================================ */
+
+function showStartupCheck(){
+  if(!settings.driverName){
+    // Kein Name → direkt zu Einstellungen
+    showTab('e');
+    return;
+  }
+  // Einmal pro Tag anzeigen
+  const today=new Date().toISOString().slice(0,10);
+  if(localStorage.getItem('startupChecked')===today)return;
+  localStorage.setItem('startupChecked',today);
+
+  document.getElementById('suName').textContent=settings.driverName||'–';
+  document.getElementById('suPlate').textContent=settings.licensePlate||'–';
+  document.getElementById('suDist').textContent=settings.district||'–';
+  document.getElementById('suWaste').textContent=settings.defaultWasteType||'–';
+  document.getElementById('startupModal').classList.remove('h');
+}
+
+function startupConfirm(){
+  document.getElementById('startupModal').classList.add('h');
+}
+
+function startupGoSettings(){
+  document.getElementById('startupModal').classList.add('h');
+  showTab('e');
 }
 
 function initPWA(){
@@ -408,7 +440,7 @@ async function handlePhoto(slot){
     if(firstPhoto&&!gpsLocked){firstPhoto=false;captureGPS(false)}
     if(slot===2&&!cur.barcode){const blob=await compressToBlob(file);await tryBarcode(blob)}
     /* OCR-TONNENNUMMER START */
-    if(slot===2){tryOCR(dataUrl)}
+    if(slot===2&&settings.district==='Landkreis Wittmund'){tryOCR(dataUrl)}
     /* OCR-TONNENNUMMER END */
     checkDups();
   }catch(err){toast('Foto-Fehler: '+err.message)}
@@ -563,21 +595,46 @@ function resetForm(){
    SEND / EMAIL
    ============================================================ */
 
-function buildSubj(e){return`Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`}
+function buildSubj(e){
+  const street=e.gps?.street||e.gps?.address||'';
+  const plz=e.gps?.plz||'';
+  const ort=e.gps?.ort||'';
+  const plzOrt=[plz,ort].filter(Boolean).join(' ');
+  const adresse=plzOrt?`${street} in ${plzOrt}`:street;
+  return adresse
+    ?`Mülltonnen-Meldung | ${e.category} | ${adresse}`
+    :`Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`;
+}
 
 function buildBody(e,dups=[]){
+  const street=e.gps?.street||e.gps?.address||'';
+  const plz=e.gps?.plz||'';
+  const ort=e.gps?.ort||'';
+  const plzOrt=[plz,ort].filter(Boolean).join(' ');
+  const standort=e.gps?(plzOrt?`${street} in ${plzOrt}`:street)||'-':'-';
   const ln=[
     `Datum: ${fmtDT(e.createdAt)}`,'',
     `Firma: Augustin Entsorgung Friesland GmbH & Co. KG`,
-    `Fahrer: ${e.driverName||'-'}`,`Fahrzeug: ${e.licensePlate||'-'}`,`Landkreis: ${e.district||'-'}`,'',
+    `Fahrer: ${e.driverName||'-'}`,
+    `Fahrzeug: ${e.licensePlate||'-'}`,
+    `Landkreis: ${e.district||'-'}`,'',
+    `Standort: ${standort}`,
     `Barcode: ${e.barcode||'-'}`,
-    `Müllart: ${e.wasteType||'-'}`,`Kategorie: ${e.category}`,`Aktion: ${e.actionTaken||'-'}`,
-    `Standort: ${e.gps?.address||'-'}`,
+    /* OCR-TONNENNUMMER START */
+    `Tonnennummer: ${e.binNumber||'-'}`,
+    /* OCR-TONNENNUMMER END */
+    `Müllart: ${e.wasteType||'-'}`,
+    `Kategorie: ${e.category||'-'}`,
+    `Aktion: ${e.actionTaken||'-'}`,
     `GPS: ${e.gps?`${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}`:'-'}`,
     `Karte: ${e.gps?`https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`:'-'}`,'',
   ];
-  if(dups.length>0){ln.push('⚠️ DUPLIKATE:');dups.forEach((d,i)=>ln.push(`${i+1}. ${fmtDT(d.createdAt)} | ${d.category} | ${d.actionTaken||'–'}`))}
-  else{ln.push('Keine Duplikate gefunden.')}
+  if(dups.length>0){
+    ln.push('⚠️ DUPLIKATE:');
+    dups.forEach((d,i)=>ln.push(`${i+1}. ${fmtDT(d.createdAt)} | ${d.category} | ${d.actionTaken||'–'}`));
+  }else{
+    ln.push('Keine Duplikate gefunden.');
+  }
   ln.push('','---','© Michael Elvey');
   return ln.join('\n');
 }
