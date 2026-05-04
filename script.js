@@ -788,21 +788,19 @@ async function doExport(){
   const zipFile=new File([content],zipName,{type:'application/zip'});
   let shared=false;
 
-  // Teilen-Dialog: funktioniert auf Android & iOS wenn ZIP unterstützt wird
   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[zipFile]})){
     try{
       await navigator.share({files:[zipFile],title:zipName});
       shared=true;
     }catch(err){
-      // Nutzer hat abgebrochen → kein Download, kein Fehler
-      if(err?.name==='AbortError'||err?.name==='NotAllowedError'){
+      if(err?.name==='AbortError'){
+        // Nutzer hat den Dialog bewusst geschlossen → kein Download
         toast('📦 Teilen abgebrochen');return;
       }
-      // Alle anderen Fehler (inkl. iOS-Inkompatibilität) → still zum Download
+      // NotAllowedError (Geste abgelaufen) oder anderes → still zum Download
     }
   }
 
-  // Fallback: direkter Download (Desktop + iOS ohne ZIP-Share-Support)
   if(!shared){
     const url=URL.createObjectURL(content);
     const a=document.createElement('a');a.href=url;a.download=zipName;a.click();
