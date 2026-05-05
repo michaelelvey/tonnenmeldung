@@ -880,7 +880,7 @@ function renderHE(e){
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
         <button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button>
         <button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button>
-        <button class="sm btn-d" style="background:var(--r);color:#fff" onclick="confirmAction('Löschen?',()=>delEntry('${e.id}'))"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAADbklEQVR4nG2TSWxUdRzHv7//e/PeTGcrXaYzdhgqIzZUOnogEOpSjDGGhJgYhIQLejAhemk0enDFMRqMcTl5MnrgRKzeDAfRkNZUJYGUiOBCpVNbK9NZ38y8Zd5/89qDn/Pn+PkQ/odnLq1Gn//5zY+sxvp+CL8lu538aqV59sT3s+eBebndJQ0QtKbFFx97IH9PYSYxlHxC1Tf2CqdVVN1WzwxczqOJuNfuEtW2bikpr+nUyAUvk1k88PGVDQKApfee2jc9Zl9PZseAWBzoOVBBD8xrgderYAxQfgj/nwak3wcZNq44qRuPf3WsZF6anTV//env22E2/GKHeeOUO5BTkXjKVM6/jNwWtORQfgDf5brZlporEkz1jTu88wlQVuzwYeD0N1e9wp7c0n37MubdWZuNUJtSQU1FRQCLc5iKIQpGmQGDspayxoeTRnF6ehEAzBPlBQaAEDOrZtzEYH6SzFicjBVFQRBCKwUllLY8l2qbHVq7HUKySNBQwx4AsLmzJ+dW3j9yrXJzy+j1hTR4n7UCa2u5GT8fhlwEXGkDmjqh4t0QvkGAZORcHx1tAwCr1Wq/RNx2qXKnl5UKLWuAkavtb/f//vppro0gYRu64evLy23rjZsNcTHCmAaMeiLxoU8AzF0DwWsqwlQxF3unWndTiTEXaeaUlsfn3h2J24m+kADp3fen+KtevqCc9XX4UjvlMil9HIaZSVuPDEYga5udMY9DS9dDOu6WpnYNly5cXXuFUcLc6ujmQznxVlr3xqtCSaX6B88dSB+neWferDa8HzMZe8Z1AtiuRyo/ijCmlRKh3j2YfDoe7MxP5RqJuN1NbK5XhUHMENbA1ylbv3Du0NiCefGHtZObudhMreaP3AvnJd4qTBgZk4RmbE8WBzlfgxQcsgcoRdIwLPIE27grIkvMFB/Q9q5X3n7ws+LOHc+5qaIQm3+YqlNXUCAtBZgb0OqfLXSCKJrQmLIbcLUN88wZsGcrs1alsiCiyVgTBkktpQKY1lIyRgwAoLTWUijNGHEnxK0tWJMdzS6zchlqYgLi0QWIrhv+BSWNmAXLti2ymIZhEiImIUKgKAMjIttOjp76zZV7j35Xf5i2XYnPn5xMHCpYLw+NDB1RvF/QficttY5IX3C34TUbTbHSCPDlsaXqpwCgNeg/P2vPGAJz2BMAAAAASUVORK5CYII=" style="width:14px;height:14px;vertical-align:middle;margin-right:3px"> Löschen</button>
+        <button class="sm btn-d" style="background:var(--r);color:#fff" onclick="confirmAction('Eintrag vom ${fmtDT(e.createdAt)} wirklich löschen?',()=>delEntry('${e.id}'),'Eintrag löschen')"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAADbklEQVR4nG2TSWxUdRzHv7//e/PeTGcrXaYzdhgqIzZUOnogEOpSjDGGhJgYhIQLejAhemk0enDFMRqMcTl5MnrgRKzeDAfRkNZUJYGUiOBCpVNbK9NZ38y8Zd5/89qDn/Pn+PkQ/odnLq1Gn//5zY+sxvp+CL8lu538aqV59sT3s+eBebndJQ0QtKbFFx97IH9PYSYxlHxC1Tf2CqdVVN1WzwxczqOJuNfuEtW2bikpr+nUyAUvk1k88PGVDQKApfee2jc9Zl9PZseAWBzoOVBBD8xrgderYAxQfgj/nwak3wcZNq44qRuPf3WsZF6anTV//env22E2/GKHeeOUO5BTkXjKVM6/jNwWtORQfgDf5brZlporEkz1jTu88wlQVuzwYeD0N1e9wp7c0n37MubdWZuNUJtSQU1FRQCLc5iKIQpGmQGDspayxoeTRnF6ehEAzBPlBQaAEDOrZtzEYH6SzFicjBVFQRBCKwUllLY8l2qbHVq7HUKySNBQwx4AsLmzJ+dW3j9yrXJzy+j1hTR4n7UCa2u5GT8fhlwEXGkDmjqh4t0QvkGAZORcHx1tAwCr1Wq/RNx2qXKnl5UKLWuAkavtb/f//vppro0gYRu64evLy23rjZsNcTHCmAaMeiLxoU8AzF0DwWsqwlQxF3unWndTiTEXaeaUlsfn3h2J24m+kADp3fen+KtevqCc9XX4UjvlMil9HIaZSVuPDEYga5udMY9DS9dDOu6WpnYNly5cXXuFUcLc6ujmQznxVlr3xqtCSaX6B88dSB+neWferDa8HzMZe8Z1AtiuRyo/ijCmlRKh3j2YfDoe7MxP5RqJuN1NbK5XhUHMENbA1ylbv3Du0NiCefGHtZObudhMreaP3AvnJd4qTBgZk4RmbE8WBzlfgxQcsgcoRdIwLPIE27grIkvMFB/Q9q5X3n7ws+LOHc+5qaIQm3+YqlNXUCAtBZgb0OqfLXSCKJrQmLIbcLUN88wZsGcrs1alsiCiyVgTBkktpQKY1lIyRgwAoLTWUijNGHEnxK0tWJMdzS6zchlqYgLi0QWIrhv+BSWNmAXLti2ymIZhEiImIUKgKAMjIttOjp76zZV7j35Xf5i2XYnPn5xMHCpYLw+NDB1RvF/QficttY5IX3C34TUbTbHSCPDlsaXqpwCgNeg/P2vPGAJz2BMAAAAASUVORK5CYII=" style="width:14px;height:14px;vertical-align:middle;margin-right:3px"> Löschen</button>
       </div>
     </div>
   </div>`;
@@ -911,7 +911,8 @@ async function saveEdit(){
 function closeEdit(){editId=null;document.getElementById('editModal').classList.add('h')}
 function closeT(){closeEdit()}
 async function delEntry(id){await dbDelete('entries',id);renderHistory(true);toast('Gelöscht')}
-function confirmAction(text,cb){
+function confirmAction(text,cb,title='Bestätigung'){
+  document.getElementById('gmTitle').textContent=title;
   document.getElementById('gmText').textContent=text;
   document.getElementById('gmConfirm').onclick=()=>{vibe(30);cb();closeGenericModal()};
   document.getElementById('genericModal').classList.remove('h');
@@ -1318,6 +1319,8 @@ code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:
   });
 
   /* ---------- SEARCH ---------- */
+  /* Hinweis: #searchInput, #searchClear, #searchInfo existieren nur im generierten
+     Bericht.html, NICHT in der App-index.html – daher kein ID-Konflikt */
   var totalRows=document.querySelectorAll('#reportTable tbody tr').length;
 
   window.applySearch=function(){
@@ -1423,16 +1426,16 @@ async function confirmArchiveDelete(mode){
   if(!toDelete.length){toast('ℹ️ Keine Meldungen in diesem Zeitraum gefunden.');return}
 
   // Bestätigung anfordern
-  openGenericModal(
-    '🗑 Wirklich löschen?',
-    `${toDelete.length} archivierte Meldung${toDelete.length!==1?'en':''} werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.`,
+  confirmAction(
+    `${toDelete.length} archivierte Meldung${toDelete.length!==1?'en':''} endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
     async()=>{
       for(const e of toDelete)await dbDelete('entries',e.id);
       entries=await dbGetAll('entries');
       renderHistory(true);
       await loadSettingsUI();
       toast(`✅ ${toDelete.length} Meldung${toDelete.length!==1?'en':''} gelöscht`);
-    }
+    },
+    '🗑 Archiv bereinigen'
   );
 }
 

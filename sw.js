@@ -3,7 +3,7 @@
  * Strategie: Cache-First für App-Shell, Network-First für externe APIs
  */
 
-const CACHE_NAME = 'tms-v2.75';
+const CACHE_NAME = 'tms-v2.78';
 
 // App-Shell: diese Dateien werden beim Install sofort gecacht
 const PRECACHE = [
@@ -17,7 +17,9 @@ const PRECACHE = [
 const NETWORK_ONLY = [
   'nominatim.openstreetmap.org',  // GPS-Reverse-Geocoding
   'fonts.googleapis.com',          // Google Fonts CSS
-  'fonts.gstatic.com'             // Google Fonts Dateien
+  'fonts.gstatic.com',             // Google Fonts Dateien
+  'cdnjs.cloudflare.com',          // JSZip
+  'cdn.jsdelivr.net'               // Tesseract.js
 ];
 
 // ============================================================
