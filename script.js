@@ -1376,10 +1376,16 @@ function checkSetupLink(){
   const setup=params.get('setup');
   if(!setup)return;
   try{
-    const decoded=JSON.parse(atob(decodeURIComponent(setup)));
-    // Admin-Felder übernehmen – Fahrername & Kennzeichen bewusst NICHT (muss Fahrer selbst eintragen)
+    // Korrekte Umkehr der Kodierung: percent-decode → base64 → binary → UTF-8 → JSON
+    const jsonStr=decodeURIComponent(escape(atob(decodeURIComponent(setup))));
+    const decoded=JSON.parse(jsonStr);
     const allowed=['driverName','licensePlate','district','districtMails','email','defaultWasteType','theme'];
-    allowed.forEach(k=>{if(decoded[k]!==undefined)settings[k]=decoded[k]});
+    allowed.forEach(k=>{
+      if(decoded[k]!==undefined){
+        // Textwerte zusätzlich durch fixUtf8 absichern
+        settings[k]=typeof decoded[k]==='string'?fixUtf8(decoded[k]):decoded[k];
+      }
+    });
     settings.districtMails={...DISTRICT_MAIL_DEFAULTS,...(decoded.districtMails||{})};
     applyTheme(settings.theme||'auto');
     dbPut('settings',settings,'config');
