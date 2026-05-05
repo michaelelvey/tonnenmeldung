@@ -110,7 +110,7 @@
         <button onclick="document.getElementById('dupWarn').classList.add('hidden')"
                 style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--y);margin-left:10px">✕</button>
       </div>
-      <button class="btn btn-p" id="sendBtn" onclick="sendEntry()">📤 Meldung senden</button>
+      <button class="btn btn-p" id="sendBtn" onclick="captureEntry()">📋 Meldung erfassen</button>
       <button class="btn btn-s" style="margin-top:8px" onclick="resetForm()">🔄 Formular zurücksetzen</button>
       <input type="file" id="fi0" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(0)">
       <input type="file" id="fi1" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto(1)">
@@ -149,15 +149,23 @@
         <!-- Landkreis-Auswahl + dynamisches E-Mail-Feld -->
         <div class="field">
           <label>Landkreis / Gebiet</label>
-          <select id="sDist" onchange="updateDistMailField()">
+          <select id="sDist">
             <option value="Landkreis Wittmund">Landkreis Wittmund</option>
             <option value="Landkreis Friesland">Landkreis Friesland</option>
             <option value="Landkreis Wilhelmshaven">Landkreis Wilhelmshaven</option>
           </select>
         </div>
-        <div class="field" id="distMailField">
-          <label id="distMailLabel">📧 E-Mail Landkreis Wittmund</label>
-          <input type="email" id="sDistMail" placeholder="E-Mail-Adresse des Landkreises…">
+        <div class="field">
+          <label>📧 E-Mail Landkreis Wittmund</label>
+          <input type="email" id="sMailWittmund" placeholder="E-Mail-Adresse…">
+        </div>
+        <div class="field">
+          <label>📧 E-Mail Landkreis Friesland</label>
+          <input type="email" id="sMailFriesland" placeholder="E-Mail-Adresse…">
+        </div>
+        <div class="field">
+          <label>📧 E-Mail Landkreis Wilhelmshaven</label>
+          <input type="email" id="sMailWilhelmshaven" placeholder="E-Mail-Adresse…">
         </div>
 
         <div class="field">
@@ -286,8 +294,8 @@
           </div>
 
           <div style="border:1.5px solid var(--g2);border-radius:10px;padding:11px 12px;background:var(--g3)">
-            <div style="font-size:12px;font-weight:700;color:var(--g);margin-bottom:4px">SCHRITT 6 — Meldung senden</div>
-            <p style="font-size:12.5px;color:var(--text);line-height:1.5">Klick auf <strong>„📤 Meldung senden"</strong> öffnet den nativen Teilen-Dialog. Die Meldung kann per E-Mail, WhatsApp oder SMS an die Disposition gesendet werden. Fotos werden automatisch angehängt.</p>
+            <div style="font-size:12px;font-weight:700;color:var(--g);margin-bottom:4px">SCHRITT 6 — Meldung erfassen</div>
+            <p style="font-size:12.5px;color:var(--text);line-height:1.5">Klick auf <strong>„📋 Meldung erfassen"</strong> speichert die Meldung lokal im Verlauf. Am Ende der Schicht können Tages-, Wochen- oder Monatsberichte als ZIP exportiert werden. Einzelne Meldungen können bei Bedarf direkt aus dem <strong>🕐 Verlauf</strong> geteilt oder versendet werden.</p>
           </div>
         </div>
       </div>
@@ -525,19 +533,57 @@
         Erstellt ZIP mit CSV, HTML-Bericht und Fotos.<br>
         <strong>→ ZIP entpacken → Bericht.html im Browser öffnen.</strong>
       </p>
-      <div class="clabel">Was soll exportiert werden?</div>
-      <div style="display:flex;flex-direction:column;gap:8px" id="exportChoices">
-        <button class="btn btn-s export-choice" onclick="selectExportPeriod('today', this)">📅 Heute</button>
-        <button class="btn btn-s export-choice" onclick="selectExportPeriod('week', this)">📅 Laufende Woche</button>
-        <button class="btn btn-s export-choice" onclick="selectExportPeriod('month', this)">📅 Laufender Monat</button>
-        <button class="btn btn-s export-choice" onclick="selectExportPeriod('manual', this)">🗓️ Manueller Zeitraum</button>
+
+      <!-- Aktueller Tagesbericht -->
+      <button class="btn btn-s export-choice" style="margin-bottom:8px" onclick="selectExportPeriod('today',this)">
+        📅 Aktueller Tagesbericht
+      </button>
+
+      <!-- Gewünschter Tagesbericht -->
+      <button class="btn btn-s export-choice" style="margin-bottom:8px" onclick="toggleExportSection('day',this)">
+        🗓️ Gewünschter Tagesbericht
+      </button>
+      <div id="exportDay" class="hidden" style="margin-bottom:8px;padding:10px;background:var(--gray3);border-radius:9px">
+        <div class="field" style="margin-bottom:10px"><label>Tag auswählen</label><input type="date" id="exDay"></div>
+        <button class="btn btn-p" onclick="selectExportPeriod('day-pick',this)">📦 ZIP erstellen</button>
       </div>
-      <div id="exportManual" class="hidden" style="margin-top:14px">
-        <div class="field"><label>Von</label><input type="date" id="exFrom"></div>
-        <div class="field" style="margin-bottom:14px"><label>Bis</label><input type="date" id="exTo"></div>
-        <button class="btn btn-p" onclick="doExport()">📦 ZIP erstellen &amp; herunterladen</button>
+
+      <!-- Gewünschter Wochenbericht -->
+      <button class="btn btn-s export-choice" style="margin-bottom:8px" onclick="toggleExportSection('week',this)">
+        📆 Gewünschter Wochenbericht
+      </button>
+      <div id="exportWeek" class="hidden" style="margin-bottom:8px;padding:10px;background:var(--gray3);border-radius:9px">
+        <div class="field" style="margin-bottom:6px"><label>Jahr</label>
+          <select id="exWeekYear"></select>
+        </div>
+        <div class="field" style="margin-bottom:10px"><label>Kalenderwoche</label>
+          <select id="exWeekKW"></select>
+        </div>
+        <button class="btn btn-p" onclick="selectExportPeriod('week-pick',this)">📦 ZIP erstellen</button>
       </div>
-      <button class="btn btn-s" style="margin-top:8px" onclick="closeExport()">Abbrechen</button>
+
+      <!-- Gewünschter Monatsbericht -->
+      <button class="btn btn-s export-choice" style="margin-bottom:8px" onclick="toggleExportSection('month',this)">
+        📋 Gewünschter Monatsbericht
+      </button>
+      <div id="exportMonth" class="hidden" style="margin-bottom:8px;padding:10px;background:var(--gray3);border-radius:9px">
+        <div class="field" style="margin-bottom:6px"><label>Jahr</label>
+          <select id="exMonthYear"></select>
+        </div>
+        <div class="field" style="margin-bottom:10px"><label>Monat</label>
+          <select id="exMonthMonth">
+            <option value="0">Januar</option><option value="1">Februar</option>
+            <option value="2">März</option><option value="3">April</option>
+            <option value="4">Mai</option><option value="5">Juni</option>
+            <option value="6">Juli</option><option value="7">August</option>
+            <option value="8">September</option><option value="9">Oktober</option>
+            <option value="10">November</option><option value="11">Dezember</option>
+          </select>
+        </div>
+        <button class="btn btn-p" onclick="selectExportPeriod('month-pick',this)">📦 ZIP erstellen</button>
+      </div>
+
+      <button class="btn btn-s" style="margin-top:4px" onclick="closeExport()">Abbrechen</button>
     </div>
   </div>
 

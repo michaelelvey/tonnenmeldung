@@ -8,7 +8,7 @@
 const ADMIN_PASSWORD = '31512';
 
 const DISTRICT_MAIL_DEFAULTS = {
-  'Landkreis Wittmund':      'Abfuhr@lk.wittmund.de',
+  'Landkreis Wittmund':      '',
   'Landkreis Friesland':     '',
   'Landkreis Wilhelmshaven': ''
 };
@@ -229,7 +229,10 @@ async function loadData(){
     const s=await dbGet('settings','config');
     if(s){
       settings={...settings,...s};
-      // Sicherstellen, dass districtMails immer alle Landkreise enthält
+      // UTF-8-Kodierungsfehler in Textfeldern reparieren
+      ['driverName','licensePlate','district','defaultWasteType','email','theme'].forEach(k=>{
+        if(settings[k])settings[k]=fixUtf8(settings[k]);
+      });
       settings.districtMails={...DISTRICT_MAIL_DEFAULTS,...(s.districtMails||{})};
     }
     applyTheme(settings.theme||'auto');
@@ -278,9 +281,16 @@ async function init(){
   showStartupCheck();
 }
 
+/* Repariert doppelt-kodierte UTF-8-Strings (Ã¼ → ü, Ã¶ → ö, etc.)
+   Passiert wenn der Browser Datenbankwerte als Latin-1 statt UTF-8 liest. */
+function fixUtf8(str){
+  if(!str||typeof str!=='string')return str;
+  if(!/Ã/.test(str))return str; // Kein Problem erkannt → unverändert
+  try{return decodeURIComponent(escape(str))}catch{return str}
+}
+
 /* ============================================================
    WAKE LOCK
-   ============================================================ */
 
 let wakeLock=null;
 async function initWakeLock(){
@@ -308,7 +318,10 @@ function showStartupCheck(){
   document.getElementById('suName').textContent=settings.driverName||'–';
   document.getElementById('suPlate').textContent=settings.licensePlate||'–';
   document.getElementById('suDist').textContent=settings.district||'–';
-  document.getElementById('suWaste').textContent=settings.defaultWasteType||'–';
+  // Müllsorte direkt aus dem Select-Element lesen – vermeidet Kodierungsprobleme
+  const wSel=document.getElementById('sWaste');
+  const wText=wSel.selectedIndex>=0?wSel.options[wSel.selectedIndex].text:settings.defaultWasteType;
+  document.getElementById('suWaste').textContent=wText||'–';
   document.getElementById('startupModal').classList.remove('h');
 }
 
@@ -350,12 +363,7 @@ function applyTheme(t){
  * Zeigt die gespeicherte E-Mail für diesen Landkreis an
  * (oder leeres Feld wenn noch nicht gespeichert).
  */
-function updateDistMailField(){
-  const dist=document.getElementById('sDist').value;
-  const mail=(settings.districtMails||{})[dist]||'';
-  document.getElementById('sDistMail').value=mail;
-  document.getElementById('distMailLabel').textContent=`📧 E-Mail ${dist}`;
-}
+/* updateDistMailField entfernt – alle drei Landkreis-Felder direkt in loadSettingsUI befüllt */
 
 async function loadSettingsUI(){
   document.getElementById('sName').value=settings.driverName||'';
@@ -364,7 +372,11 @@ async function loadSettingsUI(){
   document.getElementById('sEmail').value=settings.email||'';
   document.getElementById('sWaste').value=settings.defaultWasteType||WASTE_TYPES[0];
   document.getElementById('sTheme').value=settings.theme||'auto';
-  updateDistMailField();
+  // Alle drei Landkreis-E-Mails separat befüllen
+  const dm=settings.districtMails||{};
+  document.getElementById('sMailWittmund').value=dm['Landkreis Wittmund']||'';
+  document.getElementById('sMailFriesland').value=dm['Landkreis Friesland']||'';
+  document.getElementById('sMailWilhelmshaven').value=dm['Landkreis Wilhelmshaven']||'';
 
   const all=await dbGetAll('entries');
   document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
@@ -374,24 +386,26 @@ async function loadSettingsUI(){
 
 async function saveSettings(){
   vibe(50);
-  const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const emailDispo=document.getElementById('sEmail').value.trim();
-  const emailDist=document.getElementById('sDistMail').value.trim();
-  if(emailDispo&&!emailRe.test(emailDispo)){
-    toast('⚠️ Ungültige E-Mail-Adresse (Dispo)');return;
-  }
-  if(emailDist&&!emailRe.test(emailDist)){
-    toast('⚠️ Ungültige E-Mail-Adresse (Landkreis)');return;
-  }
+  const emailWittmund=document.getElementById('sMailWittmund').value.trim();
+  const emailFriesland=document.getElementById('sMailFriesland').value.trim();
+  const emailWilhelmshaven=document.getElementById('sMailWilhelmshaven').value.trim();
+  const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(emailDispo&&!emailRe.test(emailDispo)){toast('⚠️ Ungültige E-Mail-Adresse (Dispo)');return}
+  if(emailWittmund&&!emailRe.test(emailWittmund)){toast('⚠️ Ungültige E-Mail (Landkreis Wittmund)');return}
+  if(emailFriesland&&!emailRe.test(emailFriesland)){toast('⚠️ Ungültige E-Mail (Landkreis Friesland)');return}
+  if(emailWilhelmshaven&&!emailRe.test(emailWilhelmshaven)){toast('⚠️ Ungültige E-Mail (Landkreis Wilhelmshaven)');return}
   settings.driverName=document.getElementById('sName').value.trim();
   settings.licensePlate=document.getElementById('sPlate').value.trim();
   settings.district=document.getElementById('sDist').value;
   settings.email=emailDispo;
   settings.defaultWasteType=document.getElementById('sWaste').value;
   settings.theme=document.getElementById('sTheme').value;
-
-  if(!settings.districtMails)settings.districtMails={...DISTRICT_MAIL_DEFAULTS};
-  settings.districtMails[settings.district]=emailDist;
+  settings.districtMails={
+    'Landkreis Wittmund':      emailWittmund,
+    'Landkreis Friesland':     emailFriesland,
+    'Landkreis Wilhelmshaven': emailWilhelmshaven
+  };
 
   applyTheme(settings.theme);
   await dbPut('settings',settings,'config');
@@ -571,19 +585,57 @@ async function tryOCR(dataUrl){
     const worker=await getOcrWorker();
     if(!worker)return;
     toast('🔍 Tonnennummer wird erkannt…');
-    const result=await worker.recognize(dataUrl);
+
+    // Obere Hälfte des Bildes ausschneiden (dort steht die Tonnennummer)
+    // und auf höhere Auflösung hochskalieren für bessere OCR-Qualität
+    const croppedUrl=await new Promise(res=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.createElement('canvas');
+        // Obere 45% des Bildes, 2× vergrößert für bessere Lesbarkeit
+        const cropH=Math.round(img.height*0.45);
+        canvas.width=img.width*2;
+        canvas.height=cropH*2;
+        const ctx=canvas.getContext('2d');
+        // Weißer Hintergrund
+        ctx.fillStyle='#fff';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        // Bild vergrößert zeichnen (nur obere Hälfte)
+        ctx.drawImage(img,0,0,img.width,cropH,0,0,canvas.width,canvas.height);
+        res(canvas.toDataURL('image/png'));
+      };
+      img.src=dataUrl;
+    });
+
+    const result=await worker.recognize(croppedUrl);
     const text=result.data.text||'';
-    // Tonnennummer-Muster: z.B. 112.943.2 oder 302.681.7
-    const match=text.match(/\b\d{1,3}\.\d{3}\.\d{1,2}\b/);
+
+    // Flexibler Regex: Punkte oder Leerzeichen als Trenner erlaubt
+    // Muster: NNN.NNN.N oder NNN NNN N oder NNN.NNN N usw.
+    const match=text.match(/\b(\d{1,3})[.\s](\d{3})[.\s](\d{1,2})\b/);
     if(match){
-      cur.binNumber=match[0];
+      // Immer mit Punkten als Trenner normalisieren
+      cur.binNumber=`${match[1]}.${match[2]}.${match[3]}`;
       document.getElementById('binNumVal').value=cur.binNumber;
       document.getElementById('binNumRow').classList.remove('hidden');
       toast('Tonnennummer erkannt: '+cur.binNumber);
     }else{
-      toast('ℹ️ Tonnennummer nicht erkannt');
+      // Fallback: rohen OCR-Text im Input anzeigen damit Fahrer korrigieren kann
+      const raw=text.replace(/[^0-9.\s]/g,'').trim();
+      if(raw.length>=3){
+        document.getElementById('binNumVal').value=raw;
+        document.getElementById('binNumRow').classList.remove('hidden');
+        toast('⚠️ Bitte Tonnennummer prüfen / korrigieren');
+      }else{
+        toast('ℹ️ Tonnennummer nicht erkannt – bitte manuell eingeben');
+        document.getElementById('binNumRow').classList.remove('hidden');
+      }
     }
-  }catch(e){console.warn('OCR Fehler:',e)}
+  }catch(e){
+    console.warn('OCR Fehler:',e);
+    toast('ℹ️ OCR-Fehler – Tonnennummer bitte manuell eingeben');
+    document.getElementById('binNumRow').classList.remove('hidden');
+  }
 }
 
 /* OCR-TONNENNUMMER END */
@@ -708,7 +760,7 @@ function buildBody(e,dups=[]){
   return ln.join('\n');
 }
 
-async function sendEntry(){
+async function captureEntry(){
   const reqA=cur.category!==NO_PHOTO;
   if(!cur.category||(reqA&&!cur.actionTaken)){vibe(100);toast('⚠️ Bitte Kategorie und Aktion auswählen!');return}
   const btn=document.getElementById('sendBtn');btn.disabled=true;
@@ -721,31 +773,15 @@ async function sendEntry(){
       );
     });
   }
-  btn.innerHTML='Wird vorbereitet…';
-  cur.notes=document.getElementById('notesIn').value.trim();cur.updatedAt=new Date().toISOString();
-  const dups=findDups(cur),subj=buildSubj(cur),body=buildBody(cur,dups);
-  const photoFiles=await dataUrlsToFiles(cur.photos.filter(Boolean),cur.id);
-  let sent=false;
-  if(navigator.share){
-    try{
-      let sd={title:subj,text:body};
-      if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles}))sd.files=photoFiles;
-      await navigator.share(sd);sent=true;
-    }catch(err){if(err.name!=='AbortError'){}}
-  }
-  if(!sent){
-    // E-Mail-Adresse aus den Einstellungen lesen (nicht mehr hardcoded)
-    const districtEmail=getDistrictEmail(cur.district);
-    const dispoEmail=settings.email||'';
-    let rec=districtEmail?`mailto:${districtEmail}?cc=${dispoEmail}`:`mailto:${dispoEmail}`;
-    const sep=rec.includes('?')?'&':'?';
-    if(photoFiles.length>0)toast('ℹ️ Fotos bitte manuell anhängen.');
-    window.open(`${rec}${sep}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`,'_blank');
-    sent=true;
-  }
-  cur.sentCount++;await dbPut('entries',{...cur});entries.unshift({...cur});vibe([0,50,50]);
-  toast('✅ Meldung versendet!');
-  setTimeout(()=>{resetForm();showTab('m');btn.innerHTML='📤 Meldung senden';btn.disabled=false;document.getElementById('wrap').scrollTo({top:0})},800);
+  btn.innerHTML='Wird gespeichert…';
+  cur.notes=document.getElementById('notesIn').value.trim();
+  cur.updatedAt=new Date().toISOString();
+  cur.sentCount=0; // Noch nicht versendet
+  await dbPut('entries',{...cur});
+  entries.unshift({...cur});
+  vibe([0,50,50]);
+  toast('✅ Meldung erfasst!');
+  setTimeout(()=>{resetForm();showTab('m');btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;document.getElementById('wrap').scrollTo({top:0})},800);
 }
 
 async function dataUrlsToFiles(dataUrls,id){
@@ -869,31 +905,68 @@ function closeGenericModal(){document.getElementById('genericModal').classList.a
 
 function showExport(){
   exportPeriod=null;
-  document.getElementById('exportManual').classList.add('hidden');
+  const now=new Date(),y=now.getFullYear();
+  ['exWeekYear','exMonthYear'].forEach(id=>{
+    const sel=document.getElementById(id);sel.innerHTML='';
+    for(let i=y;i>=y-2;i--){const o=document.createElement('option');o.value=i;o.textContent=i;sel.appendChild(o)}
+  });
+  const kwSel=document.getElementById('exWeekKW');
+  const curKW=getCalendarWeek(now);kwSel.innerHTML='';
+  for(let i=1;i<=53;i++){const o=document.createElement('option');o.value=i;o.textContent='KW '+String(i).padStart(2,'0');if(i===curKW)o.selected=true;kwSel.appendChild(o)}
+  document.getElementById('exMonthMonth').value=now.getMonth();
+  document.getElementById('exDay').value=fmtISO(now);
+  ['exportDay','exportWeek','exportMonth'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   document.querySelectorAll('.export-choice').forEach(b=>b.classList.remove('active'));
   document.getElementById('exportModal').classList.remove('h');
 }
+
+function toggleExportSection(section,btn){
+  const ids={day:'exportDay',week:'exportWeek',month:'exportMonth'};
+  const targetId=ids[section];
+  const isOpen=!document.getElementById(targetId).classList.contains('hidden');
+  Object.values(ids).forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.querySelectorAll('.export-choice').forEach(b=>b.classList.remove('active'));
+  if(!isOpen){document.getElementById(targetId).classList.remove('hidden');btn.classList.add('active')}
+}
+
 function closeExport(){document.getElementById('exportModal').classList.add('h')}
 
 function selectExportPeriod(period,btn){
   exportPeriod=period;
-  document.querySelectorAll('.export-choice').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  if(period==='manual'){
-    const today=new Date(),from=new Date(today);from.setDate(from.getDate()-30);
-    document.getElementById('exFrom').value=fmtISO(from);
-    document.getElementById('exTo').value=fmtISO(today);
-    document.getElementById('exportManual').classList.remove('hidden');
-  }else{doExport()}
+  if(period==='today'){
+    document.querySelectorAll('.export-choice').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  doExport();
 }
 
 function getExportDateRange(){
   const now=new Date();
   switch(exportPeriod){
-    case 'today': return{from:new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0,0),to:new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59,999)};
-    case 'week':{const day=now.getDay()||7,from=new Date(now);from.setDate(now.getDate()-day+1);from.setHours(0,0,0,0);const to=new Date(now);to.setHours(23,59,59,999);return{from,to}}
-    case 'month':{const from=new Date(now.getFullYear(),now.getMonth(),1,0,0,0,0);const to=new Date(now);to.setHours(23,59,59,999);return{from,to}}
-    case 'manual':{const from=new Date(document.getElementById('exFrom').value);from.setHours(0,0,0,0);const to=new Date(document.getElementById('exTo').value);to.setHours(23,59,59,999);return{from,to}}
+    case 'today':{
+      return{from:new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0,0),
+             to:  new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59,999)};
+    }
+    case 'day-pick':{
+      const d=new Date(document.getElementById('exDay').value);
+      return{from:new Date(d.getFullYear(),d.getMonth(),d.getDate(),0,0,0,0),
+             to:  new Date(d.getFullYear(),d.getMonth(),d.getDate(),23,59,59,999)};
+    }
+    case 'week-pick':{
+      const year=parseInt(document.getElementById('exWeekYear').value);
+      const kw=parseInt(document.getElementById('exWeekKW').value);
+      const jan4=new Date(year,0,4);
+      const mon=new Date(jan4);mon.setDate(jan4.getDate()-(jan4.getDay()||7)+1+(kw-1)*7);
+      const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+      mon.setHours(0,0,0,0);sun.setHours(23,59,59,999);
+      return{from:mon,to:sun};
+    }
+    case 'month-pick':{
+      const year=parseInt(document.getElementById('exMonthYear').value);
+      const month=parseInt(document.getElementById('exMonthMonth').value);
+      return{from:new Date(year,month,1,0,0,0,0),
+             to:  new Date(year,month+1,0,23,59,59,999)};
+    }
     default:return{from:new Date(0),to:new Date()};
   }
 }
@@ -906,15 +979,15 @@ function getCalendarWeek(date){
 }
 
 function getZipFilename(from,to){
-  const name=(settings.driverName||'Fahrer').replace(/[^\w\-äöüÄÖÜß]/g,'_');
+  const name=(settings.driverName||'Fahrer').replace(/[^\w\-\u00e4\u00f6\u00fc\u00c4\u00d6\u00dc\u00df]/g,'_');
   const year=from.getFullYear(),pad=n=>String(n).padStart(2,'0');
-  const MO=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const MO=['Januar','Februar','M\u00e4rz','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
   switch(exportPeriod){
-    case 'today':  return`Meldung_${name}-${year}_${pad(from.getDate())}.${pad(from.getMonth()+1)}.zip`;
-    case 'week':   return`Meldung_${name}-${year}_KW${String(getCalendarWeek(from)).padStart(2,'0')}.zip`;
-    case 'month':  return`Meldung_${name}-${year}_${MO[from.getMonth()]}.zip`;
-    case 'manual': return`Meldung_${name}-${year}_${pad(from.getDate())}-${pad(from.getMonth()+1)} bis ${pad(to.getDate())}-${pad(to.getMonth()+1)}.zip`;
-    default:       return`Meldung_${name}-${year}_Export.zip`;
+    case 'today':     return`Tagesbericht_${name}_${pad(from.getDate())}-${pad(from.getMonth()+1)}-${year}.zip`;
+    case 'day-pick':  return`Tagesbericht_${name}_${pad(from.getDate())}-${pad(from.getMonth()+1)}-${year}.zip`;
+    case 'week-pick': return`Wochenbericht_${name}_${year}_KW${String(getCalendarWeek(from)).padStart(2,'0')}.zip`;
+    case 'month-pick':return`Monatsbericht_${name}_${MO[from.getMonth()]}-${year}.zip`;
+    default:          return`Bericht_${name}_${year}.zip`;
   }
 }
 
@@ -1278,8 +1351,9 @@ async function resend(id){
     }catch{}
   }
   if(!sent){
-    // E-Mail-Adresse aus den Einstellungen lesen
-    const districtEmail=getDistrictEmail(e.district);
+    // Empfänger-Adresse immer aus den aktuellen Einstellungen lesen
+    // (Landkreis Einstellung → Empfänger, Dispo → CC)
+    const districtEmail=getDistrictEmail(settings.district);
     const dispoEmail=settings.email||'';
     let rec=districtEmail?`mailto:${districtEmail}?cc=${dispoEmail}`:`mailto:${dispoEmail}`;
     const sep=rec.includes('?')?'&':'?';
@@ -1358,17 +1432,18 @@ function _doGenerateSetupLink(){
     driverName:       document.getElementById('sName').value.trim(),
     licensePlate:     document.getElementById('sPlate').value.trim(),
     district:         document.getElementById('sDist').value,
-    districtMails:    {...(settings.districtMails||{})},
+    districtMails:{
+      'Landkreis Wittmund':      document.getElementById('sMailWittmund').value.trim(),
+      'Landkreis Friesland':     document.getElementById('sMailFriesland').value.trim(),
+      'Landkreis Wilhelmshaven': document.getElementById('sMailWilhelmshaven').value.trim()
+    },
     email:            document.getElementById('sEmail').value.trim(),
     defaultWasteType: document.getElementById('sWaste').value,
     theme:            document.getElementById('sTheme').value
   };
 
-  // Aktuellen districtMail-Wert des gewählten Landkreises eintragen
-  const currentDist=document.getElementById('sDist').value;
-  const currentDistMail=document.getElementById('sDistMail').value.trim();
-  if(currentDistMail) payload.districtMails[currentDist]=currentDistMail;
-
+  // Leere districtMail-Einträge entfernen
+  Object.keys(payload.districtMails).forEach(k=>{if(!payload.districtMails[k])delete payload.districtMails[k]});
   // Leere Felder entfernen
   Object.keys(payload).forEach(k=>{if(payload[k]===''||payload[k]===null)delete payload[k]});
 
