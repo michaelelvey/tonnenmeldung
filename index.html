@@ -126,6 +126,7 @@
           <div style="display:flex;justify-content:space-between"><span>Archiviert:</span><strong id="stArchived">0</strong></div>
           <div style="display:flex;justify-content:space-between"><span>Gesamt:</span><strong id="stTotal">0</strong></div>
         </div>
+        <button class="btn btn-d" style="font-size:13px;padding:10px" onclick="openArchiveDelete()">🗑 Archiv bereinigen</button>
       </div>
       <button class="btn btn-s" onclick="showExport()" style="margin-bottom:12px">📦 ZIP-Export</button>
       <div class="sbar" style="display:flex;gap:8px;margin-bottom:12px">
@@ -597,6 +598,36 @@
         <button class="btn btn-p" onclick="saveEdit()">Speichern</button>
         <button class="btn btn-s" onclick="closeT()">Abbrechen</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Archiv bereinigen -->
+  <div class="overlay h" id="archiveDeleteModal">
+    <div class="modal">
+      <h3>🗑 Archiv bereinigen</h3>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:16px;line-height:1.5">
+        Archivierte Meldungen endgültig löschen.<br>
+        <strong style="color:var(--r)">⚠️ Diese Aktion kann nicht rückgängig gemacht werden!</strong>
+      </p>
+
+      <!-- Option 1: Nach Datum -->
+      <div style="background:var(--gray3);border-radius:10px;padding:13px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Option 1 – Älter als Datum</div>
+        <div class="field" style="margin-bottom:10px">
+          <label>Lösche Archiv-Meldungen älter als:</label>
+          <input type="date" id="archiveDeleteDate">
+        </div>
+        <button class="btn btn-d" onclick="confirmArchiveDelete('date')">🗑 Nach Datum löschen</button>
+      </div>
+
+      <!-- Option 2: Älter als 1 Jahr -->
+      <div style="background:var(--gray3);border-radius:10px;padding:13px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Option 2 – Älter als 1 Jahr</div>
+        <p style="font-size:12.5px;color:var(--gray);margin-bottom:10px">Alle archivierten Meldungen die älter als 365 Tage sind werden gelöscht.</p>
+        <button class="btn btn-d" onclick="confirmArchiveDelete('year')">🗑 Älter als 1 Jahr löschen</button>
+      </div>
+
+      <button class="btn btn-s" onclick="document.getElementById('archiveDeleteModal').classList.add('h')">Abbrechen</button>
     </div>
   </div>
 

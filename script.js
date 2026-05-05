@@ -363,14 +363,32 @@ function applyTheme(t){
  * Zeigt die gespeicherte E-Mail für diesen Landkreis an
  * (oder leeres Feld wenn noch nicht gespeichert).
  */
-/* updateDistMailField entfernt – alle drei Landkreis-Felder direkt in loadSettingsUI befüllt */
+/* Setzt den Müllsorte-Select robust – versucht exakten Match,
+   dann normalisierten Match (Umlaute), dann ersten Eintrag als Fallback */
+function setWasteSelect(value){
+  const sel=document.getElementById('sWaste');
+  if(!value){sel.selectedIndex=0;return}
+  // Versuch 1: exakter Match
+  sel.value=value;
+  if(sel.value===value)return;
+  // Versuch 2: normalisierter Match (Kodierungsvarianten)
+  const norm=s=>fixUtf8(s||'').toLowerCase().replace(/\s+/g,'');
+  const target=norm(value);
+  for(const opt of sel.options){
+    if(norm(opt.value)===target||norm(opt.text)===target){
+      sel.value=opt.value;return;
+    }
+  }
+  // Fallback: ersten Eintrag
+  sel.selectedIndex=0;
+}
 
 async function loadSettingsUI(){
   document.getElementById('sName').value=settings.driverName||'';
   document.getElementById('sPlate').value=settings.licensePlate||'';
   document.getElementById('sDist').value=settings.district||'Landkreis Wittmund';
   document.getElementById('sEmail').value=settings.email||'';
-  document.getElementById('sWaste').value=settings.defaultWasteType||WASTE_TYPES[0];
+  setWasteSelect(settings.defaultWasteType||WASTE_TYPES[0]);
   document.getElementById('sTheme').value=settings.theme||'auto';
   // Alle drei Landkreis-E-Mails separat befüllen
   const dm=settings.districtMails||{};
@@ -411,6 +429,7 @@ async function saveSettings(){
   await dbPut('settings',settings,'config');
   toast('✅ Gespeichert');
   const wSel=document.getElementById('wasteSelect');
+  setWasteSelect(settings.defaultWasteType);
   wSel.value=settings.defaultWasteType;
   cur.wasteType=settings.defaultWasteType;
   highlightSelect(wSel);
@@ -1364,6 +1383,60 @@ async function resend(id){
 }
 
 /* ============================================================
+   ARCHIV BEREINIGEN
+   ============================================================ */
+
+let _archivePendingAction=null;
+
+function openArchiveDelete(){
+  if(!ADMIN_PASSWORD){
+    toast('⚠️ Kein Admin-Passwort hinterlegt.');return;
+  }
+  // Passwort-Modal öffnen, danach Archiv-Modal
+  _archivePendingAction='archiveDelete';
+  const modal=document.getElementById('adminPassModal');
+  document.getElementById('adminPassInput').value='';
+  document.getElementById('adminPassError').classList.add('hidden');
+  modal.classList.remove('h');
+  setTimeout(()=>document.getElementById('adminPassInput').focus(),100);
+}
+
+function _openArchiveDeleteModal(){
+  // Datum-Picker auf heute setzen
+  document.getElementById('archiveDeleteDate').value=fmtISO(new Date());
+  document.getElementById('archiveDeleteModal').classList.remove('h');
+}
+
+async function confirmArchiveDelete(mode){
+  document.getElementById('archiveDeleteModal').classList.add('h');
+  const allEntries=await dbGetAll('entries');
+  const archived=allEntries.filter(e=>e.archived);
+  let cutoff;
+  if(mode==='date'){
+    const d=new Date(document.getElementById('archiveDeleteDate').value);
+    if(isNaN(d)){toast('⚠️ Ungültiges Datum');return}
+    d.setHours(23,59,59,999);cutoff=d;
+  }else{
+    cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-1);cutoff.setHours(23,59,59,999);
+  }
+  const toDelete=archived.filter(e=>new Date(e.createdAt)<=cutoff);
+  if(!toDelete.length){toast('ℹ️ Keine Meldungen in diesem Zeitraum gefunden.');return}
+
+  // Bestätigung anfordern
+  openGenericModal(
+    '🗑 Wirklich löschen?',
+    `${toDelete.length} archivierte Meldung${toDelete.length!==1?'en':''} werden endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.`,
+    async()=>{
+      for(const e of toDelete)await dbDelete('entries',e.id);
+      entries=await dbGetAll('entries');
+      renderHistory(true);
+      await loadSettingsUI();
+      toast(`✅ ${toDelete.length} Meldung${toDelete.length!==1?'en':''} gelöscht`);
+    }
+  );
+}
+
+/* ============================================================
    SETUP LINK
    ============================================================ */
 
@@ -1425,7 +1498,12 @@ function confirmAdminPass(){
     return;
   }
   closeAdminPassModal();
-  _doGenerateSetupLink();
+  if(_archivePendingAction==='archiveDelete'){
+    _archivePendingAction=null;
+    _openArchiveDeleteModal();
+  }else{
+    _doGenerateSetupLink();
+  }
 }
 
 function closeAdminPassModal(){
