@@ -1,11 +1,14 @@
 /**
- * sw.js – Service Worker für Mülltonnen-Meldung 2.75 Pro
- * Strategie: Cache-First für App-Shell, Network-First für externe APIs
+ * sw.js – Service Worker für Mülltonnen-Meldung (TMS)
+ *
+ * Strategie: Network-First für App-Dateien
+ * → Fahrer laden beim Öffnen immer die neueste Version vom Server.
+ * → Ist kein Internet vorhanden, springt die App auf den lokalen Cache.
  */
 
-const CACHE_NAME = 'tms-v2.78';
+const CACHE_NAME = 'tms-cache-v1';
 
-// App-Shell: diese Dateien werden beim Install sofort gecacht
+// App-Dateien, die gecacht werden (Offline-Fallback)
 const PRECACHE = [
   './',
   './index.html',
@@ -13,13 +16,10 @@ const PRECACHE = [
   './styles.css'
 ];
 
-// Diese Domains werden immer live abgerufen (kein Cache)
+// Diese Domains werden IMMER live abgerufen (niemals cachen)
 const NETWORK_ONLY = [
   'nominatim.openstreetmap.org',  // GPS-Reverse-Geocoding
-  'fonts.googleapis.com',          // Google Fonts CSS
-  'fonts.gstatic.com',             // Google Fonts Dateien
-  'cdnjs.cloudflare.com',          // JSZip
-  'cdn.jsdelivr.net'               // Tesseract.js
+  'cdnjs.cloudflare.com'          // JSZip (extern)
 ];
 
 // ============================================================
@@ -29,74 +29,63 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting()) // Sofort aktivieren
+      .then(() => self.skipWaiting())
   );
 });
 
 // ============================================================
-//  ACTIVATE – Alte Caches aufräumen
+//  ACTIVATE – Alte Caches löschen
 // ============================================================
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       ))
-      .then(() => self.clients.claim()) // Sofort alle Tabs übernehmen
+      .then(() => self.clients.claim())
   );
 });
 
 // ============================================================
-//  FETCH – Anfragen abfangen
+//  FETCH – Network-First Strategie
+//  Neue Version auf dem Server → Fahrer bekommen sie sofort.
+//  Kein Internet → App läuft aus dem Cache (offline-fähig).
 // ============================================================
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Network-Only für externe APIs (GPS, Fonts)
+  // Externe APIs immer live abrufen
   if (NETWORK_ONLY.some(domain => url.hostname.includes(domain))) {
-    event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
+    event.respondWith(
+      fetch(event.request).catch(() => new Response('', { status: 503 }))
+    );
     return;
   }
 
-  // Nur GET-Anfragen cachen
+  // Nur GET cachen
   if (event.request.method !== 'GET') return;
 
-  // Cache-First: App-Shell aus Cache, Fallback auf Netzwerk
+  // Network-First: zuerst Server versuchen, bei Fehler Cache nutzen
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => {
-        if (cached) {
-          // Im Hintergrund aktualisieren (Stale-While-Revalidate)
-          const fetchPromise = fetch(event.request)
-            .then(response => {
-              if (response && response.status === 200 && response.type !== 'opaque') {
-                caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
-              }
-              return response;
-            })
-            .catch(() => {});
-          // Sofort gecachte Version zurückgeben
-          return cached;
+    fetch(event.request)
+      .then(response => {
+        // Gültige Antwort → in Cache speichern und zurückgeben
+        if (response && response.status === 200 && response.type !== 'opaque') {
+          caches.open(CACHE_NAME)
+            .then(cache => cache.put(event.request, response.clone()));
         }
-        // Nicht im Cache: Netzwerk versuchen, bei Erfolg cachen
-        return fetch(event.request)
-          .then(response => {
-            if (!response || response.status !== 200 || response.type === 'opaque') {
-              return response;
-            }
-            const toCache = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
-            return response;
-          })
-          .catch(() => {
-            // Offline-Fallback für Navigation
-            if (event.request.mode === 'navigate') {
-              return caches.match('./index.html');
-            }
-            return new Response('Offline', { status: 503 });
-          });
+        return response;
+      })
+      .catch(() => {
+        // Offline → aus Cache bedienen
+        return caches.match(event.request).then(cached => {
+          if (cached) return cached;
+          // Navigations-Fallback auf index.html
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+          return new Response('Offline', { status: 503 });
+        });
       })
   );
 });

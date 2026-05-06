@@ -1,3 +1,4 @@
+const APP_VERSION='2.81 Pro'; // ← HIER Versionsnummer ändern
 'use strict';
 
 /* ============================================================
@@ -259,7 +260,7 @@ function newEntry(){
     id:Date.now().toString(36)+Math.random().toString(36).slice(2),
     createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
     category:'',wasteType:settings.defaultWasteType,actionTaken:'Geleert',
-    photos:[null,null,null],barcode:null,/* OCR-TONNENNUMMER START */binNumber:null,/* OCR-TONNENNUMMER END */gps:null,notes:'',
+    photos:[null,null,null],barcode:null,gps:null,notes:'',
     driverName:settings.driverName,licensePlate:settings.licensePlate,
     district:settings.district,archived:false,sentCount:0
   };
@@ -275,9 +276,7 @@ async function init(){
     s2.style.opacity='0.5';s2.style.pointerEvents='none';
     s2.querySelector('.psub').textContent='Nicht unterstützt';
   }
-  const wSel=document.getElementById('wasteSelect'),aSel=document.getElementById('actionSelect');
-  wSel.value=settings.defaultWasteType;aSel.value='Geleert';
-  highlightSelect(wSel);highlightSelect(aSel);
+  resetForm();
   showStartupCheck();
 }
 
@@ -390,11 +389,7 @@ async function loadSettingsUI(){
   document.getElementById('sEmail').value=settings.email||'';
   setWasteSelect(settings.defaultWasteType||WASTE_TYPES[0]);
   document.getElementById('sTheme').value=settings.theme||'auto';
-  // Alle drei Landkreis-E-Mails separat befüllen
-  const dm=settings.districtMails||{};
-  document.getElementById('sMailWittmund').value=dm['Landkreis Wittmund']||'';
-  document.getElementById('sMailFriesland').value=dm['Landkreis Friesland']||'';
-  document.getElementById('sMailWilhelmshaven').value=dm['Landkreis Wilhelmshaven']||'';
+
 
   const all=await dbGetAll('entries');
   document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
@@ -405,25 +400,14 @@ async function loadSettingsUI(){
 async function saveSettings(){
   vibe(50);
   const emailDispo=document.getElementById('sEmail').value.trim();
-  const emailWittmund=document.getElementById('sMailWittmund').value.trim();
-  const emailFriesland=document.getElementById('sMailFriesland').value.trim();
-  const emailWilhelmshaven=document.getElementById('sMailWilhelmshaven').value.trim();
   const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if(emailDispo&&!emailRe.test(emailDispo)){toast('⚠️ Ungültige E-Mail-Adresse (Dispo)');return}
-  if(emailWittmund&&!emailRe.test(emailWittmund)){toast('⚠️ Ungültige E-Mail (Landkreis Wittmund)');return}
-  if(emailFriesland&&!emailRe.test(emailFriesland)){toast('⚠️ Ungültige E-Mail (Landkreis Friesland)');return}
-  if(emailWilhelmshaven&&!emailRe.test(emailWilhelmshaven)){toast('⚠️ Ungültige E-Mail (Landkreis Wilhelmshaven)');return}
   settings.driverName=document.getElementById('sName').value.trim();
   settings.licensePlate=document.getElementById('sPlate').value.trim();
   settings.district=document.getElementById('sDist').value;
   settings.email=emailDispo;
   settings.defaultWasteType=document.getElementById('sWaste').value;
   settings.theme=document.getElementById('sTheme').value;
-  settings.districtMails={
-    'Landkreis Wittmund':      emailWittmund,
-    'Landkreis Friesland':     emailFriesland,
-    'Landkreis Wilhelmshaven': emailWilhelmshaven
-  };
 
   applyTheme(settings.theme);
   await dbPut('settings',settings,'config');
@@ -530,9 +514,6 @@ async function handlePhoto(slot){
     cur.photos[slot]=dataUrl;setSlot(slot,dataUrl);input.value='';
     if(firstPhoto&&!gpsLocked){firstPhoto=false;captureGPS(false)}
     if(slot===2&&!cur.barcode){const blob=await compressToBlob(file);await tryBarcode(blob)}
-    /* OCR-TONNENNUMMER START */
-    if(slot===2&&settings.district==='Landkreis Wittmund'){tryOCR(dataUrl)}
-    /* OCR-TONNENNUMMER END */
     checkDups();
   }catch(err){toast('Foto-Fehler: '+err.message)}
 }
@@ -572,92 +553,8 @@ async function tryBarcode(blob){
 function clearBarcode(){
   cur.barcode=null;
   document.getElementById('bcBox').classList.add('hidden');
-  /* OCR-TONNENNUMMER START */
-  cur.binNumber=null;
-  document.getElementById('binNumRow').classList.add('hidden');
-  document.getElementById('binNumVal').value='';
-  /* OCR-TONNENNUMMER END */
 }
 
-/* ============================================================
-   OCR-TONNENNUMMER START
-   Tesseract.js – Tonnennummer aus Barcode-Foto extrahieren.
-   Zum Rückgängigmachen: diesen Block + alle anderen
-   OCR-TONNENNUMMER START/END Blöcke entfernen,
-   sowie den <script>-Tag in index.html.
-   ============================================================ */
-
-let ocrWorker=null;
-
-async function getOcrWorker(){
-  if(ocrWorker)return ocrWorker;
-  if(!window.Tesseract){console.warn('Tesseract nicht geladen');return null}
-  try{
-    ocrWorker=await Tesseract.createWorker('eng',1,{logger:()=>{}});
-    await ocrWorker.setParameters({'tessedit_char_whitelist':'0123456789.'});
-    return ocrWorker;
-  }catch(e){console.warn('Tesseract Worker Fehler:',e);return null}
-}
-
-async function tryOCR(dataUrl){
-  try{
-    const worker=await getOcrWorker();
-    if(!worker)return;
-    toast('🔍 Tonnennummer wird erkannt…');
-
-    // Obere Hälfte des Bildes ausschneiden (dort steht die Tonnennummer)
-    // und auf höhere Auflösung hochskalieren für bessere OCR-Qualität
-    const croppedUrl=await new Promise(res=>{
-      const img=new Image();
-      img.onload=()=>{
-        const canvas=document.createElement('canvas');
-        // Obere 45% des Bildes, 2× vergrößert für bessere Lesbarkeit
-        const cropH=Math.round(img.height*0.45);
-        canvas.width=img.width*2;
-        canvas.height=cropH*2;
-        const ctx=canvas.getContext('2d');
-        // Weißer Hintergrund
-        ctx.fillStyle='#fff';
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        // Bild vergrößert zeichnen (nur obere Hälfte)
-        ctx.drawImage(img,0,0,img.width,cropH,0,0,canvas.width,canvas.height);
-        res(canvas.toDataURL('image/png'));
-      };
-      img.src=dataUrl;
-    });
-
-    const result=await worker.recognize(croppedUrl);
-    const text=result.data.text||'';
-
-    // Flexibler Regex: Punkte oder Leerzeichen als Trenner erlaubt
-    // Muster: NNN.NNN.N oder NNN NNN N oder NNN.NNN N usw.
-    const match=text.match(/\b(\d{1,3})[.\s](\d{3})[.\s](\d{1,2})\b/);
-    if(match){
-      // Immer mit Punkten als Trenner normalisieren
-      cur.binNumber=`${match[1]}.${match[2]}.${match[3]}`;
-      document.getElementById('binNumVal').value=cur.binNumber;
-      document.getElementById('binNumRow').classList.remove('hidden');
-      toast('Tonnennummer erkannt: '+cur.binNumber);
-    }else{
-      // Fallback: rohen OCR-Text im Input anzeigen damit Fahrer korrigieren kann
-      const raw=text.replace(/[^0-9.\s]/g,'').trim();
-      if(raw.length>=3){
-        document.getElementById('binNumVal').value=raw;
-        document.getElementById('binNumRow').classList.remove('hidden');
-        toast('⚠️ Bitte Tonnennummer prüfen / korrigieren');
-      }else{
-        toast('ℹ️ Tonnennummer nicht erkannt – bitte manuell eingeben');
-        document.getElementById('binNumRow').classList.remove('hidden');
-      }
-    }
-  }catch(e){
-    console.warn('OCR Fehler:',e);
-    toast('ℹ️ OCR-Fehler – Tonnennummer bitte manuell eingeben');
-    document.getElementById('binNumRow').classList.remove('hidden');
-  }
-}
-
-/* OCR-TONNENNUMMER END */
 
 function haversine(a,b,c,d){
   const R=6371000,dl=(c-a)*Math.PI/180,dk=(d-b)*Math.PI/180;
@@ -668,17 +565,13 @@ function haversine(a,b,c,d){
 function findDups(entry){
   const seen=new Set(),res=[];
   // Prüfen ob aktuelle Meldung einen eindeutigen Identifier hat
-  const hasIdentifier=!!(entry.barcode||entry.binNumber);
+  const hasIdentifier=!!(entry.barcode);
   entries.forEach(e=>{
     if(e.id===entry.id||seen.has(e.id))return;
     let dup=false;
     // 1. Barcode-Übereinstimmung (eindeutige Tonne)
     if(entry.barcode&&e.barcode&&entry.barcode===e.barcode)dup=true;
-    // 2. Tonnennummer-Übereinstimmung (eindeutige Tonne)
-    /* OCR-TONNENNUMMER START */
-    if(!dup&&entry.binNumber&&e.binNumber&&entry.binNumber===e.binNumber)dup=true;
-    /* OCR-TONNENNUMMER END */
-    // 3. GPS-Nähe – NUR wenn KEIN Identifier vorhanden (verhindert Sammelplatz-Fehlalarme)
+    // 2. GPS-Nähe – NUR wenn KEIN Identifier vorhanden (verhindert Sammelplatz-Fehlalarme)
     if(!dup&&!hasIdentifier&&entry.gps&&e.gps&&haversine(entry.gps.lat,entry.gps.lng,e.gps.lat,e.gps.lng)<=DUP_M)dup=true;
     if(dup){seen.add(e.id);res.push(e)}
   });
@@ -760,9 +653,6 @@ function buildBody(e,dups=[]){
     `Landkreis: ${e.district||'-'}`,'',
     `Standort: ${standort}`,
     `Barcode: ${e.barcode||'-'}`,
-    /* OCR-TONNENNUMMER START */
-    `Tonnennummer: ${e.binNumber||'-'}`,
-    /* OCR-TONNENNUMMER END */
     `Müllart: ${e.wasteType||'-'}`,
     `Kategorie: ${e.category||'-'}`,
     `Aktion: ${e.actionTaken||'-'}`,
@@ -845,7 +735,7 @@ async function renderHistory(forceReload=false){
   const cat=document.getElementById('scat').value;
   let filtered=entries.filter(e=>{
     if(cat&&e.category!==cat)return false;
-    if(txt){const s=[e.category,e.wasteType,e.actionTaken,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,/* OCR-TONNENNUMMER START */e.binNumber,/* OCR-TONNENNUMMER END */e.notes].join(' ').toLowerCase();if(!s.includes(txt))return false}
+    if(txt){const s=[e.category,e.wasteType,e.actionTaken,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();if(!s.includes(txt))return false}
     return true;
   });
   filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
@@ -999,16 +889,12 @@ function getCalendarWeek(date){
 }
 
 function getZipFilename(from,to){
-  const name=(settings.driverName||'Fahrer').replace(/[^\w\-\u00e4\u00f6\u00fc\u00c4\u00d6\u00dc\u00df]/g,'_');
-  const year=from.getFullYear(),pad=n=>String(n).padStart(2,'0');
-  const MO=['Januar','Februar','M\u00e4rz','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-  switch(exportPeriod){
-    case 'today':     return`Tagesbericht_${name}_${pad(from.getDate())}-${pad(from.getMonth()+1)}-${year}.zip`;
-    case 'day-pick':  return`Tagesbericht_${name}_${pad(from.getDate())}-${pad(from.getMonth()+1)}-${year}.zip`;
-    case 'week-pick': return`Wochenbericht_${name}_${year}_KW${String(getCalendarWeek(from)).padStart(2,'0')}.zip`;
-    case 'month-pick':return`Monatsbericht_${name}_${MO[from.getMonth()]}-${year}.zip`;
-    default:          return`Bericht_${name}_${year}.zip`;
-  }
+  const plate=(settings.licensePlate||'Unbekannt').replace(/[^\w\-]/g,'_');
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const datePart=`${pad(from.getDate())}-${pad(from.getMonth()+1)}-${from.getFullYear()}`;
+  const timePart=`${pad(now.getHours())}-${pad(now.getMinutes())}`;
+  return`${plate}_${datePart}_${timePart}.zip`;
 }
 
 function showZipProgress(txt,pct){
@@ -1053,7 +939,7 @@ async function doExport(){
   }
 
   showZipProgress('CSV und Bericht werden erstellt…',65);
-  const HCOLS=['ID','Datum/Zeit','Barcode',/* OCR-TONNENNUMMER START */'Tonnennummer',/* OCR-TONNENNUMMER END */'Müllart','Kategorie','Aktion','Adresse','PLZ','Ort',
+  const HCOLS=['ID','Datum/Zeit','Barcode','Müllart','Kategorie','Aktion','Adresse','PLZ','Ort',
                'Breitengrad','Längengrad','Google Maps',
                'Fahrername','Kennzeichen','Landkreis','Anmerkungen',
                'Foto Tonne','Foto Zusatz','Foto Barcode','Gesendet','Status'];
@@ -1062,7 +948,7 @@ async function doExport(){
   for(const e of rows){
     const fn=photoMap[e.id]||[null,null,null];
     const cols=[
-      e.id,fmtDT(e.createdAt),e.barcode||'',/* OCR-TONNENNUMMER START */e.binNumber||'',/* OCR-TONNENNUMMER END */e.wasteType||'',e.category||'',e.actionTaken||'',
+      e.id,fmtDT(e.createdAt),e.barcode||'',e.wasteType||'',e.category||'',e.actionTaken||'',
       e.gps?.street||e.gps?.address||'',
       e.gps?.plz||'',
       e.gps?.ort||'',
@@ -1078,7 +964,7 @@ async function doExport(){
   }
   zip.file('Meldungen.csv',csv);
   zip.file('Bericht.html',buildHtmlReport(rows,photoMap,from,to));
-  zip.file('HINWEIS.txt',['MÜLLTONNEN-BERICHT – ANLEITUNG','================================','','INHALT:','  Bericht.html  → Im Browser öffnen (Fotos direkt sichtbar)','  Meldungen.csv → Für Excel-Import','  images/       → Alle Fotos','','FOTOS ANZEIGEN:','  1. ZIP vollständig entpacken','  2. Bericht.html doppelklicken → Browser öffnet sich','  3. Fotos erscheinen direkt als klickbare Thumbnails','','© Michael Elvey · Mülltonnen-Meldung 2.75 Pro'].join('\n'));
+  zip.file('HINWEIS.txt',['MÜLLTONNEN-BERICHT – ANLEITUNG','================================','','INHALT:','  Bericht.html  → Im Browser öffnen (Fotos direkt sichtbar)','  Meldungen.csv → Für Excel-Import','  images/       → Alle Fotos','','FOTOS ANZEIGEN:','  1. ZIP vollständig entpacken','  2. Bericht.html doppelklicken → Browser öffnet sich','  3. Fotos erscheinen direkt als klickbare Thumbnails','','© Michael Elvey · Mülltonnen-Meldung '+APP_VERSION].join('\n'));
 
   showZipProgress('ZIP wird komprimiert…',80);
   const zipName=getZipFilename(from,to);
@@ -1095,6 +981,13 @@ async function doExport(){
   setTimeout(()=>URL.revokeObjectURL(url),5000);
 
   toast(`📦 ${rows.length} Meldung${rows.length!==1?'en':''} exportiert`);
+  setTimeout(()=>{
+    confirmAction(
+      '📁 Die ZIP-Datei wurde in Ihrem Download-Ordner gespeichert.\n\nBitte öffnen Sie den Download-Ordner, tippen Sie auf die Datei und versenden Sie sie über die Teilen-Funktion manuell an die entsprechende WhatsApp-Gruppe.',
+      ()=>{},
+      '📦 ZIP gespeichert – Hinweis'
+    );
+  },600);
 }
 
 function buildHtmlReport(rows,photoMap,from,to){
@@ -1124,7 +1017,6 @@ function buildHtmlReport(rows,photoMap,from,to){
       data-id="${e.id.slice(-8)}"
       data-dt="${e.createdAt}"
       data-barcode="${(e.barcode||'').toLowerCase()}"
-      data-binnum="${(e.binNumber||'').toLowerCase()}"
       data-waste="${(e.wasteType||'').toLowerCase()}"
       data-cat="${(e.category||'').toLowerCase()}"
       data-action="${(e.actionTaken||'').toLowerCase()}"
@@ -1135,9 +1027,6 @@ function buildHtmlReport(rows,photoMap,from,to){
       <td><code>${e.id.slice(-8)}</code></td>
       <td>${fmtDT(e.createdAt)}</td>
       <td>${e.barcode?`<code style="font-size:11px">${e.barcode}</code>`:'–'}</td>
-      <!-- OCR-TONNENNUMMER START -->
-      <td>${e.binNumber?`<code style="font-size:11px">${e.binNumber}</code>`:'–'}</td>
-      <!-- OCR-TONNENNUMMER END -->
       <td>${e.wasteType||'–'}</td>
       <td>${e.category||'–'}</td>
       <td${isSt?' class="warn"':''}>${e.actionTaken||'–'}</td>
@@ -1274,9 +1163,6 @@ code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:
   <th data-col="id">ID</th>
   <th data-col="dt">Datum/Zeit</th>
   <th data-col="barcode">Barcode</th>
-  <!-- OCR-TONNENNUMMER START -->
-  <th data-col="binnum">Tonnennummer</th>
-  <!-- OCR-TONNENNUMMER END -->
   <th data-col="waste">Müllart</th>
   <th data-col="cat">Kategorie</th>
   <th data-col="action">Aktion</th>
@@ -1293,7 +1179,7 @@ code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:
 <div class="ae-footer">
   Augustin Entsorgung Friesland GmbH &amp; Co. KG &nbsp;·&nbsp; JadeWeserPark 12, 26419 Schortens &nbsp;·&nbsp;
   <a href="https://augustin-entsorgung.de" style="color:rgba(255,255,255,.85)">augustin-entsorgung.de</a>
-  &nbsp;·&nbsp; Erstellt: ${fmtDT(new Date().toISOString())} &nbsp;·&nbsp; Mülltonnen-Meldung 2.75 Pro
+  &nbsp;·&nbsp; Erstellt: ${fmtDT(new Date().toISOString())} &nbsp;·&nbsp; Mülltonnen-Meldung ${APP_VERSION}
 </div>
 <script>
 (function(){
@@ -1439,6 +1325,26 @@ async function confirmArchiveDelete(mode){
   );
 }
 
+
+/* ============================================================
+   KOMPLETTE DATENBANK LÖSCHEN
+   ============================================================ */
+async function deleteCompleteDatabase(){
+  document.getElementById('archiveDeleteModal').classList.add('h');
+  confirmAction(
+    '⛔ ACHTUNG: Alle Meldungen und Daten werden unwiderruflich gelöscht!\n\nDiese Aktion betrifft ALLE Einträge (aktiv + archiviert) und kann nicht rückgängig gemacht werden.',
+    async()=>{
+      const all=await dbGetAll('entries');
+      for(const e of all)await dbDelete('entries',e.id);
+      entries=[];
+      renderHistory(true);
+      await loadSettingsUI();
+      toast('🗑 Komplette Datenbank gelöscht');
+    },
+    '⛔ Komplette Datenbank löschen'
+  );
+}
+
 /* ============================================================
    SETUP LINK
    ============================================================ */
@@ -1519,18 +1425,10 @@ function _doGenerateSetupLink(){
     driverName:       document.getElementById('sName').value.trim(),
     licensePlate:     document.getElementById('sPlate').value.trim(),
     district:         document.getElementById('sDist').value,
-    districtMails:{
-      'Landkreis Wittmund':      document.getElementById('sMailWittmund').value.trim(),
-      'Landkreis Friesland':     document.getElementById('sMailFriesland').value.trim(),
-      'Landkreis Wilhelmshaven': document.getElementById('sMailWilhelmshaven').value.trim()
-    },
     email:            document.getElementById('sEmail').value.trim(),
     defaultWasteType: document.getElementById('sWaste').value,
     theme:            document.getElementById('sTheme').value
   };
-
-  // Leere districtMail-Einträge entfernen
-  Object.keys(payload.districtMails).forEach(k=>{if(!payload.districtMails[k])delete payload.districtMails[k]});
   // Leere Felder entfernen
   Object.keys(payload).forEach(k=>{if(payload[k]===''||payload[k]===null)delete payload[k]});
 
