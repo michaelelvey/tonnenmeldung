@@ -1,4 +1,4 @@
-const APP_VERSION='2.81 Pro'; // ← HIER Versionsnummer ändern
+const APP_VERSION='2.82 Pro'; // ← HIER Versionsnummer ändern
 'use strict';
 
 /* ============================================================
@@ -474,15 +474,18 @@ async function revGeo(lat,lng){
     const road=a.road||a.pedestrian||a.path||a.street||'Unbekannte Straße';
     const hn=a.house_number||'';
     const plz=a.postcode||'';
-    const ort=a.city||a.town||a.village||a.suburb||a.municipality||'';
+    const ort=a.city||a.town||a.village||a.municipality||'';
+    const ot=a.suburb||a.quarter||a.neighbourhood||'';
     const street=hn?`${road} in Höhe der Hausnr. ${hn}`:`${road}`;
-    const address=ort?`${street} in ${ort}`:street;
-    return{street,plz,ort,address};
+    const plzOrt=[plz,ort].filter(Boolean).join(' ');
+    const plzOrtOt=ot?`${plzOrt} (${ot})`:plzOrt;
+    const address=plzOrtOt?`${street}, in ${plzOrtOt}`:street;
+    return{street,plz,ort,ot,address};
   }catch{
     // Kein Internet oder Nominatim nicht erreichbar
     toast('⚠️ Adresse nicht verfügbar – nur GPS-Koordinaten gespeichert');
     const address=`${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    return{street:address,plz:'',ort:'',address};
+    return{street:address,plz:'',ort:'',ot:'',address};
   }
 }
 
@@ -629,8 +632,10 @@ function buildSubj(e){
   const street=e.gps?.street||e.gps?.address||'';
   const plz=e.gps?.plz||'';
   const ort=e.gps?.ort||'';
+  const ot=e.gps?.ot||'';
   const plzOrt=[plz,ort].filter(Boolean).join(' ');
-  const adresse=plzOrt?`${street} in ${plzOrt}`:street;
+  const plzOrtOt=ot?`${plzOrt} (${ot})`:plzOrt;
+  const adresse=plzOrtOt?`${street}, in ${plzOrtOt}`:street;
   return adresse
     ?`Mülltonnen-Meldung | ${e.category} | ${adresse}`
     :`Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`;
@@ -640,8 +645,10 @@ function buildBody(e,dups=[]){
   const street=e.gps?.street||e.gps?.address||'';
   const plz=e.gps?.plz||'';
   const ort=e.gps?.ort||'';
+  const ot=e.gps?.ot||'';
   const plzOrt=[plz,ort].filter(Boolean).join(' ');
-  const standort=e.gps?(plzOrt?`${street} in ${plzOrt}`:street)||'-':'-';
+  const plzOrtOt=ot?`${plzOrt} (${ot})`:plzOrt;
+  const standort=e.gps?(plzOrtOt?`${street}, in ${plzOrtOt}`:street)||'-':'-';
   const ln=[
     `════════════════════════════════════`,
     `AUGUSTIN ENTSORGUNG FRIESLAND`,
@@ -651,6 +658,10 @@ function buildBody(e,dups=[]){
     `Fahrer:    ${e.driverName||'-'}`,
     `Fahrzeug:  ${e.licensePlate||'-'}`,
     `Landkreis: ${e.district||'-'}`,'',
+    `Adresse:  ${street||'-'}`,
+    `PLZ:      ${plz||'-'}`,
+    `Ort:      ${ort||'-'}`,
+    `OT:       ${ot||'-'}`,
     `Standort: ${standort}`,
     `Barcode: ${e.barcode||'-'}`,
     `Müllart: ${e.wasteType||'-'}`,
@@ -939,7 +950,7 @@ async function doExport(){
   }
 
   showZipProgress('CSV und Bericht werden erstellt…',65);
-  const HCOLS=['ID','Datum/Zeit','Barcode','Müllart','Kategorie','Aktion','Adresse','PLZ','Ort',
+  const HCOLS=['ID','Datum/Zeit','Barcode','Müllart','Kategorie','Aktion','Adresse','PLZ','Ort','OT',
                'Breitengrad','Längengrad','Google Maps',
                'Fahrername','Kennzeichen','Landkreis','Anmerkungen',
                'Foto Tonne','Foto Zusatz','Foto Barcode','Gesendet','Status'];
@@ -952,6 +963,7 @@ async function doExport(){
       e.gps?.street||e.gps?.address||'',
       e.gps?.plz||'',
       e.gps?.ort||'',
+      e.gps?.ot||'',
       e.gps?.lat!=null?e.gps.lat.toFixed(6):'',
       e.gps?.lng!=null?e.gps.lng.toFixed(6):'',
       e.gps?`https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`:'',
@@ -1011,6 +1023,7 @@ function buildHtmlReport(rows,photoMap,from,to){
     const street=e.gps?(e.gps.street||e.gps.address||'–'):'–';
     const plz=e.gps?.plz||'–';
     const ort=e.gps?.ort||'–';
+    const ot=e.gps?.ot||'–';
     const mapsLink=e.gps?`https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`:'';
     const notes=(e.notes||'').replace(/\n/g,'<br>')||'–';
     return`<tr${isSt?' class="stehen"':''}
@@ -1023,6 +1036,7 @@ function buildHtmlReport(rows,photoMap,from,to){
       data-street="${street.toLowerCase()}"
       data-plz="${plz.toLowerCase()}"
       data-ort="${ort.toLowerCase()}"
+      data-ot="${ot.toLowerCase()}"
       data-notes="${(e.notes||'').toLowerCase()}">
       <td><code>${e.id.slice(-8)}</code></td>
       <td>${fmtDT(e.createdAt)}</td>
@@ -1033,6 +1047,7 @@ function buildHtmlReport(rows,photoMap,from,to){
       <td>${e.gps?`${street}<br><a class="ml" href="${mapsLink}" target="_blank">📍 Karte</a>`:'–'}</td>
       <td>${plz}</td>
       <td>${ort}</td>
+      <td>${ot!=='–'?ot:'–'}</td>
       <td>${notes}</td>
       <td>${photosHtml}</td>
     </tr>`;
@@ -1169,6 +1184,7 @@ code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:
   <th data-col="street">Adresse</th>
   <th data-col="plz">PLZ</th>
   <th data-col="ort">Ort</th>
+  <th data-col="ot">OT</th>
   <th>Anmerkungen</th>
   <th>Fotos</th>
 </tr></thead>
