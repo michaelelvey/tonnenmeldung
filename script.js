@@ -709,25 +709,31 @@ async function captureEntry(){
     });
   }
   btn.innerHTML='Wird gespeichert…';
-  cur.notes=document.getElementById('notesIn').value.trim();
-  cur.updatedAt=new Date().toISOString();
-  cur.sentCount=0;
-  await dbPut('entries',{...cur});
-  entries.unshift({...cur});
-  vibe([0,50,50]);
-  toast('✅ Meldung erfasst!');
-  // Kurz warten damit der Toast sichtbar ist, dann Teilen-Menü öffnen
-  await new Promise(r=>setTimeout(r,600));
-  const saved={...cur};
-  await openShareModal(saved, async()=>{
-    // Nach dem Schließen des Share-Modals Formular zurücksetzen
-    const stored=entries.find(x=>x.id===saved.id);
-    if(stored){stored.sentCount=(stored.sentCount||0)+1;stored.updatedAt=new Date().toISOString();await dbPut('entries',stored);}
-    resetForm();showTab('m');btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;document.getElementById('wrap').scrollTo({top:0});
-  }, ()=>{
-    // Abbrechen: Formular trotzdem zurücksetzen
-    resetForm();showTab('m');btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;document.getElementById('wrap').scrollTo({top:0});
-  });
+  try{
+    cur.notes=document.getElementById('notesIn').value.trim();
+    cur.updatedAt=new Date().toISOString();
+    cur.sentCount=0;
+    await dbPut('entries',{...cur});
+    entries.unshift({...cur});
+    vibe([0,50,50]);
+    toast('✅ Meldung erfasst!');
+    // Kurz warten damit der Toast sichtbar ist, dann Teilen-Menü öffnen
+    await new Promise(r=>setTimeout(r,600));
+    const saved={...cur};
+    const _resetBtn=()=>{btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;};
+    await openShareModal(saved, async()=>{
+      const stored=entries.find(x=>x.id===saved.id);
+      if(stored){stored.sentCount=(stored.sentCount||0)+1;stored.updatedAt=new Date().toISOString();await dbPut('entries',stored);}
+      resetForm();showTab('m');_resetBtn();document.getElementById('wrap').scrollTo({top:0});
+    }, ()=>{
+      resetForm();showTab('m');_resetBtn();document.getElementById('wrap').scrollTo({top:0});
+    });
+  }catch(err){
+    console.error('captureEntry Fehler:',err);
+    toast('⚠️ Fehler: '+err.message);
+    resetForm();showTab('m');
+    btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;
+  }
 }
 
 async function dataUrlsToFiles(dataUrls,id){
@@ -1307,11 +1313,42 @@ async function openShareModal(entry, onSent, onCancel){
   _shareOnSent=onSent;
   _shareOnCancel=onCancel;
   const subj=buildSubj(entry);
-  document.getElementById('shareModalSubj').textContent=subj;
-  document.getElementById('shareBtnWA').style.display=navigator.share?'':'none';
-  document.getElementById('shareHint').style.display='none';
-  document.getElementById('shareHint').textContent='';
-  document.getElementById('shareModal').classList.remove('h');
+  const modalEl=document.getElementById('shareModal');
+  // Sicherheitscheck: falls Modal-Element noch nicht im DOM (alter Cache)
+  if(!modalEl){
+    const body=buildBody(entry,findDups(entry));
+    const distMail=getDistrictEmail(entry.district||settings.district);
+    const dispoMail=settings.email||'';
+    let mailto='mailto:'+(distMail?`${encodeURIComponent(distMail)}?cc=${encodeURIComponent(dispoMail)}`:dispoMail?encodeURIComponent(dispoMail):'');
+    const sep=mailto.includes('?')?'&':'?';
+    window.open(`${mailto}${sep}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`);
+    if(onSent)onSent();
+    return;
+  }
+  const subjEl=document.getElementById('shareModalSubj');
+  if(subjEl)subjEl.textContent=subj;
+  const waBtn=document.getElementById('shareBtnWA');
+  if(waBtn)waBtn.style.display=navigator.share?'':'none';
+  // Empfänger-Hinweis anzeigen wenn Teilen verfügbar
+  const hint=document.getElementById('shareHint');
+  if(hint){
+    const distMail=getDistrictEmail(entry.district||settings.district);
+    const dispoMail=settings.email||'';
+    if(navigator.share&&(distMail||dispoMail)){
+      let hinweis='📋 Beim Teilen per E-Mail bitte manuell eintragen:<br>';
+      if(distMail) hinweis+=`<strong>An:</strong> <span onclick="copyToClip('${distMail}')" style="color:var(--blue);cursor:pointer">${distMail} ⎘</span><br>`;
+      if(dispoMail) hinweis+=`<strong>CC:</strong> <span onclick="copyToClip('${dispoMail}')" style="color:var(--blue);cursor:pointer">${dispoMail} ⎘</span>`;
+      hint.innerHTML=hinweis;
+      hint.style.display='block';
+    }else{
+      hint.style.display='none';hint.innerHTML='';
+    }
+  }
+  modalEl.classList.remove('h');
+}
+
+function copyToClip(text){
+  navigator.clipboard&&navigator.clipboard.writeText(text).then(()=>toast('📋 Kopiert: '+text)).catch(()=>{});
 }
 
 function closeShareModal(sent=false){
@@ -1421,16 +1458,25 @@ function shareViaEmailText(){
   closeShareModal(true);
 }
 
-/* --- WhatsApp / andere Apps (Text + Fotos) --- */
+/* --- Teilen (WhatsApp / E-Mail / …) mit Text + Fotos --- */
 async function shareViaApp(){
   if(!_shareEntry||!navigator.share)return;
   const e=_shareEntry;
   const subj=buildSubj(e);
   const body=buildBody(e,findDups(e));
+  // Empfängeradressen oben anhängen – sichtbar wenn in Gmail oder anderen Mail-Apps geteilt wird
+  const distMail=getDistrictEmail(e.district||settings.district);
+  const dispoMail=settings.email||'';
+  const empfHeader=[
+    distMail ?`📧 AN:  ${distMail}`:'',
+    dispoMail?`📧 CC:  ${dispoMail}`:'',
+    distMail||dispoMail?'────────────────────────────────────':''
+  ].filter(Boolean).join('\n');
+  const fullText=empfHeader?`${empfHeader}\n\n${body}`:body;
   const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
   try{
-    let sd={title:subj,text:body};
-    if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles,title:subj,text:body})){
+    let sd={title:subj,text:fullText};
+    if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles,title:subj,text:fullText})){
       sd.files=photoFiles;
     }
     await navigator.share(sd);
