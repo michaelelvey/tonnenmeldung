@@ -1,4 +1,4 @@
-const APP_VERSION='2.83 Pro'; // ← HIER Versionsnummer ändern
+const APP_VERSION='2.85 Pro'; // ← HIER Versionsnummer ändern
 'use strict';
 
 /* ============================================================
@@ -1547,7 +1547,7 @@ function checkSetupLink(){
     applyTheme(settings.theme||'auto');
     dbPut('settings',settings,'config');
     window.history.replaceState({},'',window.location.pathname+window.location.hash);
-    setTimeout(()=>{toast('App erfolgreich eingerichtet!');showTab('e');},600);
+    setTimeout(async()=>{await loadSettingsUI();toast('App erfolgreich eingerichtet!');showTab('e');},600);
   }catch(e){
     console.warn('Setup-Link ungültig:',e);
     toast('Setup-Link ungültig oder beschädigt.');

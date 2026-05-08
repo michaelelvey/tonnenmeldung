@@ -6,7 +6,7 @@
  * → Ist kein Internet vorhanden, springt die App auf den lokalen Cache.
  */
 
-const CACHE_NAME = 'tms-cache-v2';
+const CACHE_NAME = 'tms-cache-v3';
 
 // App-Dateien, die gecacht werden (Offline-Fallback)
 const PRECACHE = [
