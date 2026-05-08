@@ -382,6 +382,20 @@ function setWasteSelect(value){
   sel.selectedIndex=0;
 }
 
+const DISTRICT_ABBR={
+  'Landkreis Wittmund':'WTM',
+  'Landkreis Friesland':'FRI',
+  'Landkreis Wilhelmshaven':'WHV'
+};
+
+function updateDistrictMailField(){
+  const dist=document.getElementById('sDist').value;
+  const abbr=DISTRICT_ABBR[dist]||dist;
+  document.getElementById('distMailLabel').textContent=`📧 Mailadresse LK ${abbr}`;
+  const currentMail=(settings.districtMails||{})[dist]||'';
+  document.getElementById('sDistMail').value=currentMail;
+}
+
 async function loadSettingsUI(){
   document.getElementById('sName').value=settings.driverName||'';
   document.getElementById('sPlate').value=settings.licensePlate||'';
@@ -389,6 +403,7 @@ async function loadSettingsUI(){
   document.getElementById('sEmail').value=settings.email||'';
   setWasteSelect(settings.defaultWasteType||WASTE_TYPES[0]);
   document.getElementById('sTheme').value=settings.theme||'auto';
+  updateDistrictMailField();
 
 
   const all=await dbGetAll('entries');
@@ -402,12 +417,17 @@ async function saveSettings(){
   const emailDispo=document.getElementById('sEmail').value.trim();
   const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if(emailDispo&&!emailRe.test(emailDispo)){toast('⚠️ Ungültige E-Mail-Adresse (Dispo)');return}
+  const distMailVal=document.getElementById('sDistMail').value.trim();
+  if(distMailVal&&!emailRe.test(distMailVal)){toast('⚠️ Ungültige Mailadresse für den Landkreis');return}
   settings.driverName=document.getElementById('sName').value.trim();
   settings.licensePlate=document.getElementById('sPlate').value.trim();
   settings.district=document.getElementById('sDist').value;
   settings.email=emailDispo;
   settings.defaultWasteType=document.getElementById('sWaste').value;
   settings.theme=document.getElementById('sTheme').value;
+  // Landkreis-Mailadresse speichern
+  if(!settings.districtMails)settings.districtMails={...DISTRICT_MAIL_DEFAULTS};
+  settings.districtMails[settings.district]=distMailVal;
 
   applyTheme(settings.theme);
   await dbPut('settings',settings,'config');
@@ -633,11 +653,10 @@ function buildSubj(e){
   const plz=e.gps?.plz||'';
   const ort=e.gps?.ort||'';
   const ot=e.gps?.ot||'';
-  const plzOrt=[plz,ort].filter(Boolean).join(' ');
-  const plzOrtOt=ot?`${plzOrt} (${ot})`:plzOrt;
-  const adresse=plzOrtOt?`${street}, in ${plzOrtOt}`:street;
-  return adresse
-    ?`Mülltonnen-Meldung | ${e.category} | ${adresse}`
+  // Betreff: alle Adressbestandteile einzeln aufführen
+  const parts=[street,plz,ort,ot?`OT: ${ot}`:''].filter(Boolean).join(' – ');
+  return parts
+    ?`Mülltonnen-Meldung | ${e.category} | ${parts}`
     :`Mülltonnen-Meldung | ${e.category} | ${fmtD(e.createdAt)}`;
 }
 
@@ -658,10 +677,6 @@ function buildBody(e,dups=[]){
     `Fahrer:    ${e.driverName||'-'}`,
     `Fahrzeug:  ${e.licensePlate||'-'}`,
     `Landkreis: ${e.district||'-'}`,'',
-    `Adresse:  ${street||'-'}`,
-    `PLZ:      ${plz||'-'}`,
-    `Ort:      ${ort||'-'}`,
-    `OT:       ${ot||'-'}`,
     `Standort: ${standort}`,
     `Barcode: ${e.barcode||'-'}`,
     `Müllart: ${e.wasteType||'-'}`,
@@ -676,7 +691,7 @@ function buildBody(e,dups=[]){
   }else{
     ln.push('Keine Duplikate gefunden.');
   }
-  ln.push('','---',`Gesendet im Auftrag von: ${e.driverName||'Fahrer'}@Augustin-Entsorgung.de`,'(Bitte nicht auf diese E-Mail antworten – Antworten an die Disposition richten)','© Michael Elvey');
+  ln.push('','---',`Gesendet im Auftrag von: Augustin Entsorgung Friesland GmbH & Co. KG`,'(Bitte nicht auf diese E-Mail antworten – Antworten an die Disposition richten)','© Michael Elvey');
   return ln.join('\n');
 }
 
@@ -696,12 +711,23 @@ async function captureEntry(){
   btn.innerHTML='Wird gespeichert…';
   cur.notes=document.getElementById('notesIn').value.trim();
   cur.updatedAt=new Date().toISOString();
-  cur.sentCount=0; // Noch nicht versendet
+  cur.sentCount=0;
   await dbPut('entries',{...cur});
   entries.unshift({...cur});
   vibe([0,50,50]);
   toast('✅ Meldung erfasst!');
-  setTimeout(()=>{resetForm();showTab('m');btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;document.getElementById('wrap').scrollTo({top:0})},800);
+  // Kurz warten damit der Toast sichtbar ist, dann Teilen-Menü öffnen
+  await new Promise(r=>setTimeout(r,600));
+  const saved={...cur};
+  await openShareModal(saved, async()=>{
+    // Nach dem Schließen des Share-Modals Formular zurücksetzen
+    const stored=entries.find(x=>x.id===saved.id);
+    if(stored){stored.sentCount=(stored.sentCount||0)+1;stored.updatedAt=new Date().toISOString();await dbPut('entries',stored);}
+    resetForm();showTab('m');btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;document.getElementById('wrap').scrollTo({top:0});
+  }, ()=>{
+    // Abbrechen: Formular trotzdem zurücksetzen
+    resetForm();showTab('m');btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;document.getElementById('wrap').scrollTo({top:0});
+  });
 }
 
 async function dataUrlsToFiles(dataUrls,id){
@@ -1264,27 +1290,95 @@ code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:
 
 async function resend(id){
   const e=entries.find(x=>x.id===id);if(!e)return;
-  const dups=findDups(e),subj=buildSubj(e),body=buildBody(e,dups);
+  await openShareModal(e, async()=>{
+    e.sentCount=(e.sentCount||0)+1;e.updatedAt=new Date().toISOString();
+    await dbPut('entries',e);renderHistory(true);toast('📤 Erneut gesendet');
+  }, null);
+}
+
+/* ============================================================
+   SHARE MODAL
+   ============================================================ */
+
+let _shareEntry=null, _shareOnSent=null, _shareOnCancel=null;
+
+async function openShareModal(entry, onSent, onCancel){
+  _shareEntry=entry;
+  _shareOnSent=onSent;
+  _shareOnCancel=onCancel;
+  const subj=buildSubj(entry);
+  document.getElementById('shareModalSubj').textContent=subj;
+  // WhatsApp / Teilen-Button nur anzeigen wenn Web Share API verfügbar
+  document.getElementById('shareBtnWA').style.display=navigator.share?'':'none';
+  // Fotos-Button nur wenn Fotos vorhanden und Web Share API verfügbar
+  const hasPhotos=(entry.photos||[]).filter(Boolean).length>0;
+  document.getElementById('shareBtnPhotos').style.display=(hasPhotos&&navigator.share)?'':'none';
+  document.getElementById('shareModal').classList.remove('h');
+}
+
+function closeShareModal(sent=false){
+  document.getElementById('shareModal').classList.add('h');
+  if(sent&&_shareOnSent)_shareOnSent();
+  else if(!sent&&_shareOnCancel)_shareOnCancel();
+  _shareEntry=null;_shareOnSent=null;_shareOnCancel=null;
+}
+
+async function shareViaEmail(){
+  if(!_shareEntry)return;
+  const e=_shareEntry;
+  const dups=findDups(e);
+  const subj=buildSubj(e);
+  const body=buildBody(e,dups);
+  const districtEmail=getDistrictEmail(e.district||settings.district);
+  const dispoEmail=settings.email||'';
+  let mailto='mailto:';
+  if(districtEmail){
+    mailto+=`${encodeURIComponent(districtEmail)}?cc=${encodeURIComponent(dispoEmail)}`;
+  }else if(dispoEmail){
+    mailto+=`${encodeURIComponent(dispoEmail)}?`;
+  }else{
+    mailto+='?';
+  }
+  const sep=mailto.includes('?')?'&':'?';
+  window.open(`${mailto}${sep}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`);
+  closeShareModal(true);
+  // Fotos separat teilen (mailto kann keine Anhänge) – kurz warten damit E-Mail-App öffnet
   const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
-  let sent=false;
-  if(navigator.share){
-    try{
-      let sd={title:subj,text:body};
-      if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles}))sd.files=photoFiles;
-      await navigator.share(sd);sent=true;
-    }catch{}
+  if(photoFiles.length>0&&navigator.share&&navigator.canShare&&navigator.canShare({files:photoFiles})){
+    await new Promise(r=>setTimeout(r,800));
+    try{await navigator.share({files:photoFiles,title:'Fotos – '+subj});}catch(err){}
   }
-  if(!sent){
-    // Empfänger-Adresse immer aus den aktuellen Einstellungen lesen
-    // (Landkreis Einstellung → Empfänger, Dispo → CC)
-    const districtEmail=getDistrictEmail(settings.district);
-    const dispoEmail=settings.email||'';
-    let rec=districtEmail?`mailto:${districtEmail}?cc=${dispoEmail}`:`mailto:${dispoEmail}`;
-    const sep=rec.includes('?')?'&':'?';
-    window.open(`${rec}${sep}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`);
-  }
-  e.sentCount++;e.updatedAt=new Date().toISOString();
-  await dbPut('entries',e);renderHistory(true);toast('📤 Erneut gesendet');
+}
+
+async function shareViaApp(){
+  if(!_shareEntry||!navigator.share)return;
+  const e=_shareEntry;
+  const subj=buildSubj(e);
+  const body=buildBody(e,findDups(e));
+  const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
+  try{
+    let sd={title:subj,text:body};
+    // Fotos hinzufügen wenn das Gerät es unterstützt
+    if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles,title:subj,text:body})){
+      sd.files=photoFiles;
+    }
+    await navigator.share(sd);
+    closeShareModal(true);
+  }catch(err){/* abgebrochen */}
+}
+
+async function shareViaPhotos(){
+  if(!_shareEntry||!navigator.share)return;
+  const e=_shareEntry;
+  const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
+  if(!photoFiles.length){toast('Keine Fotos vorhanden');return}
+  try{
+    if(navigator.canShare&&navigator.canShare({files:photoFiles})){
+      await navigator.share({files:photoFiles,title:'Fotos – '+buildSubj(e)});
+    }else{
+      toast('⚠️ Datei-Teilen wird auf diesem Gerät nicht unterstützt');
+    }
+  }catch(err){/* abgebrochen */}
 }
 
 /* ============================================================

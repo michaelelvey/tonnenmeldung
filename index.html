@@ -139,11 +139,15 @@
         <!-- Landkreis-Auswahl + dynamisches E-Mail-Feld -->
         <div class="field">
           <label>Landkreis / Gebiet</label>
-          <select id="sDist">
+          <select id="sDist" onchange="updateDistrictMailField()">
             <option value="Landkreis Wittmund">Landkreis Wittmund</option>
             <option value="Landkreis Friesland">Landkreis Friesland</option>
             <option value="Landkreis Wilhelmshaven">Landkreis Wilhelmshaven</option>
           </select>
+        </div>
+        <div class="field" id="distMailField">
+          <label id="distMailLabel">📧 Mailadresse LK WTM</label>
+          <input type="email" id="sDistMail" placeholder="z.B. meldung@lk-wittmund.de">
         </div>
 
         <div class="field">
@@ -631,6 +635,20 @@
       <div class="mbtn-row">
         <button class="btn btn-s" onclick="closeAdminPassModal()">Abbrechen</button>
         <button class="btn btn-p" onclick="confirmAdminPass()">🔓 Bestätigen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Teilen-Menü -->
+  <div class="overlay h" id="shareModal">
+    <div class="modal" style="max-width:360px">
+      <h3 style="margin-bottom:6px">📤 Meldung teilen</h3>
+      <p style="font-size:12.5px;color:var(--gray);margin-bottom:16px" id="shareModalSubj"></p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-p" id="shareBtnEmail" onclick="shareViaEmail()">📧 Per E-Mail senden</button>
+        <button class="btn btn-s" id="shareBtnWA" onclick="shareViaApp()" style="display:none">📱 Per WhatsApp / Teilen</button>
+        <button class="btn btn-s" id="shareBtnPhotos" onclick="shareViaPhotos()" style="display:none">📷 Fotos separat teilen</button>
+        <button class="btn btn-d" onclick="closeShareModal()" style="margin-top:4px">✕ Abbrechen</button>
       </div>
     </div>
   </div>
