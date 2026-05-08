@@ -645,11 +645,12 @@
       <h3 style="margin-bottom:6px">📤 Meldung teilen</h3>
       <p style="font-size:12.5px;color:var(--gray);margin-bottom:16px" id="shareModalSubj"></p>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <button class="btn btn-p" id="shareBtnEmail" onclick="shareViaEmail()">📧 Per E-Mail senden</button>
+        <button class="btn btn-p" id="shareBtnEmail" onclick="shareViaEmail()">📧 Per E-Mail (mit Fotos)</button>
+        <button class="btn btn-s" id="shareBtnEmailText" onclick="shareViaEmailText()">📧 Per E-Mail (nur Text)</button>
         <button class="btn btn-s" id="shareBtnWA" onclick="shareViaApp()" style="display:none">📱 Per WhatsApp / Teilen</button>
-        <button class="btn btn-s" id="shareBtnPhotos" onclick="shareViaPhotos()" style="display:none">📷 Fotos separat teilen</button>
         <button class="btn btn-d" onclick="closeShareModal()" style="margin-top:4px">✕ Abbrechen</button>
       </div>
+      <p id="shareHint" style="font-size:11.5px;color:var(--gray);margin-top:10px;display:none;text-align:center;line-height:1.5"></p>
     </div>
   </div>
 

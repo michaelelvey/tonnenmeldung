@@ -1308,11 +1308,9 @@ async function openShareModal(entry, onSent, onCancel){
   _shareOnCancel=onCancel;
   const subj=buildSubj(entry);
   document.getElementById('shareModalSubj').textContent=subj;
-  // WhatsApp / Teilen-Button nur anzeigen wenn Web Share API verfügbar
   document.getElementById('shareBtnWA').style.display=navigator.share?'':'none';
-  // Fotos-Button nur wenn Fotos vorhanden und Web Share API verfügbar
-  const hasPhotos=(entry.photos||[]).filter(Boolean).length>0;
-  document.getElementById('shareBtnPhotos').style.display=(hasPhotos&&navigator.share)?'':'none';
+  document.getElementById('shareHint').style.display='none';
+  document.getElementById('shareHint').textContent='';
   document.getElementById('shareModal').classList.remove('h');
 }
 
@@ -1323,33 +1321,107 @@ function closeShareModal(sent=false){
   _shareEntry=null;_shareOnSent=null;_shareOnCancel=null;
 }
 
+/* --- Hilfsfunktionen für EML-Erzeugung --- */
+function _b64enc(str){return btoa(unescape(encodeURIComponent(str)));}
+function _fileToB64(file){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=e=>res(e.target.result.split(',')[1]);
+    fr.onerror=rej;
+    fr.readAsDataURL(file);
+  });
+}
+function _wrapB64(b64){return(b64.match(/.{1,76}/g)||[b64]).join('\r\n');}
+
+async function buildEML(entry,subj,body,photoFiles){
+  const bound='FMS_'+Math.random().toString(36).substr(2,12).toUpperCase();
+  const distMail=getDistrictEmail(entry.district||settings.district);
+  const dispoMail=settings.email||'';
+  const subjEnc='=?UTF-8?B?'+_b64enc(subj)+'?=';
+  let eml='MIME-Version: 1.0\r\n';
+  if(distMail)  eml+=`To: ${distMail}\r\n`;
+  if(dispoMail) eml+=`Cc: ${dispoMail}\r\n`;
+  eml+=`Subject: ${subjEnc}\r\n`;
+  eml+=`Content-Type: multipart/mixed; boundary="${bound}"\r\n\r\n`;
+  // Text-Teil
+  eml+=`--${bound}\r\n`;
+  eml+='Content-Type: text/plain; charset=UTF-8\r\n';
+  eml+='Content-Transfer-Encoding: base64\r\n\r\n';
+  eml+=_wrapB64(_b64enc(body))+'\r\n\r\n';
+  // Foto-Anhänge
+  for(let i=0;i<photoFiles.length;i++){
+    const f=photoFiles[i];
+    const b64=await _fileToB64(f);
+    eml+=`--${bound}\r\n`;
+    eml+=`Content-Type: image/jpeg; name="${f.name}"\r\n`;
+    eml+='Content-Transfer-Encoding: base64\r\n';
+    eml+=`Content-Disposition: attachment; filename="${f.name}"\r\n\r\n`;
+    eml+=_wrapB64(b64)+'\r\n\r\n';
+  }
+  eml+=`--${bound}--\r\n`;
+  return new Blob([eml],{type:'message/rfc822'});
+}
+
+/* --- E-Mail MIT Fotos (EML-Datei) --- */
 async function shareViaEmail(){
   if(!_shareEntry)return;
   const e=_shareEntry;
-  const dups=findDups(e);
   const subj=buildSubj(e);
-  const body=buildBody(e,dups);
-  const districtEmail=getDistrictEmail(e.district||settings.district);
-  const dispoEmail=settings.email||'';
+  const body=buildBody(e,findDups(e));
+  const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
+  const hint=document.getElementById('shareHint');
+  const emlBlob=await buildEML(e,subj,body,photoFiles);
+
+  // 1. Versuch: Web Share API (iOS Mail-App unterstützt das)
+  if(navigator.share){
+    const attempts=[
+      new File([emlBlob],'Meldung.eml',{type:'message/rfc822'}),
+      new File([emlBlob],'Meldung.eml',{type:'application/octet-stream'}),
+    ];
+    for(const f of attempts){
+      if(navigator.canShare&&navigator.canShare({files:[f]})){
+        try{
+          await navigator.share({files:[f],title:subj});
+          closeShareModal(true);
+          return;
+        }catch(err){break;}
+      }
+    }
+  }
+
+  // 2. Fallback: EML herunterladen + Hinweis
+  const url=URL.createObjectURL(emlBlob);
+  const a=document.createElement('a');
+  a.href=url;a.download='Meldung.eml';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  hint.textContent='📂 "Meldung.eml" wurde heruntergeladen. Öffne die Datei in deiner Mail-App – Empfänger, Betreff und Fotos sind bereits eingetragen.';
+  hint.style.display='block';
+  if(_shareOnSent)_shareOnSent();
+}
+
+/* --- E-Mail NUR TEXT (mailto:) --- */
+function shareViaEmailText(){
+  if(!_shareEntry)return;
+  const e=_shareEntry;
+  const subj=buildSubj(e);
+  const body=buildBody(e,findDups(e));
+  const distMail=getDistrictEmail(e.district||settings.district);
+  const dispoMail=settings.email||'';
   let mailto='mailto:';
-  if(districtEmail){
-    mailto+=`${encodeURIComponent(districtEmail)}?cc=${encodeURIComponent(dispoEmail)}`;
-  }else if(dispoEmail){
-    mailto+=`${encodeURIComponent(dispoEmail)}?`;
+  if(distMail){
+    mailto+=`${encodeURIComponent(distMail)}?cc=${encodeURIComponent(dispoMail)}`;
+  }else if(dispoMail){
+    mailto+=`${encodeURIComponent(dispoMail)}?`;
   }else{
     mailto+='?';
   }
   const sep=mailto.includes('?')?'&':'?';
   window.open(`${mailto}${sep}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`);
   closeShareModal(true);
-  // Fotos separat teilen (mailto kann keine Anhänge) – kurz warten damit E-Mail-App öffnet
-  const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
-  if(photoFiles.length>0&&navigator.share&&navigator.canShare&&navigator.canShare({files:photoFiles})){
-    await new Promise(r=>setTimeout(r,800));
-    try{await navigator.share({files:photoFiles,title:'Fotos – '+subj});}catch(err){}
-  }
 }
 
+/* --- WhatsApp / andere Apps (Text + Fotos) --- */
 async function shareViaApp(){
   if(!_shareEntry||!navigator.share)return;
   const e=_shareEntry;
@@ -1358,26 +1430,11 @@ async function shareViaApp(){
   const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
   try{
     let sd={title:subj,text:body};
-    // Fotos hinzufügen wenn das Gerät es unterstützt
     if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles,title:subj,text:body})){
       sd.files=photoFiles;
     }
     await navigator.share(sd);
     closeShareModal(true);
-  }catch(err){/* abgebrochen */}
-}
-
-async function shareViaPhotos(){
-  if(!_shareEntry||!navigator.share)return;
-  const e=_shareEntry;
-  const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
-  if(!photoFiles.length){toast('Keine Fotos vorhanden');return}
-  try{
-    if(navigator.canShare&&navigator.canShare({files:photoFiles})){
-      await navigator.share({files:photoFiles,title:'Fotos – '+buildSubj(e)});
-    }else{
-      toast('⚠️ Datei-Teilen wird auf diesem Gerät nicht unterstützt');
-    }
   }catch(err){/* abgebrochen */}
 }
 
