@@ -21,7 +21,7 @@ const CATS = [
   {k:'kein Sack vom LK',i:'🛍️'},{k:'Nachfahrt',i:'🚚'},
   {k:'Schwarze Liste',i:'📝'},{k:'Sonstiges',i:'📌'}
 ];
-const WASTE_TYPES = ['Restmüll (RM)','Biomüll (BIO)','Papiermüll (Papier)','Gelbersack'];
+const WASTE_TYPES = ['RM','BIO','Papier','LVP'];
 const ACTIONS     = ['Geleert','Stehen gelassen','Keine Tonne'];
 const NO_PHOTO    = 'in Schüttung gefallen';
 const PHOTO_NAMES = ['Foto_Tonne','Foto_Zusatz','Barcode'];
@@ -261,7 +261,7 @@ function newEntry(){
     createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
     category:'',wasteType:settings.defaultWasteType,actionTaken:'Geleert',
     photos:[null,null,null],barcode:null,gps:null,notes:'',
-    driverName:settings.driverName,licensePlate:settings.licensePlate,
+    licensePlate:settings.licensePlate,
     district:settings.district,archived:false,sentCount:0
   };
 }
@@ -304,8 +304,7 @@ async function initWakeLock(){
    ============================================================ */
 
 function showStartupCheck(){
-  if(!settings.driverName){
-    // Kein Name → direkt zu Einstellungen
+  if(!settings.licensePlate){
     showTab('e');
     return;
   }
@@ -314,7 +313,6 @@ function showStartupCheck(){
   if(localStorage.getItem('startupChecked')===today)return;
   localStorage.setItem('startupChecked',today);
 
-  document.getElementById('suName').textContent=settings.driverName||'–';
   document.getElementById('suPlate').textContent=settings.licensePlate||'–';
   document.getElementById('suDist').textContent=settings.district||'–';
   // Müllsorte direkt aus dem Select-Element lesen – vermeidet Kodierungsprobleme
@@ -397,7 +395,6 @@ function updateDistrictMailField(){
 }
 
 async function loadSettingsUI(){
-  document.getElementById('sName').value=settings.driverName||'';
   document.getElementById('sPlate').value=settings.licensePlate||'';
   document.getElementById('sDist').value=settings.district||'Landkreis Wittmund';
   document.getElementById('sEmail').value=settings.email||'';
@@ -419,7 +416,6 @@ async function saveSettings(){
   if(emailDispo&&!emailRe.test(emailDispo)){toast('⚠️ Ungültige E-Mail-Adresse (Dispo)');return}
   const distMailVal=document.getElementById('sDistMail').value.trim();
   if(distMailVal&&!emailRe.test(distMailVal)){toast('⚠️ Ungültige Mailadresse für den Landkreis');return}
-  settings.driverName=document.getElementById('sName').value.trim();
   settings.licensePlate=document.getElementById('sPlate').value.trim();
   settings.district=document.getElementById('sDist').value;
   settings.email=emailDispo;
@@ -674,7 +670,6 @@ function buildBody(e,dups=[]){
     `Tonnenmeldesystem – Meldungsbericht`,
     `════════════════════════════════════`,'',
     `Datum: ${fmtDT(e.createdAt)}`,'',
-    `Fahrer:    ${e.driverName||'-'}`,
     `Fahrzeug:  ${e.licensePlate||'-'}`,
     `Landkreis: ${e.district||'-'}`,'',
     `Standort: ${standort}`,
@@ -778,7 +773,7 @@ async function renderHistory(forceReload=false){
   const cat=document.getElementById('scat').value;
   let filtered=entries.filter(e=>{
     if(cat&&e.category!==cat)return false;
-    if(txt){const s=[e.category,e.wasteType,e.actionTaken,e.driverName,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();if(!s.includes(txt))return false}
+    if(txt){const s=[e.category,e.wasteType,e.actionTaken,e.licensePlate,e.district,e.gps?.address,e.barcode,e.notes].join(' ').toLowerCase();if(!s.includes(txt))return false}
     return true;
   });
   filtered.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
@@ -800,7 +795,7 @@ function renderHE(e){
       <span>${cat.i}</span>
       <div style="flex:1">
         <div style="font-size:14px;font-weight:700;color:var(--g)">${e.category} <span style="font-weight:400;color:var(--gray);font-size:12px">(${e.wasteType||'–'})</span></div>
-        <div style="font-size:11.5px;color:var(--gray4);margin-top:2px">${fmtDT(e.createdAt)} · ${e.driverName||'–'}</div>
+        <div style="font-size:11.5px;color:var(--gray4);margin-top:2px">${fmtDT(e.createdAt)} · ${e.licensePlate||'–'}</div>
         ${e.actionTaken==='Stehen gelassen'?'<div style="font-size:10px;color:var(--r);font-weight:700;margin-top:2px">⚠️ STEHEN GELASSEN</div>':''}
       </div>
       ${e.archived?'<span style="font-size:10px;background:var(--yl);color:var(--y);padding:3px 7px;border-radius:9px">Archiv</span>':''}
@@ -984,7 +979,7 @@ async function doExport(){
   showZipProgress('CSV und Bericht werden erstellt…',65);
   const HCOLS=['ID','Datum/Zeit','Barcode','Müllart','Kategorie','Aktion','Adresse','PLZ','Ort','OT',
                'Breitengrad','Längengrad','Google Maps',
-               'Fahrername','Kennzeichen','Landkreis','Anmerkungen',
+               'Kennzeichen','Landkreis','Anmerkungen',
                'Foto Tonne','Foto Zusatz','Foto Barcode','Gesendet','Status'];
   let csv='\uFEFF';
   csv+=HCOLS.map(h=>`"${h}"`).join(';')+'\n';
@@ -999,7 +994,7 @@ async function doExport(){
       e.gps?.lat!=null?e.gps.lat.toFixed(6):'',
       e.gps?.lng!=null?e.gps.lng.toFixed(6):'',
       e.gps?`https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`:'',
-      e.driverName||'',e.licensePlate||'',e.district||'',
+      e.licensePlate||'',e.district||'',
       (e.notes||'').replace(/\r?\n/g,' '),
       fn[0]||'',fn[1]||'',fn[2]||'',
       e.sentCount||0,e.archived?'Archiv':'Aktiv'
@@ -1184,7 +1179,6 @@ code{font-size:10px;color:#555;background:#f3f4f6;padding:2px 4px;border-radius:
 
 <!-- META -->
 <div class="ae-meta">
-  <div class="ae-meta-item"><span>Fahrer</span><strong>${settings.driverName||'–'}</strong></div>
   <div class="ae-meta-item"><span>Fahrzeug</span><strong>${settings.licensePlate||'–'}</strong></div>
   <div class="ae-meta-item"><span>Landkreis</span><strong>${settings.district||'–'}</strong></div>
   <div class="ae-meta-item"><span>Erstellt am</span><strong>${fmtDT(new Date().toISOString())}</strong></div>
@@ -1491,10 +1485,7 @@ async function shareViaApp(){
 let _archivePendingAction=null;
 
 function openArchiveDelete(){
-  if(!ADMIN_PASSWORD){
-    toast('⚠️ Kein Admin-Passwort hinterlegt.');return;
-  }
-  // Passwort-Modal öffnen, danach Archiv-Modal
+  if(!ADMIN_PASSWORD){toast('Kein Admin-Passwort hinterlegt.');return}
   _archivePendingAction='archiveDelete';
   const modal=document.getElementById('adminPassModal');
   document.getElementById('adminPassInput').value='';
@@ -1504,7 +1495,6 @@ function openArchiveDelete(){
 }
 
 function _openArchiveDeleteModal(){
-  // Datum-Picker auf heute setzen
   document.getElementById('archiveDeleteDate').value=fmtISO(new Date());
   document.getElementById('archiveDeleteModal').classList.remove('h');
 }
@@ -1516,15 +1506,13 @@ async function confirmArchiveDelete(mode){
   let cutoff;
   if(mode==='date'){
     const d=new Date(document.getElementById('archiveDeleteDate').value);
-    if(isNaN(d)){toast('⚠️ Ungültiges Datum');return}
+    if(isNaN(d)){toast('Ungültiges Datum');return}
     d.setHours(23,59,59,999);cutoff=d;
   }else{
     cutoff=new Date();cutoff.setFullYear(cutoff.getFullYear()-1);cutoff.setHours(23,59,59,999);
   }
   const toDelete=archived.filter(e=>new Date(e.createdAt)<=cutoff);
-  if(!toDelete.length){toast('ℹ️ Keine Meldungen in diesem Zeitraum gefunden.');return}
-
-  // Bestätigung anfordern
+  if(!toDelete.length){toast('Keine Meldungen in diesem Zeitraum gefunden.');return}
   confirmAction(
     `${toDelete.length} archivierte Meldung${toDelete.length!==1?'en':''} endgültig löschen? Diese Aktion kann nicht rückgängig gemacht werden.`,
     async()=>{
@@ -1532,29 +1520,9 @@ async function confirmArchiveDelete(mode){
       entries=await dbGetAll('entries');
       renderHistory(true);
       await loadSettingsUI();
-      toast(`✅ ${toDelete.length} Meldung${toDelete.length!==1?'en':''} gelöscht`);
+      toast(`${toDelete.length} Meldung${toDelete.length!==1?'en':''} gelöscht`);
     },
-    '🗑 Archiv bereinigen'
-  );
-}
-
-
-/* ============================================================
-   KOMPLETTE DATENBANK LÖSCHEN
-   ============================================================ */
-async function deleteCompleteDatabase(){
-  document.getElementById('archiveDeleteModal').classList.add('h');
-  confirmAction(
-    '⛔ ACHTUNG: Alle Meldungen und Daten werden unwiderruflich gelöscht!\n\nDiese Aktion betrifft ALLE Einträge (aktiv + archiviert) und kann nicht rückgängig gemacht werden.',
-    async()=>{
-      const all=await dbGetAll('entries');
-      for(const e of all)await dbDelete('entries',e.id);
-      entries=[];
-      renderHistory(true);
-      await loadSettingsUI();
-      toast('🗑 Komplette Datenbank gelöscht');
-    },
-    '⛔ Komplette Datenbank löschen'
+    'Archiv bereinigen'
   );
 }
 
@@ -1562,22 +1530,16 @@ async function deleteCompleteDatabase(){
    SETUP LINK
    ============================================================ */
 
-/**
- * Beim App-Start: URL auf ?setup=BASE64 prüfen und Einstellungen importieren.
- * Wird aufgerufen bevor die UI aufgebaut wird.
- */
 function checkSetupLink(){
   const params=new URLSearchParams(window.location.search);
   const setup=params.get('setup');
   if(!setup)return;
   try{
-    // Korrekte Umkehr der Kodierung: percent-decode → base64 → binary → UTF-8 → JSON
     const jsonStr=decodeURIComponent(escape(atob(decodeURIComponent(setup))));
     const decoded=JSON.parse(jsonStr);
-    const allowed=['driverName','licensePlate','district','districtMails','email','defaultWasteType','theme'];
+    const allowed=['licensePlate','district','districtMails','email','defaultWasteType','theme'];
     allowed.forEach(k=>{
       if(decoded[k]!==undefined){
-        // Textwerte zusätzlich durch fixUtf8 absichern
         settings[k]=typeof decoded[k]==='string'?fixUtf8(decoded[k]):decoded[k];
       }
     });
@@ -1585,25 +1547,16 @@ function checkSetupLink(){
     applyTheme(settings.theme||'auto');
     dbPut('settings',settings,'config');
     window.history.replaceState({},'',window.location.pathname+window.location.hash);
-    setTimeout(()=>{
-      toast('✅ App erfolgreich eingerichtet!');
-      showTab('e');
-    },600);
+    setTimeout(()=>{toast('App erfolgreich eingerichtet!');showTab('e');},600);
   }catch(e){
     console.warn('Setup-Link ungültig:',e);
-    toast('⚠️ Setup-Link ungültig oder beschädigt.');
+    toast('Setup-Link ungültig oder beschädigt.');
   }
 }
 
-/**
- * Generiert einen Setup-Link mit allen Einstellungsfeldern
- * und öffnet den Teilen-Dialog oder kopiert in die Zwischenablage.
- */
 function generateSetupLink(){
-  if(!ADMIN_PASSWORD){
-    toast('⚠️ Kein Admin-Passwort hinterlegt.');
-    return;
-  }
+  if(!ADMIN_PASSWORD){toast('Kein Admin-Passwort hinterlegt.');return}
+  _archivePendingAction=null;
   const modal=document.getElementById('adminPassModal');
   document.getElementById('adminPassInput').value='';
   document.getElementById('adminPassError').classList.add('hidden');
@@ -1633,33 +1586,34 @@ function closeAdminPassModal(){
 }
 
 function _doGenerateSetupLink(){
-  // Alle Einstellungsfelder übertragen
+  const districtMails={...settings.districtMails};
+  const curDist=document.getElementById('sDist').value;
+  const distMailEl=document.getElementById('sDistMail');
+  const curMail=distMailEl?distMailEl.value.trim():'';
+  if(curMail)districtMails[curDist]=curMail;
   const payload={
-    driverName:       document.getElementById('sName').value.trim(),
     licensePlate:     document.getElementById('sPlate').value.trim(),
-    district:         document.getElementById('sDist').value,
+    district:         curDist,
+    districtMails:    districtMails,
     email:            document.getElementById('sEmail').value.trim(),
     defaultWasteType: document.getElementById('sWaste').value,
     theme:            document.getElementById('sTheme').value
   };
-  // Leere Felder entfernen
-  Object.keys(payload).forEach(k=>{if(payload[k]===''||payload[k]===null)delete payload[k]});
-
+  Object.keys(payload.districtMails).forEach(k=>{if(!payload.districtMails[k])delete payload.districtMails[k]});
+  Object.keys(payload).forEach(k=>{if(payload[k]===''||payload[k]===null||payload[k]===undefined)delete payload[k]});
   const base64=encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
   const appUrl='https://michaelelvey.github.io/tonnenmeldung/';
   const fullUrl=`${appUrl}?setup=${base64}`;
-
-  const msg=`Mülltonnen-Meldung – Einrichtungslink\n\n`
-    +`Tippe auf den Link – die App öffnet sich und alle Einstellungen werden automatisch geladen:\n\n`
-    +`${fullUrl}\n\n`
-    +`Danach nur noch deinen Namen und dein Kennzeichen in den Einstellungen eintragen.\n\n`
-    +`„Zum Homescreen hinzufügen" für die Vollbild-App.`;
-
+  const msg='Tonnenmeldesystem - Einrichtungslink\n\n'
+    +'Tippe auf den Link - die App öffnet sich und alle Einstellungen werden automatisch geladen:\n\n'
+    +fullUrl+'\n\n'
+    +'Danach nur noch unter Einstellungen die Daten kontrollieren und ggf. korrigieren.\n\n'
+    +'"Zum Homescreen hinzufügen" für die Vollbild-App.';
   if(navigator.share){
-    navigator.share({title:'Mülltonnen-App Einrichtung',text:msg}).catch(()=>{});
+    navigator.share({title:'Tonnenmeldesystem Einrichtung',text:msg}).catch(()=>{});
   }else{
     navigator.clipboard.writeText(fullUrl)
-      .then(()=>toast('🔗 Link in Zwischenablage kopiert!'))
-      .catch(()=>{window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank')});
+      .then(()=>toast('Link in Zwischenablage kopiert!'))
+      .catch(()=>{window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank')});
   }
 }
