@@ -644,12 +644,24 @@
     </div>
   </div>
 
+
+  <!-- JSZip für ZIP-Export -->
+  <!-- JSZip für ZIP-Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="script.js"></script>
-  <script>
-    // Versionsnummer sofort setzen – keine Verzögerung
-    document.title='Mülltonnen-Meldung '+APP_VERSION;
-    document.querySelectorAll('.app-version').forEach(el=>el.textContent=APP_VERSION);
-  </script>
+
+  <!-- FMS Module (Reihenfolge: config zuerst, app zuletzt) -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/photo.js"></script>
+  <script src="js/gps.js"></script>
+  <script src="js/form.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+
 </body>
 </html>

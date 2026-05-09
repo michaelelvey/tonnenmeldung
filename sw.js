@@ -1,19 +1,30 @@
 /**
- * sw.js – Service Worker für Mülltonnen-Meldung (TMS)
+ * sw.js – Service Worker für Fahrermeldesystem (FMS)
  *
  * Strategie: Network-First für App-Dateien
  * → Fahrer laden beim Öffnen immer die neueste Version vom Server.
  * → Ist kein Internet vorhanden, springt die App auf den lokalen Cache.
  */
 
-const CACHE_NAME = 'tms-cache-v3';
+const CACHE_NAME = 'fms-cache-v1';
 
 // App-Dateien, die gecacht werden (Offline-Fallback)
 const PRECACHE = [
   './',
   './index.html',
-  './script.js',
-  './styles.css'
+  './styles.css',
+  './js/config.js',
+  './js/utils.js',
+  './js/db.js',
+  './js/photo.js',
+  './js/gps.js',
+  './js/form.js',
+  './js/history.js',
+  './js/share.js',
+  './js/export.js',
+  './js/settings.js',
+  './js/admin.js',
+  './js/app.js',
 ];
 
 // Diese Domains werden IMMER live abgerufen (niemals cachen)
@@ -48,13 +59,10 @@ self.addEventListener('activate', event => {
 
 // ============================================================
 //  FETCH – Network-First Strategie
-//  Neue Version auf dem Server → Fahrer bekommen sie sofort.
-//  Kein Internet → App läuft aus dem Cache (offline-fähig).
 // ============================================================
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Externe APIs immer live abrufen
   if (NETWORK_ONLY.some(domain => url.hostname.includes(domain))) {
     event.respondWith(
       fetch(event.request).catch(() => new Response('', { status: 503 }))
@@ -62,14 +70,11 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Nur GET cachen
   if (event.request.method !== 'GET') return;
 
-  // Network-First: zuerst Server versuchen, bei Fehler Cache nutzen
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Gültige Antwort → in Cache speichern und zurückgeben
         if (response && response.status === 200 && response.type !== 'opaque') {
           caches.open(CACHE_NAME)
             .then(cache => cache.put(event.request, response.clone()));
@@ -77,10 +82,8 @@ self.addEventListener('fetch', event => {
         return response;
       })
       .catch(() => {
-        // Offline → aus Cache bedienen
         return caches.match(event.request).then(cached => {
           if (cached) return cached;
-          // Navigations-Fallback auf index.html
           if (event.request.mode === 'navigate') {
             return caches.match('./index.html');
           }
