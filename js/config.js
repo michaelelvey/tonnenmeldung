@@ -19,8 +19,14 @@ const CATS = [
   {k:'Überfüllt',i:'📦'},{k:'Fehlbefüllung',i:'⚠️'},
   {k:'in Schüttung gefallen',i:'⬇️'},{k:'beschädigt',i:'🔨'},
   {k:'kein Sack vom LK',i:'🛍️'},{k:'Nachfahrt',i:'🚚'},
-  {k:'Schwarze Liste',i:'📝'},{k:'Sonstiges',i:'📌'}
+  {k:'Schwarze Liste',i:'📝'},
+  {k:'Falscher Termin (2, 4, 6 wöchig)',i:'📅'},
+  {k:'Sonstiges',i:'📌'}
 ];
+
+/* ---------- Landkreis-abhängige Kategorien ---------- */
+const CATS_WITTMUND_ONLY  = ['Chip defekt','kein Sack vom LK'];
+const CATS_NICHT_WITTMUND = ['Falscher Termin (2, 4, 6 wöchig)'];
 const WASTE_TYPES = ['RM','BIO','Papier','LVP'];
 const ACTIONS     = ['Geleert','Stehen gelassen','Keine Tonne'];
 const NO_PHOTO    = 'in Schüttung gefallen';
