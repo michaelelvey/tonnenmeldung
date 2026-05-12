@@ -1,4 +1,4 @@
-const APP_VERSION='2.89 Pro'; // ← HIER Versionsnummer ändern
+const APP_VERSION='2.86 Pro'; // ← HIER Versionsnummer ändern
 'use strict';
 
 /* ============================================================
@@ -270,7 +270,6 @@ async function init(){
   await loadData();
   checkSetupLink();
   initPWA();buildUI();newEntry();await loadSettingsUI();
-  document.querySelectorAll('.app-version').forEach(el=>el.textContent=APP_VERSION);
   initWakeLock();
   if(!('BarcodeDetector' in window)){
     const s2=document.getElementById('slot2');
@@ -346,7 +345,7 @@ function initPWA(){
   try{
     const mb=new Blob([JSON.stringify(m)],{type:'application/json'});
     document.getElementById('pwaManifest').href=URL.createObjectURL(mb);
-    if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v='+encodeURIComponent(APP_VERSION)).catch(()=>{});
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
   }catch{}
 }
 
@@ -457,7 +456,6 @@ function buildUI(){
   CATS.forEach(c=>{
     [sc,ec].forEach(el=>{const o=document.createElement('option');o.value=c.k;o.textContent=c.k;el.appendChild(o)});
   });
-  applyDistrictFilter();
 }
 
 function showTab(name){

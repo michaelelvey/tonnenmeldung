@@ -83,8 +83,6 @@ async function saveSettings(){
 
   applyTheme(settings.theme);
   await dbPut('settings',settings,'config');
-  applyDistrictFilter();
-  if(cur)cur.district=settings.district;
   toast('✅ Gespeichert');
   const wSel=document.getElementById('wasteSelect');
   setWasteSelect(settings.defaultWasteType);
@@ -107,7 +105,6 @@ function buildUI(){
   CATS.forEach(c=>{
     [sc,ec].forEach(el=>{const o=document.createElement('option');o.value=c.k;o.textContent=c.k;el.appendChild(o)});
   });
-  applyDistrictFilter();
 }
 
 function showTab(name){

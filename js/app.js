@@ -48,16 +48,11 @@ async function init(){
   await loadData();
   checkSetupLink();
   initPWA();buildUI();newEntry();await loadSettingsUI();
-  document.querySelectorAll('.app-version').forEach(el=>el.textContent=APP_VERSION);
   initWakeLock();
-  applyDistrictFilter();
   if(!('BarcodeDetector' in window)){
-    // Nur anwenden wenn Barcode-Slot nicht schon durch Landkreis-Filter ausgeblendet
     const s2=document.getElementById('slot2');
-    if(s2 && s2.parentElement.style.display!=='none'){
-      s2.style.opacity='0.5';s2.style.pointerEvents='none';
-      s2.querySelector('.psub').textContent='Nicht unterstützt';
-    }
+    s2.style.opacity='0.5';s2.style.pointerEvents='none';
+    s2.querySelector('.psub').textContent='Nicht unterstützt';
   }
   resetForm();
   showStartupCheck();
@@ -114,19 +109,6 @@ function showStartupCheck(){
   const wSel=document.getElementById('sWaste');
   const wText=wSel.selectedIndex>=0?wSel.options[wSel.selectedIndex].text:settings.defaultWasteType;
   document.getElementById('suWaste').textContent=wText||'–';
-  // E-Mail Dispo
-  document.getElementById('suEmail').textContent=settings.email||'–';
-  // E-Mail Landkreis (nur anzeigen wenn vorhanden)
-  const distMail=(settings.districtMails||{})[settings.district]||'';
-  const distMailRow=document.getElementById('suDistMailRow');
-  if(distMail){
-    const abbr={'Landkreis Wittmund':'WTM','Landkreis Friesland':'FRI','Landkreis Wilhelmshaven':'WHV'};
-    document.getElementById('suDistMailLabel').textContent='📧 E-Mail LK '+(abbr[settings.district]||'');
-    document.getElementById('suDistMail').textContent=distMail;
-    distMailRow.style.display='flex';
-  }else{
-    distMailRow.style.display='none';
-  }
   document.getElementById('startupModal').classList.remove('h');
 }
 
@@ -146,7 +128,7 @@ function initPWA(){
   try{
     const mb=new Blob([JSON.stringify(m)],{type:'application/json'});
     document.getElementById('pwaManifest').href=URL.createObjectURL(mb);
-    if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v='+encodeURIComponent(APP_VERSION)).catch(()=>{});
+    if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
   }catch{}
 }
 
