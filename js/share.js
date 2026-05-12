@@ -154,21 +154,19 @@ async function openShareModal(entry, onSent, onCancel){
   }
   const subjEl=document.getElementById('shareModalSubj');
   if(subjEl)subjEl.textContent=subj;
-  const waBtn=document.getElementById('shareBtnWA');
-  if(waBtn)waBtn.style.display=navigator.share?'':'none';
-  // Empfänger-Hinweis anzeigen wenn Teilen verfügbar
+  // Empfänger-Vorschau anzeigen
   const hint=document.getElementById('shareHint');
   if(hint){
     const distMail=getDistrictEmail(entry.district||settings.district);
     const dispoMail=settings.email||'';
-    if(navigator.share&&(distMail||dispoMail)){
-      let hinweis='📋 Beim Teilen per E-Mail bitte manuell eintragen:<br>';
-      if(distMail) hinweis+=`<strong>An:</strong> <span onclick="copyToClip('${distMail}')" style="color:var(--blue);cursor:pointer">${distMail} ⎘</span><br>`;
-      if(dispoMail) hinweis+=`<strong>CC:</strong> <span onclick="copyToClip('${dispoMail}')" style="color:var(--blue);cursor:pointer">${dispoMail} ⎘</span>`;
+    if(distMail||dispoMail){
+      let hinweis='';
+      if(distMail) hinweis+=`📬 <strong>An:</strong> ${distMail}<br>`;
+      if(dispoMail) hinweis+=`📬 <strong>CC:</strong> ${dispoMail}`;
       hint.innerHTML=hinweis;
       hint.style.display='block';
     }else{
-      hint.style.display='none';hint.innerHTML='';
+      hint.style.display='none';
     }
   }
   modalEl.classList.remove('h');
@@ -269,14 +267,37 @@ async function shareViaEmail(){
   if(_shareOnSent)_shareOnSent();
 }
 
-/* --- E-Mail NUR TEXT (mailto:) --- */
-function shareViaEmailText(){
+/* --- Meldung senden: Web Share API → Fallback mailto: --- */
+async function meldungSenden(){
   if(!_shareEntry)return;
   const e=_shareEntry;
   const subj=buildSubj(e);
   const body=buildBody(e,findDups(e));
   const distMail=getDistrictEmail(e.district||settings.district);
   const dispoMail=settings.email||'';
+  // Empfängerzeilen im Text (sichtbar in allen Apps)
+  const empfHeader=[
+    distMail ?`📧 An:  ${distMail}`:'',
+    dispoMail?`📧 CC:  ${dispoMail}`:'',
+    distMail||dispoMail?'────────────────────────────────────':''
+  ].filter(Boolean).join('\n');
+  const fullText=(empfHeader?`${empfHeader}\n\n`:'')+body;
+  // 1. Versuch: Web Share API (öffnet Systemteilen-Menü – Fahrer kann Mail-App wählen)
+  if(navigator.share){
+    try{
+      await navigator.share({title:subj,text:fullText});
+      closeShareModal(true);
+      return;
+    }catch(err){
+      if(err.name==='AbortError')return; // Fahrer hat abgebrochen
+    }
+  }
+  // 2. Fallback: mailto: (öffnet Standard-Mail-App direkt mit Betreff + Empfänger)
+  _mailtoFallback(e,subj,body,distMail,dispoMail);
+}
+
+/* --- mailto:-Hilfsfunktion --- */
+function _mailtoFallback(e,subj,body,distMail,dispoMail){
   let mailto='mailto:';
   if(distMail){
     mailto+=`${encodeURIComponent(distMail)}?cc=${encodeURIComponent(dispoMail)}`;
@@ -288,6 +309,17 @@ function shareViaEmailText(){
   const sep=mailto.includes('?')?'&':'?';
   window.open(`${mailto}${sep}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`);
   closeShareModal(true);
+}
+
+/* --- E-Mail NUR TEXT (mailto:) – intern weiterhin nutzbar --- */
+function shareViaEmailText(){
+  if(!_shareEntry)return;
+  const e=_shareEntry;
+  const subj=buildSubj(e);
+  const body=buildBody(e,findDups(e));
+  const distMail=getDistrictEmail(e.district||settings.district);
+  const dispoMail=settings.email||'';
+  _mailtoFallback(e,subj,body,distMail,dispoMail);
 }
 
 /* --- Teilen (WhatsApp / E-Mail / …) mit Text + Fotos --- */
