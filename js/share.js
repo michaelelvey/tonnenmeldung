@@ -169,6 +169,8 @@ async function openShareModal(entry, onSent, onCancel){
       hint.style.display='none';
     }
   }
+  const waBtn=document.getElementById('shareBtnWA');
+  if(waBtn)waBtn.style.display=navigator.share?'':'none';
   modalEl.classList.remove('h');
 }
 
