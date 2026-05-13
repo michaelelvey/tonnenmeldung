@@ -1,4 +1,4 @@
-const APP_VERSION='2.85 Pro'; // ← HIER Versionsnummer ändern
+const APP_VERSION='2.9 Pro'; // ← HIER Versionsnummer ändern
 'use strict';
 
 /* ============================================================
@@ -6,6 +6,7 @@ const APP_VERSION='2.85 Pro'; // ← HIER Versionsnummer ändern
    ============================================================ */
 
 /* ---------- Admin-Passwort (nur hier ändern) ---------- */
+// HINWEIS: Passwort ist im Quellcode sichtbar – ausschließlich für interne Nutzung gedacht.
 const ADMIN_PASSWORD = '31512';
 
 const DISTRICT_MAIL_DEFAULTS = {

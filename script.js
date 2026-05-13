@@ -291,6 +291,7 @@ function fixUtf8(str){
 
 /* ============================================================
    WAKE LOCK
+   ============================================================ */
 
 let wakeLock=null;
 async function initWakeLock(){
@@ -402,6 +403,13 @@ function updateDistrictMailField(){
   document.getElementById('sDistMail').value=currentMail;
 }
 
+async function updateStats(){
+  const all=await dbGetAll('entries');
+  document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
+  document.getElementById('stArchived').textContent=all.filter(e=>e.archived).length;
+  document.getElementById('stTotal').textContent=all.length;
+}
+
 async function loadSettingsUI(){
   document.getElementById('sPlate').value=settings.licensePlate||'';
   document.getElementById('sDist').value=settings.district||'Landkreis Wittmund';
@@ -409,12 +417,7 @@ async function loadSettingsUI(){
   setWasteSelect(settings.defaultWasteType||WASTE_TYPES[0]);
   document.getElementById('sTheme').value=settings.theme||'auto';
   updateDistrictMailField();
-
-
-  const all=await dbGetAll('entries');
-  document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
-  document.getElementById('stArchived').textContent=all.filter(e=>e.archived).length;
-  document.getElementById('stTotal').textContent=all.length;
+  await updateStats();
 }
 
 async function saveSettings(){
@@ -466,7 +469,7 @@ function showTab(name){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
   document.getElementById('tb-'+name).classList.add('on');
   document.getElementById('pane-'+name).classList.add('on');
-  if(name==='v'){renderHistory(true);loadSettingsUI()}
+  if(name==='v'){renderHistory(true);updateStats()}
   if(name==='e')loadSettingsUI();
 }
 
@@ -792,7 +795,7 @@ async function renderHistory(forceReload=false){
 }
 
 function renderHE(e){
-  const cat=CATS.find(c=>c.k===e.category)||{i:'<img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAADbklEQVR4nG2TSWxUdRzHv7//e/PeTGcrXaYzdhgqIzZUOnogEOpSjDGGhJgYhIQLejAhemk0enDFMRqMcTl5MnrgRKzeDAfRkNZUJYGUiOBCpVNbK9NZ38y8Zd5/89qDn/Pn+PkQ/odnLq1Gn//5zY+sxvp+CL8lu538aqV59sT3s+eBebndJQ0QtKbFFx97IH9PYSYxlHxC1Tf2CqdVVN1WzwxczqOJuNfuEtW2bikpr+nUyAUvk1k88PGVDQKApfee2jc9Zl9PZseAWBzoOVBBD8xrgderYAxQfgj/nwak3wcZNq44qRuPf3WsZF6anTV//env22E2/GKHeeOUO5BTkXjKVM6/jNwWtORQfgDf5brZlporEkz1jTu88wlQVuzwYeD0N1e9wp7c0n37MubdWZuNUJtSQU1FRQCLc5iKIQpGmQGDspayxoeTRnF6ehEAzBPlBQaAEDOrZtzEYH6SzFicjBVFQRBCKwUllLY8l2qbHVq7HUKySNBQwx4AsLmzJ+dW3j9yrXJzy+j1hTR4n7UCa2u5GT8fhlwEXGkDmjqh4t0QvkGAZORcHx1tAwCr1Wq/RNx2qXKnl5UKLWuAkavtb/f//vppro0gYRu64evLy23rjZsNcTHCmAaMeiLxoU8AzF0DwWsqwlQxF3unWndTiTEXaeaUlsfn3h2J24m+kADp3fen+KtevqCc9XX4UjvlMil9HIaZSVuPDEYga5udMY9DS9dDOu6WpnYNly5cXXuFUcLc6ujmQznxVlr3xqtCSaX6B88dSB+neWferDa8HzMZe8Z1AtiuRyo/ijCmlRKh3j2YfDoe7MxP5RqJuN1NbK5XhUHMENbA1ylbv3Du0NiCefGHtZObudhMreaP3AvnJd4qTBgZk4RmbE8WBzlfgxQcsgcoRdIwLPIE27grIkvMFB/Q9q5X3n7ws+LOHc+5qaIQm3+YqlNXUCAtBZgb0OqfLXSCKJrQmLIbcLUN88wZsGcrs1alsiCiyVgTBkktpQKY1lIyRgwAoLTWUijNGHEnxK0tWJMdzS6zchlqYgLi0QWIrhv+BSWNmAXLti2ymIZhEiImIUKgKAMjIttOjp76zZV7j35Xf5i2XYnPn5xMHCpYLw+NDB1RvF/QficttY5IX3C34TUbTbHSCPDlsaXqpwCgNeg/P2vPGAJz2BMAAAAASUVORK5CYII=\" style=\"width:18px;height:18px;vertical-align:middle\">'};
+  const cat=CATS.find(c=>c.k===e.category)||{i:'❓'};
   const photos=(e.photos||[]).filter(Boolean);
   const stehenClass=e.actionTaken==='Stehen gelassen'?'stehen-gelassen':'';
   const photoHtml=photos.length
@@ -817,7 +820,7 @@ function renderHE(e){
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
         <button class="sm btn-s" onclick="editEntry('${e.id}')">✏️ Bearbeiten</button>
         <button class="sm btn-p" style="background:var(--g2);color:#fff" onclick="resend('${e.id}')">📤 Senden</button>
-        <button class="sm btn-d" style="background:var(--r);color:#fff" onclick="confirmAction('Eintrag vom ${fmtDT(e.createdAt)} wirklich löschen?',()=>delEntry('${e.id}'),'Eintrag löschen')"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAADbklEQVR4nG2TSWxUdRzHv7//e/PeTGcrXaYzdhgqIzZUOnogEOpSjDGGhJgYhIQLejAhemk0enDFMRqMcTl5MnrgRKzeDAfRkNZUJYGUiOBCpVNbK9NZ38y8Zd5/89qDn/Pn+PkQ/odnLq1Gn//5zY+sxvp+CL8lu538aqV59sT3s+eBebndJQ0QtKbFFx97IH9PYSYxlHxC1Tf2CqdVVN1WzwxczqOJuNfuEtW2bikpr+nUyAUvk1k88PGVDQKApfee2jc9Zl9PZseAWBzoOVBBD8xrgderYAxQfgj/nwak3wcZNq44qRuPf3WsZF6anTV//env22E2/GKHeeOUO5BTkXjKVM6/jNwWtORQfgDf5brZlporEkz1jTu88wlQVuzwYeD0N1e9wp7c0n37MubdWZuNUJtSQU1FRQCLc5iKIQpGmQGDspayxoeTRnF6ehEAzBPlBQaAEDOrZtzEYH6SzFicjBVFQRBCKwUllLY8l2qbHVq7HUKySNBQwx4AsLmzJ+dW3j9yrXJzy+j1hTR4n7UCa2u5GT8fhlwEXGkDmjqh4t0QvkGAZORcHx1tAwCr1Wq/RNx2qXKnl5UKLWuAkavtb/f//vppro0gYRu64evLy23rjZsNcTHCmAaMeiLxoU8AzF0DwWsqwlQxF3unWndTiTEXaeaUlsfn3h2J24m+kADp3fen+KtevqCc9XX4UjvlMil9HIaZSVuPDEYga5udMY9DS9dDOu6WpnYNly5cXXuFUcLc6ujmQznxVlr3xqtCSaX6B88dSB+neWferDa8HzMZe8Z1AtiuRyo/ijCmlRKh3j2YfDoe7MxP5RqJuN1NbK5XhUHMENbA1ylbv3Du0NiCefGHtZObudhMreaP3AvnJd4qTBgZk4RmbE8WBzlfgxQcsgcoRdIwLPIE27grIkvMFB/Q9q5X3n7ws+LOHc+5qaIQm3+YqlNXUCAtBZgb0OqfLXSCKJrQmLIbcLUN88wZsGcrs1alsiCiyVgTBkktpQKY1lIyRgwAoLTWUijNGHEnxK0tWJMdzS6zchlqYgLi0QWIrhv+BSWNmAXLti2ymIZhEiImIUKgKAMjIttOjp76zZV7j35Xf5i2XYnPn5xMHCpYLw+NDB1RvF/QficttY5IX3C34TUbTbHSCPDlsaXqpwCgNeg/P2vPGAJz2BMAAAAASUVORK5CYII=" style="width:14px;height:14px;vertical-align:middle;margin-right:3px"> Löschen</button>
+        <button class="sm btn-d" style="background:var(--r);color:#fff" onclick="confirmAction('Eintrag vom ${fmtDT(e.createdAt)} wirklich löschen?',()=>delEntry('${e.id}'),'Eintrag löschen')">🗑️ Löschen</button>
       </div>
     </div>
   </div>`;
@@ -1362,7 +1365,7 @@ function closeShareModal(sent=false){
 }
 
 /* --- Hilfsfunktionen für EML-Erzeugung --- */
-function _b64enc(str){return btoa(unescape(encodeURIComponent(str)));}
+function _b64enc(str){const bytes=new TextEncoder().encode(str);let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin);}
 function _fileToB64(file){
   return new Promise((res,rej)=>{
     const fr=new FileReader();
@@ -1610,8 +1613,8 @@ function _doGenerateSetupLink(){
   };
   Object.keys(payload.districtMails).forEach(k=>{if(!payload.districtMails[k])delete payload.districtMails[k]});
   Object.keys(payload).forEach(k=>{if(payload[k]===''||payload[k]===null||payload[k]===undefined)delete payload[k]});
-  const base64=encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))));
-  const appUrl='https://michaelelvey.github.io/tonnenmeldung/';
+  const base64=encodeURIComponent(_b64enc(JSON.stringify(payload)));
+  const appUrl=window.location.origin+window.location.pathname;
   const fullUrl=`${appUrl}?setup=${base64}`;
   const msg='Tonnenmeldesystem - Einrichtungslink\n\n'
     +'Tippe auf den Link - die App öffnet sich und alle Einstellungen werden automatisch geladen:\n\n'

@@ -50,6 +50,13 @@ function updateDistrictMailField(){
   document.getElementById('sDistMail').value=currentMail;
 }
 
+async function updateStats(){
+  const all=await dbGetAll('entries');
+  document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
+  document.getElementById('stArchived').textContent=all.filter(e=>e.archived).length;
+  document.getElementById('stTotal').textContent=all.length;
+}
+
 async function loadSettingsUI(){
   document.getElementById('sPlate').value=settings.licensePlate||'';
   document.getElementById('sDist').value=settings.district||'Landkreis Wittmund';
@@ -57,12 +64,7 @@ async function loadSettingsUI(){
   setWasteSelect(settings.defaultWasteType||WASTE_TYPES[0]);
   document.getElementById('sTheme').value=settings.theme||'auto';
   updateDistrictMailField();
-
-
-  const all=await dbGetAll('entries');
-  document.getElementById('stActive').textContent=all.filter(e=>!e.archived).length;
-  document.getElementById('stArchived').textContent=all.filter(e=>e.archived).length;
-  document.getElementById('stTotal').textContent=all.length;
+  await updateStats();
 }
 
 async function saveSettings(){
@@ -116,7 +118,7 @@ function showTab(name){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
   document.getElementById('tb-'+name).classList.add('on');
   document.getElementById('pane-'+name).classList.add('on');
-  if(name==='v'){renderHistory(true);loadSettingsUI()}
+  if(name==='v'){renderHistory(true);updateStats()}
   if(name==='e')loadSettingsUI();
 }
 

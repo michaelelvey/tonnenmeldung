@@ -125,7 +125,7 @@ function _doGenerateSetupLink(){
   Object.keys(payload.districtMails).forEach(k=>{if(!payload.districtMails[k])delete payload.districtMails[k]});
   Object.keys(payload).forEach(k=>{if(payload[k]===''||payload[k]===null||payload[k]===undefined)delete payload[k]});
   const base64=encodeURIComponent(_b64enc(JSON.stringify(payload)));
-  const appUrl='https://michaelelvey.github.io/tonnenmeldung/';
+  const appUrl=window.location.origin+window.location.pathname;
   const fullUrl=`${appUrl}?setup=${base64}`;
   const msg='Tonnenmeldesystem - Einrichtungslink\n\n'
     +'Tippe auf den Link - die App öffnet sich und alle Einstellungen werden automatisch geladen:\n\n'

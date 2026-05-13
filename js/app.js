@@ -76,6 +76,7 @@ function fixUtf8(str){
 
 /* ============================================================
    WAKE LOCK
+   ============================================================ */
 
 let wakeLock=null;
 async function initWakeLock(){
