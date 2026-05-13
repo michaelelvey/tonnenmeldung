@@ -262,38 +262,13 @@ async function shareViaEmail(){
   _mailtoFallback(e,subj,body,distMail,dispoMail);
 }
 
-/* --- Meldung senden: Web Share API → Fallback mailto: --- */
-async function meldungSenden(){
-  if(!_shareEntry)return;
-  const e=_shareEntry;
-  const subj=buildSubj(e);
-  const body=buildBody(e,findDups(e));
-  const distMail=getDistrictEmail(e.district||settings.district);
-  const dispoMail=settings.email||'';
-  // Empfängerzeilen im Text (sichtbar in allen Apps)
-  const empfHeader=[
+/* --- Empfänger-Kopfzeilen für Sharing-Text --- */
+function _buildEmpfHeader(distMail,dispoMail){
+  return[
     distMail ?`📧 An:  ${distMail}`:'',
     dispoMail?`📧 CC:  ${dispoMail}`:'',
     distMail||dispoMail?'────────────────────────────────────':''
   ].filter(Boolean).join('\n');
-  const fullText=(empfHeader?`${empfHeader}\n\n`:'')+body;
-  // 1. Versuch: Web Share API (öffnet Systemteilen-Menü – Fahrer kann Mail-App wählen)
-  if(navigator.share){
-    try{
-      const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
-      let sd={title:subj,text:fullText};
-      if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles,title:subj,text:fullText})){
-        sd.files=photoFiles;
-      }
-      await navigator.share(sd);
-      closeShareModal(true);
-      return;
-    }catch(err){
-      if(err.name==='AbortError')return; // Fahrer hat abgebrochen
-    }
-  }
-  // 2. Fallback: mailto: (öffnet Standard-Mail-App direkt mit Betreff + Empfänger)
-  _mailtoFallback(e,subj,body,distMail,dispoMail);
 }
 
 /* --- mailto:-Hilfsfunktion --- */
@@ -320,11 +295,7 @@ async function captureAndShare(entry,onSent,onCancel){
   if(navigator.share){
     try{
       const photoFiles=await dataUrlsToFiles((entry.photos||[]).filter(Boolean),entry.id);
-      const empfHeader=[
-        distMail ?`📧 An:  ${distMail}`:'',
-        dispoMail?`📧 CC:  ${dispoMail}`:'',
-        distMail||dispoMail?'────────────────────────────────────':''
-      ].filter(Boolean).join('\n');
+      const empfHeader=_buildEmpfHeader(distMail,dispoMail);
       const fullText=empfHeader?`${empfHeader}\n\n${body}`:body;
       let sd={title:subj,text:fullText};
       if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles,title:subj,text:fullText})){
@@ -335,23 +306,10 @@ async function captureAndShare(entry,onSent,onCancel){
       return;
     }catch(err){
       if(err.name==='AbortError'){if(onCancel)onCancel();return;}
-      // Share fehlgeschlagen → Fallback
     }
   }
-  // Fallback: mailto: direkt öffnen
   _mailtoFallback(entry,subj,body,distMail,dispoMail,false);
   if(onSent)await onSent();
-}
-
-/* --- E-Mail NUR TEXT (mailto:) – intern weiterhin nutzbar --- */
-function shareViaEmailText(){
-  if(!_shareEntry)return;
-  const e=_shareEntry;
-  const subj=buildSubj(e);
-  const body=buildBody(e,findDups(e));
-  const distMail=getDistrictEmail(e.district||settings.district);
-  const dispoMail=settings.email||'';
-  _mailtoFallback(e,subj,body,distMail,dispoMail);
 }
 
 /* --- Teilen (WhatsApp / E-Mail / …) mit Text + Fotos --- */
@@ -360,14 +318,9 @@ async function shareViaApp(){
   const e=_shareEntry;
   const subj=buildSubj(e);
   const body=buildBody(e,findDups(e));
-  // Empfängeradressen oben anhängen – sichtbar wenn in Gmail oder anderen Mail-Apps geteilt wird
   const distMail=getDistrictEmail(e.district||settings.district);
   const dispoMail=settings.email||'';
-  const empfHeader=[
-    distMail ?`📧 AN:  ${distMail}`:'',
-    dispoMail?`📧 CC:  ${dispoMail}`:'',
-    distMail||dispoMail?'────────────────────────────────────':''
-  ].filter(Boolean).join('\n');
+  const empfHeader=_buildEmpfHeader(distMail,dispoMail);
   const fullText=empfHeader?`${empfHeader}\n\n${body}`:body;
   const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
   try{

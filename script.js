@@ -1458,15 +1458,13 @@ function _mailtoFallback(e,subj,body,distMail,dispoMail,closeModal=true){
   if(closeModal)closeShareModal(true);
 }
 
-/* --- E-Mail NUR TEXT (mailto:) --- */
-function shareViaEmailText(){
-  if(!_shareEntry)return;
-  const e=_shareEntry;
-  const subj=buildSubj(e);
-  const body=buildBody(e,findDups(e));
-  const distMail=getDistrictEmail(e.district||settings.district);
-  const dispoMail=settings.email||'';
-  _mailtoFallback(e,subj,body,distMail,dispoMail);
+/* --- Empfänger-Kopfzeilen für Sharing-Text --- */
+function _buildEmpfHeader(distMail,dispoMail){
+  return[
+    distMail ?`📧 An:  ${distMail}`:'',
+    dispoMail?`📧 CC:  ${dispoMail}`:'',
+    distMail||dispoMail?'────────────────────────────────────':''
+  ].filter(Boolean).join('\n');
 }
 
 /* --- Teilen (WhatsApp / E-Mail / …) mit Text + Fotos --- */
@@ -1477,11 +1475,7 @@ async function shareViaApp(){
   const body=buildBody(e,findDups(e));
   const distMail=getDistrictEmail(e.district||settings.district);
   const dispoMail=settings.email||'';
-  const empfHeader=[
-    distMail ?`📧 AN:  ${distMail}`:'',
-    dispoMail?`📧 CC:  ${dispoMail}`:'',
-    distMail||dispoMail?'────────────────────────────────────':''
-  ].filter(Boolean).join('\n');
+  const empfHeader=_buildEmpfHeader(distMail,dispoMail);
   const fullText=empfHeader?`${empfHeader}\n\n${body}`:body;
   const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
   try{
@@ -1503,11 +1497,7 @@ async function captureAndShare(entry,onSent,onCancel){
   if(navigator.share){
     try{
       const photoFiles=await dataUrlsToFiles((entry.photos||[]).filter(Boolean),entry.id);
-      const empfHeader=[
-        distMail ?`📧 An:  ${distMail}`:'',
-        dispoMail?`📧 CC:  ${dispoMail}`:'',
-        distMail||dispoMail?'────────────────────────────────────':''
-      ].filter(Boolean).join('\n');
+      const empfHeader=_buildEmpfHeader(distMail,dispoMail);
       const fullText=empfHeader?`${empfHeader}\n\n${body}`:body;
       let sd={title:subj,text:fullText};
       if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles,title:subj,text:fullText})){
