@@ -86,7 +86,7 @@ async function saveSettings(){
   applyTheme(settings.theme);
   await dbPut('settings',settings,'config');
   applyDistrictFilter();
-  if(cur)cur.district=settings.district;
+  if(cur){cur.district=settings.district;cur.licensePlate=settings.licensePlate;}
   toast('✅ Gespeichert');
   const wSel=document.getElementById('wasteSelect');
   setWasteSelect(settings.defaultWasteType);
