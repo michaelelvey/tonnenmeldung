@@ -237,36 +237,29 @@ async function shareViaEmail(){
   const e=_shareEntry;
   const subj=buildSubj(e);
   const body=buildBody(e,findDups(e));
+  const distMail=getDistrictEmail(e.district||settings.district);
+  const dispoMail=settings.email||'';
   const photoFiles=await dataUrlsToFiles((e.photos||[]).filter(Boolean),e.id);
-  const hint=document.getElementById('shareHint');
   const emlBlob=await buildEML(e,subj,body,photoFiles);
 
-  // 1. Versuch: Web Share API (iOS Mail-App unterstützt das)
+  // 1. Versuch: EML direkt teilen (ohne canShare-Check – manche Geräte melden false, können es aber doch)
   if(navigator.share){
-    const attempts=[
-      new File([emlBlob],'Meldung.eml',{type:'message/rfc822'}),
-      new File([emlBlob],'Meldung.eml',{type:'application/octet-stream'}),
-    ];
-    for(const f of attempts){
-      if(navigator.canShare&&navigator.canShare({files:[f]})){
-        try{
-          await navigator.share({files:[f],title:subj});
-          closeShareModal(true);
-          return;
-        }catch(err){break;}
+    const mimeTypes=['message/rfc822','application/octet-stream'];
+    for(const mime of mimeTypes){
+      const f=new File([emlBlob],'Meldung.eml',{type:mime});
+      try{
+        await navigator.share({files:[f],title:subj});
+        closeShareModal(true);
+        return;
+      }catch(err){
+        if(err.name==='AbortError')return; // Fahrer hat abgebrochen
+        // Nächsten MIME-Typ versuchen
       }
     }
   }
 
-  // 2. Fallback: EML herunterladen + Hinweis
-  const url=URL.createObjectURL(emlBlob);
-  const a=document.createElement('a');
-  a.href=url;a.download='Meldung.eml';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),2000);
-  hint.textContent='📂 "Meldung.eml" wurde heruntergeladen. Öffne die Datei in deiner Mail-App – Empfänger, Betreff und Fotos sind bereits eingetragen.';
-  hint.style.display='block';
-  if(_shareOnSent)_shareOnSent();
+  // 2. Fallback: mailto: – Betreff, Empfänger und Text sind gesetzt (Fotos nicht möglich)
+  _mailtoFallback(e,subj,body,distMail,dispoMail);
 }
 
 /* --- Meldung senden: Web Share API → Fallback mailto: --- */
