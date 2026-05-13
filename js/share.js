@@ -35,6 +35,7 @@ function buildBody(e,dups=[]){
     `Müllart: ${e.wasteType||'-'}`,
     `Kategorie: ${e.category||'-'}`,
     `Aktion: ${e.actionTaken||'-'}`,
+    ...(e.notes?[`Anmerkung: ${e.notes}`]:[]),
     `GPS: ${e.gps?`${e.gps.lat.toFixed(6)}, ${e.gps.lng.toFixed(6)}`:'-'}`,
     `Karte: ${e.gps?`https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`:'-'}`,'',
   ];

@@ -150,7 +150,6 @@ function _doGenerateSetupLink(){
  * Wird über den "Komplette Datenbank löschen"-Button aufgerufen.
  */
 async function deleteCompleteDatabase(){
-  document.getElementById('archiveDeleteModal').classList.add('h');
   confirmAction(
     '⛔ ACHTUNG: Alle Meldungen werden unwiderruflich gelöscht!\n\nDiese Aktion kann nicht rückgängig gemacht werden.',
     async()=>{
