@@ -1,4 +1,4 @@
-const APP_VERSION='2.89 Pro'; // ← HIER Versionsnummer ändern
+const APP_VERSION='2.9 Pro'; // ← HIER Versionsnummer ändern
 'use strict';
 
 /* ============================================================
