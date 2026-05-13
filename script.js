@@ -728,7 +728,7 @@ async function captureEntry(){
     await new Promise(r=>setTimeout(r,600));
     const saved={...cur};
     const _resetBtn=()=>{btn.innerHTML='📋 Meldung erfassen';btn.disabled=false;};
-    await openShareModal(saved, async()=>{
+    await captureAndShare(saved, async()=>{
       const stored=entries.find(x=>x.id===saved.id);
       if(stored){stored.sentCount=(stored.sentCount||0)+1;stored.updatedAt=new Date().toISOString();await dbPut('entries',stored);}
       resetForm();showTab('m');_resetBtn();document.getElementById('wrap').scrollTo({top:0});
@@ -1443,14 +1443,8 @@ async function shareViaEmail(){
   if(_shareOnSent)_shareOnSent();
 }
 
-/* --- E-Mail NUR TEXT (mailto:) --- */
-function shareViaEmailText(){
-  if(!_shareEntry)return;
-  const e=_shareEntry;
-  const subj=buildSubj(e);
-  const body=buildBody(e,findDups(e));
-  const distMail=getDistrictEmail(e.district||settings.district);
-  const dispoMail=settings.email||'';
+/* --- mailto:-Hilfsfunktion --- */
+function _mailtoFallback(e,subj,body,distMail,dispoMail,closeModal=true){
   let mailto='mailto:';
   if(distMail){
     mailto+=`${encodeURIComponent(distMail)}?cc=${encodeURIComponent(dispoMail)}`;
@@ -1461,7 +1455,18 @@ function shareViaEmailText(){
   }
   const sep=mailto.includes('?')?'&':'?';
   window.open(`${mailto}${sep}subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`);
-  closeShareModal(true);
+  if(closeModal)closeShareModal(true);
+}
+
+/* --- E-Mail NUR TEXT (mailto:) --- */
+function shareViaEmailText(){
+  if(!_shareEntry)return;
+  const e=_shareEntry;
+  const subj=buildSubj(e);
+  const body=buildBody(e,findDups(e));
+  const distMail=getDistrictEmail(e.district||settings.district);
+  const dispoMail=settings.email||'';
+  _mailtoFallback(e,subj,body,distMail,dispoMail);
 }
 
 /* --- Teilen (WhatsApp / E-Mail / …) mit Text + Fotos --- */
@@ -1470,7 +1475,6 @@ async function shareViaApp(){
   const e=_shareEntry;
   const subj=buildSubj(e);
   const body=buildBody(e,findDups(e));
-  // Empfängeradressen oben anhängen – sichtbar wenn in Gmail oder anderen Mail-Apps geteilt wird
   const distMail=getDistrictEmail(e.district||settings.district);
   const dispoMail=settings.email||'';
   const empfHeader=[
@@ -1488,6 +1492,36 @@ async function shareViaApp(){
     await navigator.share(sd);
     closeShareModal(true);
   }catch(err){/* abgebrochen */}
+}
+
+/* --- Direkt-Teilen nach Erfassen (kein Modal) --- */
+async function captureAndShare(entry,onSent,onCancel){
+  const subj=buildSubj(entry);
+  const body=buildBody(entry,findDups(entry));
+  const distMail=getDistrictEmail(entry.district||settings.district);
+  const dispoMail=settings.email||'';
+  if(navigator.share){
+    try{
+      const photoFiles=await dataUrlsToFiles((entry.photos||[]).filter(Boolean),entry.id);
+      const empfHeader=[
+        distMail ?`📧 An:  ${distMail}`:'',
+        dispoMail?`📧 CC:  ${dispoMail}`:'',
+        distMail||dispoMail?'────────────────────────────────────':''
+      ].filter(Boolean).join('\n');
+      const fullText=empfHeader?`${empfHeader}\n\n${body}`:body;
+      let sd={title:subj,text:fullText};
+      if(photoFiles.length>0&&navigator.canShare&&navigator.canShare({files:photoFiles,title:subj,text:fullText})){
+        sd.files=photoFiles;
+      }
+      await navigator.share(sd);
+      if(onSent)await onSent();
+      return;
+    }catch(err){
+      if(err.name==='AbortError'){if(onCancel)onCancel();return;}
+    }
+  }
+  _mailtoFallback(entry,subj,body,distMail,dispoMail,false);
+  if(onSent)await onSent();
 }
 
 /* ============================================================
