@@ -1,4 +1,4 @@
-const APP_VERSION='2.9 Pro'; // ← HIER Versionsnummer ändern
+const APP_VERSION='2.9 Pro'; // ← Spiegelung von js/config.js – immer dort ändern, hier synchron halten!
 'use strict';
 
 /* ============================================================

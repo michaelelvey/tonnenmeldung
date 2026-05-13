@@ -1,4 +1,4 @@
-const APP_VERSION='2.9 Pro'; // ← HIER Versionsnummer ändern
+const APP_VERSION='Beta 1.75'; // ← NUR HIER ändern! Gilt automatisch für die gesamte App + SW-Cache
 'use strict';
 
 /* ============================================================
